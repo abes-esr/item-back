@@ -1,0 +1,52 @@
+package fr.abes.item.dao.item;
+
+import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.entities.item.DemandeModif;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+/**
+ * Service permettant de retourner une liste de Demande de modification, variant selon des critères.
+ */
+public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
+    /**
+     * @param iln l'établissement auquel appartient la bibliothèque, une bibliothèque pouvant appartenir à
+     *            plusieurs établissements
+     * @return les demandes appartenant à l'iln de l'utilisateur (un iln comprenant plusieurs rcr)
+     *            et qui sont ni dans l'état préparé, ni dans l'état archivé
+     */
+    @Query("select d from DemandeModif d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
+    List<DemandeModif> getActiveDemandesModifForUserExceptedPreparedStatus(@Param("iln") String iln);
+
+    @Query("select d from DemandeModif d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)")
+    List<DemandeModif> getAllActiveDemandesModifForAdmin(@Param("iln") String iln);
+
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat not in (9, 2, 10)")
+    List<DemandeModif> getAllActiveDemandesModifForAdminExtended();
+
+    @Query("select d from DemandeModif d where d.iln = :iln and d.etatDemande.numEtat = 9")
+    List<DemandeModif> getAllArchivedDemandesModif(@Param("iln") String iln);
+
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 9")
+    List<DemandeModif> getAllArchivedDemandesModifExtended();
+
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
+    List<DemandeModif> getNextDemandeToProceed();
+
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 order by d.dateModification asc")
+    List<DemandeModif> getListDemandesToClean();
+
+    //Même si l'ide signale la requête elle est correcte, demandes en statut terminé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 7 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    List<DemandeModif> getNextDemandeToArchive();
+
+    //Même si l'ide signale la requête elle est correcte, demandes en statut archivé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 9 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    List<DemandeModif> getNextDemandeToPlaceInDeletedStatus();
+
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 and d.dateModification < current_date - 210 order by d.dateModification asc")
+    List<DemandeModif> getNextDemandeToDelete();
+}

@@ -1,0 +1,41 @@
+## To see how the modification of the file is taken into project, to refresh the project's cache, use the command
+## git rm -r --cached .
+## on the root of project.
+
+/target/
+**/target/**
+.target
+
+### LOG ###
+*.log
+**/logs/**
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### Hibernate - config locale pour intellij ###
+hibernate.cfg.xml
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
+
+## APPLICATION PROPERTIES -> JENKINS ##
+## Ce fichier en local ne doit jamais être poussé sur le dépot il contient les identifiants mdp, le demander en interne pour la configuration
+**/resources/application-localhost.properties
+**/resources/log4j2-localhost.xml

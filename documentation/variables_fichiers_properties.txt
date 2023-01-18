@@ -1,0 +1,293 @@
+###fichier: web > src > main > resources > application.properties
+
+#version de l'application
+application.version.back=
+application.version.front=
+
+#base de dev
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+#base xml de dev
+basexml.datasource.url=
+basexml.datasource.username=
+basexml.datasource.password=
+basexml.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.database-platform=org.hibernate.dialect.Oracle10gDialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+spring.servlet.multipart.enabled=true
+
+sudoc.serveur=
+sudoc.port=
+#login permettant de tester si le CBS répond
+sudoc.login=
+
+batch.minHour=8
+batch.maxHour=20
+
+files.upload.path=/applis/item/
+
+# spécifique à spring security
+app.jwtSecret=
+app.jwtExpirationInMs=
+
+#spring logging level
+logging.level.root=INFO
+logging.level.org.springframework.web=ERROR
+
+#spring logging configuration
+spring.main.banner-mode=OFF
+spring.output.ansi.enabled=ALWAYS
+
+#tomcat logging level, web logging level, sql logging level
+logging.group.tomcat=org.apache.catalina, org.apache.coyote, org.apache.tomcat
+logging.group.web=org.springframework.core.codec, org.springframework.http, org.springframework.web
+logging.group.sql=org.springframework.jdbc.core, org.hibernate.SQL
+logging.level.tomcat=INFO
+logging.level.web=ERROR
+logging.level.sql=TRACE
+
+# web service d'authentification au Sudoc
+# par défaut on pointe sur test car dev est branché sur rubeus qui n'est pas à jour
+wsAuthSudoc.url=
+
+
+
+###fichier: web > src > main > resources > application-PROD.properties
+
+#base de prod
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=
+
+# base xml de prod
+basexml.datasource.url=
+basexml.datasource.username=
+basexml.datasource.password=
+basexml.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+#spring logging level
+logging.level.root=ERROR
+logging.level.org.springframework.web=FATAL
+
+#spring logging configuration
+spring.main.banner-mode=OFF
+spring.output.ansi.enabled=ALWAYS
+spring.batch.initialize-schema=NEVER
+
+#tomcat logging level, web logging level, sql logging level
+logging.group.tomcat=org.apache.catalina, org.apache.coyote, org.apache.tomcat
+logging.group.web=org.springframework.core.codec, org.springframework.http, org.springframework.web
+logging.group.sql=org.springframework.jdbc.core, org.hibernate.SQL
+logging.level.tomcat=FATAL
+logging.level.web=FATAL
+logging.level.sql=FATAL
+
+sudoc.serveur=
+
+# web service d'authentification au Sudoc
+wsAuthSudoc.url=
+
+files.upload.path=/applis/item/
+
+
+
+###fichier: web > src > main > resources > application-TEST.properties
+
+#base de test
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+sudoc.serveur=
+
+#spring logging level
+logging.level.root=WARN
+logging.level.org.springframework.web=ERROR
+
+#spring logging configuration
+spring.main.banner-mode=OFF
+spring.output.ansi.enabled=ALWAYS
+spring.batch.initialize-schema=NEVER
+
+#tomcat logging level, web logging level, sql logging level
+logging.group.tomcat=org.apache.catalina, org.apache.coyote, org.apache.tomcat
+logging.group.web=org.springframework.core.codec, org.springframework.http, org.springframework.web
+logging.group.sql=org.springframework.jdbc.core, org.hibernate.SQL
+logging.level.tomcat=WARN
+logging.level.web=WARN
+logging.level.sql=WARN
+
+# web service d'authentification au Sudoc
+wsAuthSudoc.url=
+
+
+
+###fichier: web > src > test > resources > application.properties
+
+#version de l'application
+application.version.back=
+application.version.front=
+
+#bazse de dev
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+basexml.datasource.url=
+basexml.datasource.username=
+basexml.datasource.password=
+basexml.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.Oracle10gDialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+
+batch.minHour=8
+batch.maxHour=20
+
+# security
+app.jwtSecret=
+app.jwtExpirationInMs=
+
+files.upload.path=/applis/item/
+
+authentication.test.coord.username=
+authentication.test.coord.password=
+authentication.test.coord.usernum=
+authentication.test.coord.shortname=
+authentication.test.coord.iln=
+authentication.test.coord.role=
+
+authentication.test.admin.username=
+authentication.test.admin.password=
+authentication.test.admin.usernum=
+authentication.test.admin.shortname=
+authentication.test.admin.role=
+
+authentication.test.std.username=
+authentication.test.std.password=
+
+sudoc.serveur=
+sudoc.port=
+sudoc.login=
+
+# web service d'authentification au Sudoc
+wsAuthSudoc.url=
+
+
+
+###fichier: core > src > test > resources > application.properties
+
+#base de dev
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+basexml.datasource.url=
+basexml.datasource.username=
+basexml.datasource.password=
+basexml.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.database-platform=org.hibernate.dialect.Oracle10gDialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+
+sudoc.serveur=
+sudoc.port=
+sudoc.login=
+sudoc.defaultPass=
+
+files.upload.path=/applis/item/
+
+
+
+###fichier: batch > src > main > resources > application.properties
+
+#base de dev
+
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+basexml.datasource.url=
+basexml.datasource.username=
+basexml.datasource.password=
+basexml.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.database-platform=org.hibernate.dialect.Oracle10gDialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+spring.servlet.multipart.enabled=true
+
+sudoc.serveur=
+sudoc.port=
+#login permettant de tester si le CBS répond
+sudoc.login=
+
+files.upload.path=/applis/item/
+
+files.upload.statistiques.path=/applis/statistiques/item/dev/
+mail.ws.url=http://cirse1-dev.v3.abes.fr:8124/wsmail/
+mail.admin=item@abes.fr
+
+batch.minHour=8
+batch.maxHour=20
+
+batch.nbPpnInFileResult=5
+
+spring.main.web-application-type=none
+spring.batch.initialize-schema=NEVER
+
+
+
+
+###fichier: batch > src > main > resources > application-PROD.properties
+
+#base de prod
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+#serveur mail de prod
+mail.ws.url=http://cirse1.v3.abes.fr:8124/wsmail/
+
+files.upload.statistiques.path=/applis/statistiques/item/prod/
+
+sudoc.serveur=
+
+files.upload.path=/applis/item/
+
+
+
+###fichier: batch > src > main > resources > application-TEST.properties
+
+#base de test
+kopya.datasource.url=
+kopya.datasource.username=
+kopya.datasource.password=
+kopya.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+#serveur mail de test
+mail.ws.url=https://apicom-test.sudoc.fr/wsmail/
+files.upload.statistiques.path=/applis/statistiques/item/test/
