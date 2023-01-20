@@ -1,8 +1,0 @@
-# Item
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchTraiterLigneFichierModif.sh > /dev/null 2>&1
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchTraiterLigneFichierExemp.sh > /dev/null 2>&1
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchTraiterLigneFichierRecouv.sh > /dev/null 2>&1
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchArchiverDemandesPlusDeTroisMois.sh > /dev/null 2>&1
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchStatutSupprimeDemandesPlusDeTroisMois.sh > /dev/null 2>&1
-* * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchSuppressionDemandesPlusDeTroisMois.sh > /dev/null 2>&1
-*/5 * * * * source /etc/profile ; /home/batch/item/current/bin/itemBatchRestartJobs.sh > /dev/null 2>&1
