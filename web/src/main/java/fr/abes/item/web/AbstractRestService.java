@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
  * Injecte le service provider qui contient l'ensemble des interfaces
  * pour accéder aux données des différentes tables en base
  */
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class AbstractRestService {
     @Autowired
     private ServiceProvider serviceProvider;
