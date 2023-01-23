@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
 public interface ITraitementRestService {
     @GetMapping(value = "/traitements")
     @ApiOperation(value = "permet de récupérer la liste des traitements relatifs à une demandeModif")

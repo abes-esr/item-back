@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+
 public interface IDemandeRestService {
     @GetMapping(value = "/demandes")
     @ApiOperation(value = "renvoie les demandes pour les administrateurs",
