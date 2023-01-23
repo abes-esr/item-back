@@ -3,6 +3,8 @@ package fr.abes.item.configuration;
 
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -20,23 +22,25 @@ import javax.sql.DataSource;
 		basePackages = "fr.abes.item.dao.baseXml")
 @NoArgsConstructor
 public class BaseXMLOracleConfig extends AbstractConfig {
-	@Value("${basexml.datasource.url}")
-	private String url;
-	@Value("${basexml.datasource.username}")
-	private String username;
-	@Value("${basexml.datasource.password}")
-	private String password;
-	@Value("${basexml.datasource.driver-class-name}")
-	private String driver;
+	@Value("${spring.jpa.basexml.database-platform}")
+	protected String platform;
+	@Value("${spring.jpa.basexml.hibernate.ddl-auto}")
+	protected String ddlAuto;
+	@Value("${spring.sql.basexml.generate-ddl}")
+	protected boolean generateDdl;
+	@Value("${spring.jpa.basexml.properties.hibernate.dialect}")
+	protected String dialect;
+	@Value("${basexml.jpa.show-sql}")
+	private boolean showsql;
+	@Value("${spring.sql.basexml.init.mode}")
+	private String initMode;
+	@Value("${spring.hibernate.basexml.enable_lazy_load_no_trans}")
+	private boolean lazyload;
 
-	@Bean(name="baseXmlDataSource")
+	@Bean
+	@ConfigurationProperties(prefix = "spring.datasource.basexml")
 	public DataSource baseXmlDataSource() {
-		final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setDriverClassName(driver);
-		dataSource.setUrl(url);
-		dataSource.setUsername(username);
-		dataSource.setPassword(password);
-		return dataSource;
+		return DataSourceBuilder.create().build();
 	}
 
 	@Bean
@@ -46,7 +50,7 @@ public class BaseXMLOracleConfig extends AbstractConfig {
 		em.setDataSource(baseXmlDataSource());
 		em.setPackagesToScan(
 				new String[] { "fr.abes.item.entities.baseXml" });
-		configHibernate(em);
+		configHibernate(em, platform, showsql, dialect, ddlAuto, generateDdl, initMode, lazyload);
 		return em;
 	}
 
