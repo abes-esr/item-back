@@ -26,11 +26,11 @@ public class BaseXMLOracleConfig extends AbstractConfig {
 	protected String platform;
 	@Value("${spring.jpa.basexml.hibernate.ddl-auto}")
 	protected String ddlAuto;
-	@Value("${spring.sql.basexml.generate-ddl}")
+	@Value("${spring.jpa.basexml.generate-ddl}")
 	protected boolean generateDdl;
 	@Value("${spring.jpa.basexml.properties.hibernate.dialect}")
 	protected String dialect;
-	@Value("${basexml.jpa.show-sql}")
+	@Value("${spring.jpa.basexml.show-sql}")
 	private boolean showsql;
 	@Value("${spring.sql.basexml.init.mode}")
 	private String initMode;

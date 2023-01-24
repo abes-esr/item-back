@@ -31,7 +31,7 @@ public class UtilisateurService implements IUtilisateurService {
 
     @Override
     public String findRcrById(String id){
-        return dao.getUtilisateur().findUserRcr(Integer.parseInt(id));
+        return dao.getUserProfile().findAllByUserNum(Integer.parseInt(id)).getLibrary();
     }
 
     @Override

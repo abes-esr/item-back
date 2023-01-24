@@ -16,7 +16,7 @@ import java.io.Serializable;
 public class LigneFichierExemp extends LigneFichier implements Serializable, GenericEntity<Integer>, ILigneFichier {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "NUM_LIGNEFICHIER")
     private Integer numLigneFichier;
 

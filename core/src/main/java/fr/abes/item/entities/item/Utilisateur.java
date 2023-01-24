@@ -3,6 +3,7 @@ package fr.abes.item.entities.item;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.abes.item.entities.GenericEntity;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,10 +14,12 @@ import java.util.Set;
 @Table(name = "UTILISATEUR")
 @JsonIgnoreProperties({"demandeModifs", "journalDemandeModifs"})
 @Getter @Setter
+@NoArgsConstructor
 public class Utilisateur implements Serializable, GenericEntity<Integer> {
     private static final long serialVersionUID = 1L;
 
-    @Id @Column(name = "NUM_USER")
+    @Id
+    @Column(name = "NUM_USER")
     private Integer numUser;
     @Column(name = "EMAIL")
     private String email;
@@ -26,9 +29,6 @@ public class Utilisateur implements Serializable, GenericEntity<Integer> {
     private Set<JournalDemandeModif> journalDemandeModifs;
     @Transient
     private String iln;
-
-    public Utilisateur() {
-    }
 
     public Utilisateur(Integer numUser, String email) {
         this.numUser = numUser;
