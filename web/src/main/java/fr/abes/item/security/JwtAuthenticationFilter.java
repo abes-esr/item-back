@@ -25,14 +25,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private LoginAttemptService loginAttemptService;
 
-    @Autowired
-    private HttpServletRequest request;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
         	log.debug(Constant.ENTER_DOFILTERINTERNAL);
-            final String ip = getClientIP();
+            final String ip = getClientIP(request);
             if (loginAttemptService.isBlocked(ip)) {
                 throw new RuntimeException(Constant.IP_BLOCKED);
             }
@@ -56,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private final String getClientIP() {
+    private final String getClientIP(HttpServletRequest request) {
         final String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {
             return request.getRemoteAddr();

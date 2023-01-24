@@ -65,4 +65,10 @@ public class UtilisateurService implements IUtilisateurService {
         }
         return false;
     }
+
+    @Override
+    public String findEmailById(Integer id) {
+        Optional<Utilisateur> utilisateurOpt = dao.getUtilisateur().findById(id);
+        return utilisateurOpt.map(Utilisateur::getEmail).orElse(null);
+    }
 }

@@ -64,7 +64,7 @@ public class StatusService implements IStatusService {
         jdbcTemplateBaseXml = new JdbcTemplate(baseXmlDataSource);
 
         try {
-            SqlRowSet objectTest = jdbcTemplateBaseXml.queryForRowSet("SELECT SYSDATE FROM DUAL");
+            SqlRowSet objectTest = jdbcTemplateBaseXml.queryForRowSet("select current_date");
             return objectTest.first();
         } catch (DataAccessException e){
             log.error(e.getMessage());
@@ -79,7 +79,7 @@ public class StatusService implements IStatusService {
     @Override
     public Boolean getKopyaDataBaseStatus(){
         try {
-            this.kopyaJdbcTemplate.queryForRowSet("SELECT user FROM role WHERE ROWNUM = 1"); //Micro requête pour un tps de réponse très rapide (juste première occurence)
+            this.kopyaJdbcTemplate.queryForRowSet("SELECT user FROM role limit 1"); //Micro requête pour un tps de réponse très rapide (juste première occurence)
             return true;
         } catch (DataAccessException e) {
             log.error(e.getMessage());

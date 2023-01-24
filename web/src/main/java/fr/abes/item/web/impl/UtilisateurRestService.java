@@ -28,7 +28,6 @@ public class UtilisateurRestService extends AbstractRestService implements IUtil
 	@Override
 	@PutMapping(value="/utilisateurs/{id}")
     public Utilisateur save(@PathVariable Integer id, @RequestBody Utilisateur util, HttpServletRequest request) throws ForbiddenException {
-
 		checkAccessToServices.autoriserMajUtilisateurParUserNum(id, request.getAttribute("userNum").toString());
 		util.setNumUser(id);
 		return getService().getUtilisateur().save(util);

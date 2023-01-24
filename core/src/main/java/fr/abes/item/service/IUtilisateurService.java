@@ -22,4 +22,6 @@ public interface IUtilisateurService {
     boolean isAdmin(Utilisateur utilisateur);
 
     String findRcrById(String id);
+
+    String findEmailById(Integer id);
 }
