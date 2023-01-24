@@ -28,7 +28,9 @@ public class ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonth
     List<DemandeExemp> demandes;
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {}
+    public void beforeStep(StepExecution stepExecution) {
+        log.info("Archivage automatique des demandes d'exemplarisation, modification et recouvrement lancé");
+    }
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {

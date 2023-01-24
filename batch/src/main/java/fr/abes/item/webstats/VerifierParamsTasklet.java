@@ -22,6 +22,7 @@ public class VerifierParamsTasklet implements Tasklet, StepExecutionListener {
     @Override
     public void beforeStep(StepExecution stepExecution) {
         LogTime.logDebutTraitement(stepExecution);
+        log.info(Constant.JOB_EXPORT_STATISTIQUES_START);
         if (System.getProperty(Constant.ANNEE) != null && System.getProperty("mois") != null) {
             this.annee = Integer.parseInt(System.getProperty(Constant.ANNEE));
             this.mois = Integer.parseInt(System.getProperty("mois"));

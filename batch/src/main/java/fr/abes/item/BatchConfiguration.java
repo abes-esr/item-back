@@ -61,8 +61,6 @@ public class BatchConfiguration {
     // Job de lancement d'un traitement de modification
     @Bean
     public Job jobTraiterLigneFichier(ItemReader itemReader, ItemProcessor itemProcessor, ItemWriter itemWriter) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_MODIF);
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_MODIF_NAME).incrementer(incrementer())
                 .start(stepRecupererNextDemandeModif()).on(Constant.FAILED).end()
@@ -80,8 +78,6 @@ public class BatchConfiguration {
     //job de lancement d'un traitement d'exemplarisation
     @Bean
     public Job jobTraiterLigneFichierExemp(ItemReader itemReader, ItemProcessor itemProcessor, ItemWriter itemWriter) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_EXEMP);
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_EXEMP_NAME).incrementer(incrementer())
                 .start(stepRecupererNextDemandeExemp()).on(Constant.FAILED).end()
@@ -99,8 +95,6 @@ public class BatchConfiguration {
     //job de lancement d'un test de recouvrement
     @Bean
     public Job jobTraiterLigneFichierRecouv(ItemReader itemReader, ItemProcessor itemProcessor, ItemWriter itemWriter) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_RECOU);
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_RECOU_NAME).incrementer(incrementer())
                 .start(stepRecupererNextDemandeRecouv()).on(Constant.FAILED).end()
@@ -126,8 +120,6 @@ public class BatchConfiguration {
     // Job d'export des statistiques mensuelles
     @Bean
     public Job jobExportStatistiques() {
-        log.info(Constant.JOB_EXPORT_STATISTIQUES_START);
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_EXPORT_STATISTIQUES_NAME).incrementer(incrementer())
                 .start(stepVerifierParams()).on(Constant.FAILED).end()
@@ -137,8 +129,6 @@ public class BatchConfiguration {
 
     //Job d'archivage automatique de toutes les demandes en statut terminé dont la dernière modification à plus de trois mois
     @Bean Job jobArchivageDemandes() {
-        log.info("Archivage automatique des demandes d'exemplarisation, modification et recouvrement lancé");
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_ARCHIVAGE_DEMANDES_EN_BASE).incrementer(incrementer())
                 .start(stepArchivageAutomatiqueDemandesExemp()).on(Constant.FAILED).end()
@@ -155,8 +145,6 @@ public class BatchConfiguration {
 
     //Job de placement en statut supprimé de toutes les demandes en statut archivé dont ce statut à plus de trois mois
     @Bean Job jobSuppressionMaisConservationEnBaseDemandes() {
-        log.info("Passage en statut supprimé (mais conservation en base) des demandes d'exemplarisation, modification et recouvrement lancé");
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_STATUT_SUPPRIME_DEMANDES_EN_BASE).incrementer(incrementer())
                 .start(stepChangementStatutSupprimeDemandesExemp()).on(Constant.FAILED).end()
@@ -173,8 +161,6 @@ public class BatchConfiguration {
 
     //Job de suppression définitive en base de donnée de toutes les demandes en statut supprimé, dont ce statut à plus de trois mois
     @Bean Job jobSuppressionDefinitiveDemandes() {
-        log.info("Suppression déifnitive des demandes en base d'exemplarisation, modification et recouvrement");
-
         return jobs
                 .get(Constant.SPRING_BATCH_JOB_SUPPRESSION_DEMANDES_EN_BASE).incrementer(incrementer())
                 .start(stepSuppresionDemandesExemp()).on(Constant.FAILED).end()

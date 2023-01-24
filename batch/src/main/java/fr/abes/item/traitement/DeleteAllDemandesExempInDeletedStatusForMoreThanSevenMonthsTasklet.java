@@ -27,7 +27,9 @@ public class DeleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet 
     List<DemandeExemp> demandes;
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {}
+    public void beforeStep(StepExecution stepExecution) {
+        log.info("Suppression déifnitive des demandes en base d'exemplarisation, modification et recouvrement");
+    }
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {

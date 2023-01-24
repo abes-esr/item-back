@@ -30,7 +30,7 @@ public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListe
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-
+        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_RECOU);
     }
 
     @Override

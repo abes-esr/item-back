@@ -30,7 +30,7 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-
+        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_EXEMP);
     }
 
     @Override
