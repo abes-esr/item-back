@@ -1,6 +1,8 @@
 package fr.abes.item.security;
 
 import fr.abes.item.constant.Constant;
+import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.service.service.ServiceProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,6 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -35,6 +39,9 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
     @Autowired
     AuthenticationEventPublisher authenticationEventPublisher;
+
+    @Resource
+    private ServiceProvider service;
 
     private JdbcTemplate jdbcTemplateBaseKopya;
 
@@ -57,7 +64,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
         if (u != null) {
 
-            u.setMail(this.getEmail(u.getUserNum()));
+            u.setMail(this.getEmail(Integer.parseInt(u.getUserNum())));
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority(u.getRole()));
 
@@ -95,12 +102,9 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             return null;
         }
     }
-    public String getEmail(String userNum) {
-
+    public String getEmail(Integer userNum) {
         try {
-            return this.jdbcTemplateBaseKopya.queryForObject(
-                    "select EMAIL from UTILISATEUR where NUM_USER = ?",
-                    new Object[]{userNum}, String.class);
+            return service.getUtilisateur().findEmailById(userNum);
         }
         catch (EmptyResultDataAccessException e)
         {

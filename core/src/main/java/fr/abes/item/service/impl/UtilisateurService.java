@@ -31,7 +31,7 @@ public class UtilisateurService implements IUtilisateurService {
 
     @Override
     public String findRcrById(String id){
-        return dao.getUtilisateur().findUserRcr(Integer.parseInt(id));
+        return dao.getUserProfile().findAllByUserNum(Integer.parseInt(id)).getLibrary();
     }
 
     @Override
@@ -64,5 +64,11 @@ public class UtilisateurService implements IUtilisateurService {
             }
         }
         return false;
+    }
+
+    @Override
+    public String findEmailById(Integer id) {
+        Optional<Utilisateur> utilisateurOpt = dao.getUtilisateur().findById(id);
+        return utilisateurOpt.map(Utilisateur::getEmail).orElse(null);
     }
 }

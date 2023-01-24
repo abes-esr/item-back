@@ -6,6 +6,5 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface IUtilisateurDao extends JpaRepository<Utilisateur, Integer> {
-    @Query("select l.library from UserProfile l where l.userNum = :userNum")
-    String findUserRcr(@Param("userNum") Integer userNum);
+
 }

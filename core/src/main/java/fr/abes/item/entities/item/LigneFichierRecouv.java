@@ -15,7 +15,7 @@ import java.io.Serializable;
 @Getter @Setter
 public class LigneFichierRecouv extends LigneFichier implements Serializable, GenericEntity<Integer>, ILigneFichier {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "NUM_LIGNEFICHIER")
     private Integer numLigneFichier;
 

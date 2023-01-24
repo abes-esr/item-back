@@ -21,7 +21,7 @@ import java.util.List;
 public abstract class Demande implements Serializable, GenericEntity<Integer> {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="NUM_DEMANDE")
     protected Integer numDemande;
 

@@ -17,7 +17,9 @@ import java.util.Date;
 public class JournalDemandeModif implements Serializable, GenericEntity<Integer> {
 	private static final long serialVersionUID = 1L;
 	
-	@Id @GeneratedValue @Column(name="NUM_JOURNAL")
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="NUM_JOURNAL")
 	private Integer numJournal;
 	@Temporal(TemporalType.DATE) @Column(name="DATE_ENTREE")
 	private Date dateEntree;
