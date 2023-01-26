@@ -247,7 +247,6 @@ public class DemandeRestService extends AbstractRestService implements IDemandeR
      * Webservice de chargement d'un fichier dans une demande
      *
      * @param type       type de demande concernée par le webservice
-     * @param exempMulti : true si on autorise la création d'exemplaire multiples (demande exemplarisation uniquement)
      * @param file       : fichier à uploader
      * @param numDemande : demandeModif à laquelle rattacher le fichier
      * @return : messager indiquant le résultat de l'upload

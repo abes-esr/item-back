@@ -15,6 +15,7 @@ import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import java.util.*;
 
 @Service
 @Strategy(type= IDemandeService.class, typeDemande = {TYPE_DEMANDE.RECOUV})
+@Slf4j
 public class DemandeRecouvService extends DemandeService implements IDemandeRecouvService {
     private FichierEnrichiRecouv fichierEnrichiRecouv;
 
@@ -103,6 +105,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
         fichierEnrichiRecouv = (FichierEnrichiRecouv) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.RECOUV);
         fichierEnrichiRecouv.generateFileName(numDemande);
         fichierEnrichiRecouv.setPath(Paths.get(uploadPath + numDemande));
+        log.debug("Dépot du fichier dans : " + uploadPath + numDemande);
     }
 
     @Override
