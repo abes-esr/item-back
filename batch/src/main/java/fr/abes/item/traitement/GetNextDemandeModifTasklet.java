@@ -36,7 +36,8 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-            stepExecution.getJobExecution().getExecutionContext().put("demande", this.demande);
+            stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demande.getId());
+            stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.demande.getTypeDemande().toString());
         }
         return stepExecution.getExitStatus();
     }

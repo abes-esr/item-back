@@ -8,6 +8,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.QueryToSudocException;
+import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.factory.StrategyFactory;
 import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.*;
@@ -35,10 +36,15 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     StrategyFactory factory;
     @Autowired
     ProxyRetry proxyRetry;
+
     @Autowired
     @Getter
-    ServiceProvider service;
+    private ServiceProvider service;
 
+    private IDemandeService demandeService;
+
+    private Integer demandeId;
+    private TYPE_DEMANDE typeDemande;
     private Demande demande;
 
 
@@ -47,13 +53,15 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
                 .getExecutionContext();
-        this.demande = (Demande) executionContext.get("demande");
+        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = demandeService.findById(this.demandeId);
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
-
         return null;
     }
 

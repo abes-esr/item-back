@@ -1,5 +1,7 @@
 package fr.abes.item.traitement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +11,8 @@ import java.io.Serializable;
 
 @NoArgsConstructor
 @Getter @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class LigneFichierDto implements Serializable, ILigneFichierDtoService {
     private Integer numLigneFichier;
     private Integer traitee;

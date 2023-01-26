@@ -1,11 +1,15 @@
 package fr.abes.item;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.mail.impl.Mailer;
+import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.entities.item.DemandeModif;
+import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.restart.SelectJobsToRestartTasklet;
 import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.*;
+import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
+import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
 import fr.abes.item.webstats.ExportStatistiquesTasklet;
 import fr.abes.item.webstats.VerifierParamsTasklet;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +20,8 @@ import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.repository.ExecutionContextSerializer;
+import org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -25,7 +31,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
@@ -50,10 +55,14 @@ public class BatchConfiguration {
     @Resource
     private ServiceProvider service;
 
+    @Bean
+    public ExecutionContextSerializer configureSerializer() {
+        return new Jackson2ExecutionContextStringSerializer(LigneFichierDtoModif.class.getName(), LigneFichierDtoRecouv.class.getName(), LigneFichierDtoExemp.class.getName());
+    }
 
     @Bean
     public BatchConfigurer configurer(EntityManagerFactory entityManagerFactory){
-        return new KopyaBatchConfigurer(entityManagerFactory);
+        return new ItemBatchConfigurer(entityManagerFactory);
     }
 
     // ---------- JOB ---------------------------------------------

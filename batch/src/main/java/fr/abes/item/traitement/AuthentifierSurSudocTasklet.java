@@ -2,10 +2,12 @@ package fr.abes.item.traitement;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.item.constant.Constant;
+import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.mail.IMailer;
 import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.factory.StrategyFactory;
+import fr.abes.item.service.impl.DemandeService;
 import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.model.LigneFichierDto;
 import lombok.Getter;
@@ -42,7 +44,11 @@ public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListen
     @Getter
     ServiceProvider service;
 
+    private IDemandeService demandeService;
+
     private String email;
+    private Integer demandeId;
+    private TYPE_DEMANDE typeDemande;
     private Demande demande;
 
     private Date dateDebut;
@@ -53,7 +59,10 @@ public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListen
                 .getJobExecution()
                 .getExecutionContext();
         this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
-        this.demande = (Demande) executionContext.get("demande");
+        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
+        this.demande = demandeService.findById(demandeId);
         this.email = demande.getUtilisateur().getEmail() + ";" + mailAdmin;
         this.mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
         this.dateDebut = stepExecution.getJobExecution().getCreateTime();
@@ -77,7 +86,6 @@ public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListen
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         //récupération du bon type de service demande dans la factory strategy
-        IDemandeService demandeService = factory.getStrategy(IDemandeService.class, demande.getTypeDemande());
         mailer.mailDebutTraitement(
                 this.email,
                 this.demande
@@ -93,7 +101,7 @@ public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListen
                     this.demande,
                     this.dateDebut);
             mailer.mailAlertAdmin(this.mailAdmin, demande);
-            Demande d = (Demande) demandeService.findById(this.lignesFichier.get(0).getRefDemande());
+            Demande d = demandeService.findById(this.lignesFichier.get(0).getRefDemande());
             demandeService.changeState(d, Constant.ETATDEM_ERREUR);
         } catch (DataAccessException d) {
             log.error("AuthentifierSurSudocTasklet : Erreur d'accès à la base de donnée");

@@ -18,6 +18,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 
+import javax.persistence.Transient;
 import java.sql.SQLException;
 
 @Slf4j
@@ -36,7 +37,8 @@ public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListe
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-            stepExecution.getJobExecution().getExecutionContext().put("demande", this.demande);
+            stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demande.getId());
+            stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.demande.getTypeDemande().toString());
         }
         return stepExecution.getExitStatus();
     }

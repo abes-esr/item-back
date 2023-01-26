@@ -2,6 +2,7 @@ package fr.abes.item.traitement;
 
 import fr.abes.item.LogTime;
 import fr.abes.item.constant.Constant;
+import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.mail.IMailer;
 import fr.abes.item.service.IDemandeService;
@@ -12,6 +13,7 @@ import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.batch.core.ExitStatus;
@@ -37,6 +39,9 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     private StrategyFactory factory;
 
     private List<LigneFichierDto> lignesFichier;
+    private Integer demandeId;
+    private TYPE_DEMANDE typeDemande;
+
     private Demande demande;
     private String email;
     @Value("${mail.admin}")
@@ -58,10 +63,12 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
                 .getExecutionContext();
-        this.demande = (Demande) executionContext.get("demande");
+        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
+        this.demande = demandeService.findById(demandeId);
         ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
-        demandeService = factory.getStrategy(IDemandeService.class, demande.getTypeDemande());
-        this.email = this.demande.getUtilisateur().getEmail() + ";" + mailAdmin;
+        this.email = demande.getUtilisateur().getEmail() + ";" + mailAdmin;
         mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
         this.dateDebut = stepExecution.getJobExecution().getCreateTime();
     }
@@ -114,7 +121,8 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
 
         if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
             stepExecution.getJobExecution().getExecutionContext().put("lignes", this.lignesFichier);
-            stepExecution.getJobExecution().getExecutionContext().put("demande", this.demande);
+            stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demandeId);
+            stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.typeDemande.toString());
         }
         return stepExecution.getExitStatus();
     }

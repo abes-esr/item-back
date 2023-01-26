@@ -3,6 +3,7 @@ package fr.abes.item.traitement;
 import fr.abes.item.LogTime;
 import fr.abes.item.components.FichierResultat;
 import fr.abes.item.constant.Constant;
+import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.FileTypeException;
 import fr.abes.item.exception.QueryToSudocException;
@@ -35,8 +36,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
 
     @Autowired @Getter
     ServiceProvider serviceProvider;
-    IDemandeService service;
+    IDemandeService demandeService;
 
     ILigneFichierService ligneFichierService;
 
@@ -65,6 +64,8 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     private List<LigneFichierDto> lignesFichier;
     private Date dateDebut;
     private String email;
+    private Integer demandeId;
+    private TYPE_DEMANDE typeDemande;
     private Demande demande;
 
 
@@ -74,10 +75,12 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                 .getJobExecution()
                 .getExecutionContext();
         this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
-        this.demande = ((Demande) executionContext.get("demande"));
+        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        this.demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
+        this.demande = demandeService.findById(demandeId);
         this.email = this.demande.getUtilisateur().getEmail() + ";" + mailAdmin;
         this.mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
-        this.service = factory.getStrategy(IDemandeService.class, demande.getTypeDemande());
         this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
         this.dateDebut = stepExecution.getJobExecution().getCreateTime();
     }
@@ -110,7 +113,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     this.dateDebut
             );
             mailer.mailAlertAdmin(this.mailAdmin, demande);
-            service.changeState(demande, Constant.ETATDEM_ERREUR);
+            demandeService.changeState(demande, Constant.ETATDEM_ERREUR);
             contribution.setExitStatus(ExitStatus.FAILED);
         }
         return RepeatStatus.FINISHED;
@@ -170,6 +173,5 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     public ExitStatus afterStep(StepExecution stepExecution) {
         LogTime.logFinTraitement(stepExecution);
         return null;
-
     }
 }

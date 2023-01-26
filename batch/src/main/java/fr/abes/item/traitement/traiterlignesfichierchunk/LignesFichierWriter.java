@@ -1,6 +1,7 @@
 package fr.abes.item.traitement.traiterlignesfichierchunk;
 
 import fr.abes.item.constant.Constant;
+import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.ILigneFichier;
 import fr.abes.item.entities.item.LigneFichier;
@@ -37,6 +38,8 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
+    private TYPE_DEMANDE typeDemande;
+    private Integer demandeId;
     private Demande demande;
 
     @Override
@@ -45,9 +48,11 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
                 .getJobExecution()
                 .getExecutionContext();
         this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
-        this.demande = (Demande) executionContext.get("demande");
+        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = demandeService.findById(this.demandeId);
         this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
-        this.demandeService = factory.getStrategy(IDemandeService.class, demande.getTypeDemande());
         this.mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
     }
 
