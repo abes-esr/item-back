@@ -349,60 +349,12 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
                 return "tno t; tdo b; che sou "+ valeur[0];
             case "DAT":
                 if(valeur[1].isEmpty()){
-                    return "tno t; tdo b; apu " + valeur[0] + "; che mti " + this.replacementOfDiacriticalAccents(valeur[2]);
+                    return "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
                 }
-                return "tno t; tdo b; apu " + valeur[0] + "; che aut " + this.replacementOfDiacriticalAccents(valeur[1]) + " et mti " + this.replacementOfDiacriticalAccents(valeur[2]);
+                return "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
             default :
                 throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
         }
-    }
-
-    /**
-     * Méthode de remplacement des accents diacritiques
-     */
-    public String replacementOfDiacriticalAccents(String stringFirst){
-        String stringSecond = null;
-        stringSecond = stringFirst
-                .replace("é", "e")
-                .replace("è", "e")
-                .replace("ê", "e")
-                .replace("ë", "e")
-                .replace("à", "a")
-                .replace("â", "a")
-                .replace("ä", "a")
-                .replace("î", "i")
-                .replace("ï", "i")
-                .replace("ô", "o")
-                .replace("ö", "o")
-                .replace("ù", "u")
-                .replace("û", "u")
-                .replace("ü", "u")
-                .replace("ÿ", "y")
-                .replace("æ", "ae")
-                .replace("œ", "oe")
-                .replace("ç", "c")
-                .replace("ñ", "n")
-                .replace("É", "E")
-                .replace("È", "E")
-                .replace("Ê", "E")
-                .replace("Ë", "E")
-                .replace("À", "A")
-                .replace("Â", "A")
-                .replace("Ä", "A")
-                .replace("Î", "I")
-                .replace("Ï", "I")
-                .replace("Ô", "O")
-                .replace("Ö", "O")
-                .replace("Ú", "U")
-                .replace("Ù", "U")
-                .replace("Ü", "U")
-                .replace("Û", "U")
-                .replace("Ÿ", "Y")
-                .replace("Æ", "AE")
-                .replace("Œ", "OE")
-                .replace("Ç", "C")
-                .replace("Ñ", "N");
-        return stringSecond;
     }
 
     /** méthode d'archivage d'une demande

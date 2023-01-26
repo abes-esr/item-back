@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.FileCheckingException;
+import fr.abes.item.service.impl.DemandeRecouvService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -188,5 +189,13 @@ class testUtilitaires {
         map.put("111111111", "999999999");
 
         Assertions.assertThat(Utilitaires.parseJson(json)).isEqualTo(map);
+    }
+
+    @Test
+    void replacementOfDiacriticalAccents() {
+        String var = "é, è, ê, ë, à, â, ä, î, ï, ô, ö, ù, û, ü, ÿ, æ, œ, ç, ñ";
+        DemandeRecouvService service = new DemandeRecouvService();
+        String var2 = Utilitaires.replaceDiacritical(var);
+        org.junit.jupiter.api.Assertions.assertEquals("e, e, e, e, a, a, a, i, i, o, o, u, u, u, y, ae, oe, c, n", var2);
     }
 }

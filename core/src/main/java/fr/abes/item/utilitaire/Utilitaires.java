@@ -366,4 +366,47 @@ public class Utilitaires {
         }
         return strToReturn.toString();
     }
+
+    public static String replaceDiacritical(String stringFirst){
+        return stringFirst
+                .replace("é", "e")
+                .replace("è", "e")
+                .replace("ê", "e")
+                .replace("ë", "e")
+                .replace("à", "a")
+                .replace("â", "a")
+                .replace("ä", "a")
+                .replace("î", "i")
+                .replace("ï", "i")
+                .replace("ô", "o")
+                .replace("ö", "o")
+                .replace("ù", "u")
+                .replace("û", "u")
+                .replace("ü", "u")
+                .replace("ÿ", "y")
+                .replace("æ", "ae")
+                .replace("œ", "oe")
+                .replace("ç", "c")
+                .replace("ñ", "n")
+                .replace("É", "E")
+                .replace("È", "E")
+                .replace("Ê", "E")
+                .replace("Ë", "E")
+                .replace("À", "A")
+                .replace("Â", "A")
+                .replace("Ä", "A")
+                .replace("Î", "I")
+                .replace("Ï", "I")
+                .replace("Ô", "O")
+                .replace("Ö", "O")
+                .replace("Ú", "U")
+                .replace("Ù", "U")
+                .replace("Ü", "U")
+                .replace("Û", "U")
+                .replace("Ÿ", "Y")
+                .replace("Æ", "AE")
+                .replace("Œ", "OE")
+                .replace("Ç", "C")
+                .replace("Ñ", "N");
+    }
 }
