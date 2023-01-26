@@ -10,7 +10,6 @@ import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @NoArgsConstructor
-@Component
 public class LigneFichierDtoRecouv extends LigneFichierDto implements ILigneFichierDtoService {
     @Getter @Setter
     private String requete;
