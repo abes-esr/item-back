@@ -4,5 +4,5 @@
 LANG=fr_FR.UTF-8
 if [[ $(pgrep -cf "item-batch.jar --spring.batch.job.names=traiterLigneFichierRecouv") < 1 ]];
 then
-    java -jar item-batch.jar --spring.batch.job.names=traiterLigneFichierRecouv
+    java -jar /scripts/item-batch.jar --spring.batch.job.names=traiterLigneFichierRecouv
 fi
