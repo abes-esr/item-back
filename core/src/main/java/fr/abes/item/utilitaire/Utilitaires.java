@@ -10,6 +10,8 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.FileCheckingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.buf.Utf8Decoder;
+import org.apache.tomcat.util.buf.Utf8Encoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -407,6 +409,7 @@ public class Utilitaires {
                 .replace("Æ", "AE")
                 .replace("Œ", "OE")
                 .replace("Ç", "C")
-                .replace("Ñ", "N");
+                .replace("Ñ", "N")
+                .replace("Ø","oe");
     }
 }

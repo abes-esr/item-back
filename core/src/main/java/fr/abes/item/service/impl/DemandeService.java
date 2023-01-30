@@ -23,9 +23,9 @@ public class DemandeService  {
     @Getter
     protected ServiceProvider service;
 
-    @Value("${batch.minHour}")
+    @Value("${batch.min.hour}")
     protected int minHour;
-    @Value("${batch.maxHour}")
+    @Value("${batch.max.hour}")
     protected int maxHour;
     /**
      * Va mettre à jour la liste de demandeModifs préalablement récupérée interroge

@@ -5,23 +5,24 @@ import com.google.common.collect.Multimap;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.FileCheckingException;
-import fr.abes.item.service.impl.DemandeRecouvService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class testUtilitaires {
     @DisplayName("checkExtensionExe")
     @Test
-    void checkExtensionExe() throws FileCheckingException {
-        assertThat(assertThrows(FileCheckingException.class, () -> {
-            Utilitaires.checkExtension("testfichier.exe");
-        }).getMessage().contains(Constant.ERR_FILE_FORMAT)).isTrue();
+    void checkExtensionExe() {
+        assertThat(assertThrows(FileCheckingException.class, () -> Utilitaires.checkExtension("testfichier.exe")).getMessage().contains(Constant.ERR_FILE_FORMAT)).isTrue();
     }
 
     @DisplayName("checkExtensionCsv")
@@ -53,40 +54,41 @@ class testUtilitaires {
     @DisplayName("getNumExFromExempOneEx")
     @Test
     void getNumExFromExempOneEx() {
-        StringBuilder noticeInit= new StringBuilder(Constants.STR_1F).append("e01 $a17-09-18$bx\r" +
+        String noticeInit = Constants.STR_1F + "e01 $a17-09-18$bx\r" +
                 "930 ##$b341720001\r" +
                 "A97 17-09-18 10:51:56.000\r" +
                 "A98 341720001:17-09-18\r" +
-                "A99 618828249\r").append(Constants.STR_0D + Constants.STR_0D + Constants.STR_1E);
-        String epn = "618828249";
-        assertThat(Utilitaires.getNumExFromExemp(noticeInit.toString())).isEqualTo("01");
+                "A99 618828249\r" +
+                Constants.STR_0D + Constants.STR_0D + Constants.STR_1E;
+        assertThat(Utilitaires.getNumExFromExemp(noticeInit)).isEqualTo("01");
     }
 
     @DisplayName("getExempFromNotice")
     @Test
     void getExempFromNotice() {
         String epn = "248398830";
-        StringBuilder noticeDeuxExemp = new StringBuilder().append(Constants.STR_1E + Constants.VTXTE +
-        "01011214:37:13.000"+ Constants.STR_1F +
-        "e01 $a17-11-05$bx" +
-        "930 ##$b341722103$a77 ETH$ju" +
-        "A97 17-11-05 14:37:13.000" +
-        "A98 341722103:17-11-05" +
-        "A99 24719932X" + Constants.STR_0D + Constants.STR_1E + Constants.VTXTE +
-        "02016810:01:06.000" + Constants.STR_1F +
-        "e02 $a02-12-05$bx" +
-        "930 ##$b340322102$a791 ETH$ju" +
-        "991 ##$aExemplaire créé automatiquement par l'ABES" +
-        "A97 02-12-05 10:01:06.000" +
-        "A98 340322102:02-12-05" +
-        "A99 248333186" + Constants.STR_0D + Constants.STR_1E + Constants.VTXTE +
-        "03011716:22:37.000" + Constants.STR_1F +
-        "e03 $a02-12-05$bx" +
-        "930 ##$b301892102$a306.485 ETH$ju" +
-        "A97 02-12-05 16:22:37.000 " +
-        "A98 301892102:02-12-05" +
-        "A99 248398830").append(Constants.STR_1E).append(Constants.VMC);
-        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp.toString(), epn)).isEqualTo(Constants.STR_1F +
+        String noticeDeuxExemp = Constants.STR_1E + Constants.VTXTE +
+                "01011214:37:13.000" + Constants.STR_1F +
+                "e01 $a17-11-05$bx" +
+                "930 ##$b341722103$a77 ETH$ju" +
+                "A97 17-11-05 14:37:13.000" +
+                "A98 341722103:17-11-05" +
+                "A99 24719932X" + Constants.STR_0D + Constants.STR_1E + Constants.VTXTE +
+                "02016810:01:06.000" + Constants.STR_1F +
+                "e02 $a02-12-05$bx" +
+                "930 ##$b340322102$a791 ETH$ju" +
+                "991 ##$aExemplaire créé automatiquement par l'ABES" +
+                "A97 02-12-05 10:01:06.000" +
+                "A98 340322102:02-12-05" +
+                "A99 248333186" + Constants.STR_0D + Constants.STR_1E + Constants.VTXTE +
+                "03011716:22:37.000" + Constants.STR_1F +
+                "e03 $a02-12-05$bx" +
+                "930 ##$b301892102$a306.485 ETH$ju" +
+                "A97 02-12-05 16:22:37.000 " +
+                "A98 301892102:02-12-05" +
+                "A99 248398830" +
+                Constants.STR_1E + Constants.VMC;
+        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp, epn)).isEqualTo(Constants.STR_1F +
                 "e03 $a02-12-05$bx" +
                 "930 ##$b301892102$a306.485 ETH$ju" +
                 "A97 02-12-05 16:22:37.000 " +
@@ -157,9 +159,9 @@ class testUtilitaires {
 
     @Test
     void getXPpnTest() {
-        String listeppn = null;
-        Integer nbToExtract = 3;
-        assertThat(Utilitaires.getXPPN(listeppn, nbToExtract)).isEqualTo("");
+        String listeppn;
+        int nbToExtract = 3;
+        assertThat(Utilitaires.getXPPN(null, nbToExtract)).isEqualTo("");
         listeppn = "123456789,987654321,456789123";
         nbToExtract = 5;
         assertThat(Utilitaires.getXPPN(listeppn, nbToExtract)).isEqualTo("123456789,987654321,456789123");
@@ -193,9 +195,8 @@ class testUtilitaires {
 
     @Test
     void replacementOfDiacriticalAccents() {
-        String var = "é, è, ê, ë, à, â, ä, î, ï, ô, ö, ù, û, ü, ÿ, æ, œ, ç, ñ";
-        DemandeRecouvService service = new DemandeRecouvService();
+        String var = "é, è, ê, ë, à, â, ä, î, ï, ô, ö, ù, û, ü, ÿ, æ, œ, ç, ñ, Ø";
         String var2 = Utilitaires.replaceDiacritical(var);
-        org.junit.jupiter.api.Assertions.assertEquals("e, e, e, e, a, a, a, i, i, o, o, u, u, u, y, ae, oe, c, n", var2);
+        assertEquals("e, e, e, e, a, a, a, i, i, o, o, u, u, u, y, ae, oe, c, n, oe", var2);
     }
 }
