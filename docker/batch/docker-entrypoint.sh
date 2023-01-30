@@ -10,7 +10,7 @@ echo "$(env)
 LANG=en_US.UTF-8" > /etc/environment
 
 # Charge la crontab depuis le template
-if [ "$ITEM_BATCH_DEPLOY_CRON" = "1"]; then
+if [ "$ITEM_BATCH_DEPLOY_CRON" = "1" ]; then
   envsubst < /etc/cron.d/tasks.tmpl > /etc/cron.d/tasks
   echo "-> Installation des crontab :"
   cat /etc/cron.d/tasks
