@@ -10,7 +10,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Setter @Getter
 public abstract class LigneFichier {
-    @Column(name = "VALEUR_ZONE")
+    @Column(name = "VALEUR_ZONE", length = 2000)
     private String valeurZone;
     @Column(name="TRAITEE")
     private Integer traitee;

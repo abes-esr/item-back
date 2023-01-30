@@ -21,7 +21,7 @@ public class DemandeExemp extends Demande{
     @JoinColumn(name = "DEM_TYPE_EXEMP")
     private TypeExemp typeExemp;
 
-    @Column(name = "LISTE_ZONES")
+    @Column(name = "LISTE_ZONES", length = 2000)
     private String listeZones;
 
     @OneToMany(mappedBy = "demandeExemp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
