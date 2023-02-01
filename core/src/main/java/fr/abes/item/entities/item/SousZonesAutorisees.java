@@ -25,7 +25,7 @@ public class SousZonesAutorisees implements Serializable, GenericEntity<Integer>
     private String libelle;
 
     @Column(name = "MANDATORY")
-    private boolean mandatory;
+    private Boolean mandatory;
 
     @ManyToOne
     @JoinColumn(name = "NUM_ZONE")
@@ -36,7 +36,7 @@ public class SousZonesAutorisees implements Serializable, GenericEntity<Integer>
         return numSousZone;
     }
 
-    public SousZonesAutorisees(Integer numSousZone, String libelle, ZonesAutorisees zone, boolean mandatory) {
+    public SousZonesAutorisees(Integer numSousZone, String libelle, ZonesAutorisees zone, Boolean mandatory) {
         this.numSousZone = numSousZone;
         this.libelle = libelle;
         this.zone = zone;

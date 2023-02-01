@@ -12,6 +12,6 @@ public interface ISousZonesAutoriseesDao extends JpaRepository<SousZonesAutorise
     @Query("select sz.libelle from SousZonesAutorisees sz join sz.zone z where z.labelZone = :zone")
     List<String> getSousZonesAutoriseesByZone(@Param("zone")String zone);
 
-    @Query("select sz from SousZonesAutorisees sz join sz.zone z join z.zonesTypesExemp t where t.numTypeExemp in :typeExemp and sz.mandatory = 1")
+    @Query("select sz from SousZonesAutorisees sz join sz.zone z join z.zonesTypesExemp t where t.numTypeExemp in :typeExemp and sz.mandatory = true")
     List<SousZonesAutorisees> getSousZonesAutoriseesMandatory(@Param("typeExemp") Optional<Integer> typeExemp);
 }
