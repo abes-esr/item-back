@@ -1,4 +1,10 @@
-#Item Back
+# Item-Api
+
+[![build-test-pubtodockerhub](https://github.com/abes-esr/item-api/actions/workflows/build-test-pubtodockerhub.yml/badge.svg)](https://github.com/abes-esr/item-api/actions/workflows/build-test-pubtodockerhub.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/abesesr/item.svg)](https://hub.docker.com/r/abesesr/item/)
+
+Ce dépôt héberge le code source de l'API de Item.  
+Cette API fonctionne avec son interface utilisateur développée en VueJS (front) : https://github.com/abes-esr/item-client/  
+Et l'application Item complète peut être déployée via Docker à l'aide de ce dépôt : https://github.com/abes-esr/item-docker/  
 
 ## Partie serveur de l'application item - Server part of the item application
 

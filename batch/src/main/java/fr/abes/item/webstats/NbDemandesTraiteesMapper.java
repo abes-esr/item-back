@@ -9,7 +9,7 @@ public class NbDemandesTraiteesMapper implements RowMapper<NbDemandesTraiteesDto
     public NbDemandesTraiteesDto mapRow(ResultSet rs, int rowNum) throws SQLException {
         NbDemandesTraiteesDto nbDemandes = new NbDemandesTraiteesDto();
         nbDemandes.setRcr(rs.getString("RCR"));
-        nbDemandes.setNbDemandesTraitees(rs.getInt("count(*)"));
+        nbDemandes.setNbDemandesTraitees(rs.getInt("count"));
         return nbDemandes;
     }
 }
