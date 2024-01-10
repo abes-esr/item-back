@@ -128,7 +128,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
         if (subfield.substring(1).matches(regex)) {
                 throw new FileCheckingException(Constant.ERR_FILE_HEAD4TH);
         }
-
+        //TODO : Revoir condition et ajouter TU parce que ça marche pas
         if (traitement.equals("creerNouvelleZone") && ("E856").contains(subfield) || ("E702").contains(subfield) || ("E712").contains(subfield)){
                 throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + subfield.substring(0, 4));
         }
