@@ -59,8 +59,8 @@ COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 RUN dnf install -y java-11-openjdk
 
 #TODO MAJ pour affichage heure correcte serveur
-RUN apt-get update && \
-    apt-get install -y tzdata
+RUN dnf update && \
+    dnf install -y tzdata
 
 ENV TZ="Europe/Paris"
 
