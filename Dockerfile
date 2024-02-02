@@ -58,10 +58,6 @@ COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 # Le JAR et le script pour le batch de LN
 RUN dnf install -y java-11-openjdk
 
-#TODO MAJ pour affichage heure correcte serveur
-RUN dnf update && \
-    dnf install -y tzdata
-
 ENV TZ="Europe/Paris"
 
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
