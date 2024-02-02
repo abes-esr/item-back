@@ -58,7 +58,9 @@ COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 # Le JAR et le script pour le batch de LN
 RUN dnf install -y java-11-openjdk
 
-RUN sudo timedatectl set-timezone Europe/Paris
+RUN dnf install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    echo "Europe/Paris" > /etc/timezone
 
 COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
 RUN chmod +x /scripts/itemBatchRestartJobs.sh
