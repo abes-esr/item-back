@@ -49,12 +49,6 @@ ENTRYPOINT ["java","-jar","/app/item.jar"]
 #           qui n'est que disponible sous centos/rockylinux.
 FROM rockylinux:8 as batch-image
 WORKDIR /scripts/
-#locales fr
-# Les locales fr_FR
-RUN dnf install langpacks-fr glibc-all-langpacks -y
-ENV LANG fr_FR.UTF-8
-ENV LANGUAGE fr_FR:fr
-ENV LC_ALL fr_FR.UTF-8
 
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
@@ -67,7 +61,7 @@ RUN dnf install -y java-11-openjdk
 
 RUN dnf install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
-    echo "Europe/Paris" > /etc/timezone
+    echo "CET" > /etc/timezone
 
 COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
 RUN chmod +x /scripts/itemBatchRestartJobs.sh
