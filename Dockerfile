@@ -67,7 +67,7 @@ RUN dnf install -y java-11-openjdk
 
 RUN dnf install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
-    echo "Europe/London" > /etc/timezone
+    echo "Europe/Paris" > /etc/timezone
 
 COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
 RUN chmod +x /scripts/itemBatchRestartJobs.sh
