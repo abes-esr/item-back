@@ -30,10 +30,10 @@
                 <pattern>%5p %d{ISO8601} [%t][%x] %c - %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- On exécute les stratégies de création de nouveaux fichiers et de suppresion :
-                - Au démarrage de l'application
+                <!-- On execute les strategies de creation de nouveaux fichiers et de suppresion :
+                - Au demarrage de l'application
                 - Si l'un des fichiers atteint ${sizeTriggerPolicy}
-                - Si la date du filePattern nécessite un nouveau fichier -->
+                - Si la date du filePattern necessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
                 <TimeBasedTriggeringPolicy />
@@ -42,7 +42,7 @@
                 <Delete basePath="${logBaseDir}" maxDepth="2">
                     <IfFileName glob="*/${logFileName}_*.log.gz">
                         <!-- On supprime les fichiers de plus de ${deleteAgeFile}
-                         mais on garde les ${keepMostRecentFile} fichiers plus récent ou les ${keepMostRecentSize} plus récent-->
+                         mais on garde les ${keepMostRecentFile} fichiers plus recent ou les ${keepMostRecentSize} plus recent-->
                         <IfLastModified age="${deleteAgeFile}" />
                         <IfAny>
                             <IfAccumulatedFileCount exceeds="${keepMostRecentFile}" />
@@ -63,10 +63,10 @@
                 <pattern>%5p %d{ISO8601} [%t][%x] %c - %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
-                - Au démarrage de l'application
+                <!-- On execute les strategies de creation de nouveau fichier et de suppresion :
+                - Au demarrage de l'application
                 - Si l'un des fichiers atteint 10 MB
-                - Si la date du filePattern nécessite un nouveau fichier -->
+                - Si la date du filePattern necessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
                 <TimeBasedTriggeringPolicy />
@@ -75,7 +75,7 @@
                 <Delete basePath="${logBaseDir}/" maxDepth="2">
                     <IfFileName glob="*/${errorFileName}_*.log.gz">
                         <!-- On supprime les fichiers de plus de ${deleteAgeFile}
-                          mais on garde les ${keepMostRecentFile} fichier plus récent ou les ${keepMostRecentSize} plus récent-->
+                          mais on garde les ${keepMostRecentFile} fichier plus recent ou les ${keepMostRecentSize} plus recent-->
                         <IfLastModified age="${deleteAgeFile}" />
                         <IfAny>
                             <IfAccumulatedFileCount exceeds="${keepMostRecentFile}" />
@@ -96,10 +96,10 @@
                 <pattern>%5p %d{ISO8601} [%t][%x] %c - %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
-                - Au démarrage de l'application
+                <!-- On execute les strategies de creation de nouveau fichier et de suppresion :
+                - Au demarrage de l'application
                 - Si l'un des fichiers atteint 10 MB
-                - Si la date du filePattern nécessite un nouveau fichier -->
+                - Si la date du filePattern necessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
                 <TimeBasedTriggeringPolicy />
@@ -108,7 +108,7 @@
                 <Delete basePath="${logBaseDir}/" maxDepth="2">
                     <IfFileName glob="*/${debugFileName}_*.log.gz">
                         <!-- On supprime les fichiers de plus de ${deleteAgeFile}
-                         mais on garde les ${keepMostRecentFile} fichiers plus récent ou les ${keepMostRecentSize} plus récent-->
+                         mais on garde les ${keepMostRecentFile} fichiers plus recent ou les ${keepMostRecentSize} plus recent-->
                         <IfLastModified age="${deleteAgeFile}" />
                         <IfAny>
                             <IfAccumulatedFileCount exceeds="${keepMostRecentFile}" />
