@@ -55,6 +55,7 @@ RUN dnf install langpacks-fr glibc-all-langpacks -y
 ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR:fr
 ENV LC_ALL fr_FR.UTF-8
+ENV TZ=Europe/Paris
 
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
@@ -66,8 +67,8 @@ COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 RUN dnf install -y java-11-openjdk
 
 RUN dnf install -y tzdata && \
-    ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
-    echo "Europe/Paris" > /etc/timezone
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
 
 COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
 RUN chmod +x /scripts/itemBatchRestartJobs.sh
