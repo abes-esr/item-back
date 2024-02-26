@@ -12,12 +12,12 @@ import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.StrategyFactory;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.service.impl.DemandeExempService;
+import fr.abes.item.service.impl.DemandeRecouvService;
 import fr.abes.item.traitement.model.LigneFichierDto;
 import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -42,11 +42,13 @@ import java.util.List;
 @Slf4j
 public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    StrategyFactory factory;
+    private StrategyFactory factory;
 
-    @Autowired @Getter
-    ServiceProvider serviceProvider;
-    IDemandeService demandeService;
+    @Autowired
+    private DemandeExempService demandeExempService;
+    @Autowired
+    private DemandeRecouvService demandeRecouvService;
+    private IDemandeService demandeService;
 
     ILigneFichierService ligneFichierService;
 
@@ -139,13 +141,13 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
              PrintWriter out = new PrintWriter(bw)) {
             // en tête du fichier
             out.println(demandeService.getInfoHeaderFichierResultat(demande, dateDebut));
-            for (LigneFichier ligne : this.ligneFichierService.getLigneFichierTraitee(demande.getNumDemande())) {
+            for (LigneFichier ligne : this.ligneFichierService.getLigneFichierTraiteeByDemande(demande)) {
                 switch (demande.getTypeDemande()) {
                     case EXEMP:
                         DemandeExemp demandeExemp = (DemandeExemp) demande;
                         LigneFichierDtoExemp ligneFichierDtoExemp = new LigneFichierDtoExemp((LigneFichierExemp) ligne);
                         log.warn(ligneFichierDtoExemp.getIndexRecherche());
-                        ligneFichierDtoExemp.setRequete(getServiceProvider().getDemandeExemp().getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+                        ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoExemp.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                         break;
                     case MODIF:
@@ -155,7 +157,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     default:
                         DemandeRecouv demandeRecouv = (DemandeRecouv)demande;
                         LigneFichierDtoRecouv ligneFichierDtoRecouv = new LigneFichierDtoRecouv((LigneFichierRecouv) ligne);
-                        ligneFichierDtoRecouv.setRequete(getServiceProvider().getDemandeRecouv().getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+                        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoRecouv.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                         break;
                 }

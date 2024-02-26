@@ -30,4 +30,6 @@ public interface IDemandeRecouvService extends IDemandeService {
     List<DemandeRecouv> getIdNextDemandeToArchive();
     List<DemandeRecouv> getIdNextDemandeToPlaceInDeletedStatus();
     List<DemandeRecouv> getIdNextDemandeToDelete();
+
+    String getInfoFooterFichierResultat(Demande demande);
 }

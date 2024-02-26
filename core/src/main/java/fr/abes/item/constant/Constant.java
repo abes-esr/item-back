@@ -129,7 +129,6 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_NOT_FOUND = "Fichier introuvable.";
 	public static final String ERR_FILE_NOINDEX = "L'en-tête du fichier est non conforme. Il ne contient pas d’index de recherche.";
 	public static final String ERR_FILE_NOREQUESTS = "Le fichier ne contient pas de requêtes. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_NOINFO = "Le fichier ne contient pas d'information sur les notices.";
 	public static final String ERR_FILE_NOTRAIT = "Aucun traitement associé à la demande.";
 	public static final String ERR_FILE_TOOMUCH_START = "Le fichier dépasse la limite des ";
 	public static final String ERR_FILE_TOOMUCH_END = " notices. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
@@ -173,7 +172,6 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_SOUSZONENONAUTORISEE = "Sous-zone(s) non autorisée(s) : ";
 	public static final String ERR_FILE_MANDATORY_ZONE_MISSING = "La zone suivante est obligatoire : ";
 	public static final String ERR_FILE_WRONGNBCOLUMNS = "Le nombre de colonnes du fichier ne correspond pas au nombre de données de l'en-tête.";
-	public static final String ERR_FILE_WRONGNBDATA = "Vérifiez votre fichier, le nombre de données de l'entête ne correspond aux nombre de données cette ligne.";
 	public static final String ERR_FILE_DATEAUTEURTITRE_TITREMANQUANT = "Il manque le titre sur cette ligne pour votre recherche par Date/Auteur/Titre.";
 	public static final String ERR_FILE_DATENOK = "Le champ date doit contenir 4 caractères numériques.";
 	public static final String ERR_FILE_NOZONE = "L'en-tête du fichier est non conforme : il ne contient pas de données d’exemplaires Merci de consulter la documentation utilisateur à cette adresse : ";

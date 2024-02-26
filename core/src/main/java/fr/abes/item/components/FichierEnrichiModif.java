@@ -19,8 +19,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     private int ligneCourante;
-    private String regex = "[9LE]\\d\\d\\$[a-z0-9]";
-    private String regexSupp = "[9LE]\\d\\d";
+    private final String regex = "[9LE]\\d\\d\\$[a-z0-9]";
 
     @Autowired
     public FichierEnrichiModif(@Value("") final String filename) {
@@ -45,7 +44,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      * Méthode permettant de vérifier que le contenu du fichier correspond aux
      * spécifications
      *
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur dans le format du fichier
      */
     @Override
     public void checkFileContent(Demande demande) throws FileCheckingException, IOException {
@@ -60,7 +59,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
 
             check3Cols(ligne);
             String tagSubTag = ligne.split(";")[3];
-            if (tagSubTag.matches("[e]\\d{2}\\$a")) {
+            if (tagSubTag.matches("e\\d{2}\\$a")) {
                 throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + tagSubTag);
             }
             if (tagSubTag.startsWith("E")) {
@@ -89,8 +88,8 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      * Méthode de vérification de la première partie de la ligne du fichier enrichi.
      * Les trois premières colonnes doivent être : ppn;rcr;epn;
      *
-     * @param ligne
-     * @throws FileCheckingException
+     * @param ligne : ligne à traiter
+     * @throws FileCheckingException : erreur dans le format de la ligne
      */
     private void check3Cols(String ligne) throws FileCheckingException {
         if (ligne.length() < 12) {
@@ -105,10 +104,11 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      * vérification de la validité de la zone de la quatrième colonne
      * sur la première ligne du fichier enrichi
      *
-     * @param subfield
-     * @throws FileCheckingException
+     * @param subfield zone présente dans la quatrième colonne du fichier
+     * @throws FileCheckingException : erreur de format de la zone
      */
     private void checkSubfieldCol4(String subfield, String traitement) throws FileCheckingException {
+        String regexSupp = "[9LE]\\d\\d";
         if (traitement.equals("supprimerZone") && (!subfield.matches(regexSupp))){
             throw new FileCheckingException(Constant.ERR_FILE_HEAD4TH);
         }
@@ -137,8 +137,8 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     /**
      * Méthode de vérification d'une ligne du corps du fichier enrichi
      *
-     * @param ligne
-     * @throws FileCheckingException
+     * @param ligne ligne du fichier à analyser
+     * @throws FileCheckingException : erreur de format de la ligne
      */
     private void checkBodyLine(String ligne, DemandeModif demandeModif) throws FileCheckingException {
         if (ligne.length() < 13) {
@@ -160,7 +160,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      * Méthode permettant de vérifier que la valeur de la seconde colonne correspond au RCR de la demande
      * @param rcrFichier : ligne du fichier
      * @param rcr : rcr de la demande
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur de format de fichier
      */
     private void checkRcr(String rcrFichier, String rcr) throws FileCheckingException {
         if (!rcrFichier.equals(rcr)) {
@@ -171,7 +171,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     /**
      * Méthode de vérification de la forme d'un ppn
      * @param ppn ppn à vérifier
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur de format de fichier
      */
     private void checkPpn(String ppn) throws FileCheckingException {
         if (!ppn.matches("\\d{1,9}X?$")){
@@ -182,7 +182,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     /**
      * Méthode de vérification de la forme d'un epn
      * @param epn epn à vérifier
-     * @throws FileCheckingException
+     * @throws FileCheckingException: erreur de format de l'epn
      */
     private void checkEpn(String epn) throws FileCheckingException {
         if (!epn.matches("\\d{1,9}X?$")) {
@@ -196,7 +196,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      *
      * @param ligne : ligne du fichier
      * @param traitement : traitement
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur sur la colonne
      */
     private void check4cols(String[] ligne, String traitement) throws FileCheckingException {
         switch (traitement) {

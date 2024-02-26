@@ -2,21 +2,24 @@ package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.ISousZonesAutoriseesDao;
+import fr.abes.item.dao.item.IZonesAutoriseesDao;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.FileCheckingException;
+import fr.abes.item.service.ReferenceService;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -24,33 +27,33 @@ import java.util.regex.Pattern;
 
 @Component
 @ToString
-@NoArgsConstructor
 @Slf4j
+@Getter @Setter
 public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
-    @Getter
-    @Setter
+    private final ISousZonesAutoriseesDao sousZonesAutoriseesDao;
+
+    private final IZonesAutoriseesDao zonesAutoriseesDao;
+
+    private final ReferenceService referenceService;
+
     private int indiceZone;
-    @Setter
+
     private int nbColonnes;
+
     //compteur indiquant sur quelle ligne du fichier on se trouve, utilisé pour les messages d'erreur
     private int ligneCourantePositionNumber;
+
     private String zoneCourante;
 
-    @Getter
-    private IndexRecherche indexRecherche;
-    @Getter
+
     private String valeurZones;
 
-    @Autowired
-    @Getter
-    DaoProvider dao;
-
-    @Getter
-    @Setter
     private DemandeExemp demande;
 
-    @Autowired
-    public FichierEnrichiExemp(@Value("") final String filename) {
+    public FichierEnrichiExemp(@Value("") final String filename, ISousZonesAutoriseesDao sousZonesAutoriseesDao, IZonesAutoriseesDao zonesAutoriseesDao, ReferenceService referenceService) {
+        this.sousZonesAutoriseesDao = sousZonesAutoriseesDao;
+        this.zonesAutoriseesDao = zonesAutoriseesDao;
+        this.referenceService = referenceService;
         this.filename = filename;
         this.ligneCourantePositionNumber = 2;
     }
@@ -74,7 +77,8 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
      * Méthode IMPORTANTE permettant de vérifier que le contenu du fichier correspond aux
      * spécifications (Controle uniquement, pas d'enrichissement de données)
      *
-     * @throws FileCheckingException {@link IOException}
+     * @throws FileCheckingException : {@link IOException}
+     * @throws IOException : erreur lecture fichier
      */
     @Override
     public void checkFileContent(Demande demandeExemp) throws FileCheckingException, IOException {
@@ -90,7 +94,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
 
             //une fois qu'on a vérifié l'index de recherche, on l'exclut de la chaine de caractère pour la vérification suivante
             String[] tabLigne = ligne.split(";");
-            nbColonnes = StringUtils.countMatches(ligne, ";");
+            nbColonnes = StringUtils.countMatches(ligne, ";") + 1;
             StringBuilder newLine = new StringBuilder();
 
             /*
@@ -108,9 +112,6 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
             this.checkMandatoryZones(newLine.toString(), demande.getTypeExemp());
             while ((ligne = bufLecteur.readLine()) != null) { //LIGNES EXEMPLAIRES Tant qu'il y a des lignes à lire dans le fichier
                 this.checkAnormalLineOfExemplary(ligneCourantePositionNumber, ligne); //Détecte une ligne de données vide
-                //ligne = Utilitaires.removeSemicolonFromEndOfLine(ligne, nbZones);//Supprime les éventuels ; que l'utilisateur aurait pu rajouter à la fin des lignes
-                //ligne = Utilitaires.addNecessarySemiColonFromEndOfLine(ligne, nbColonnes);//Rajoute un espace null et un ; en fin de ligne si le dernier champ de la ligne pour une sous zone pourtant présente afin de faire correspondre le nombre de données à celui de l'entête
-
                 checkBodyLine(ligne); //controle adequation taille entete taille ligne exemplaire, controle champ vide, controle format de la date pour un index en Date | Auteur | Titre
                 ligneCourantePositionNumber++; //pointeur sur ligne en cours d'analyse dans fichier
             }
@@ -128,27 +129,33 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
     }
 
     private void checkMandatoryZones(String entete, TypeExemp typeExemp) throws FileCheckingException {
-        List<SousZonesAutorisees> mandatoryZones = getDao().getSousZonesAutorisees().getSousZonesAutoriseesMandatory(Optional.ofNullable(typeExemp.getId()));
+        List<SousZonesAutorisees> mandatoryZones = sousZonesAutoriseesDao.getSousZonesAutoriseesMandatory(Optional.ofNullable(typeExemp.getId()));
         for (SousZonesAutorisees ssZone : mandatoryZones) {
             Pattern patternZoneSousZones = Pattern.compile(Constant.REG_EXP_ZONES_SOUS_ZONES);
-            Matcher matcher = patternZoneSousZones.matcher(entete);
-            boolean trouve = false;
-            while (matcher.find()) {
-                if (matcher.group("zone") != null) {
-                    if (matcher.group("zone").equals(ssZone.getZone().getLabelZone())) {
-                        for (int i = 1;i<=10;i++) {
-                            String sousZone = matcher.group("sousZone" + i);
-                            if (sousZone != null && sousZone.equals(ssZone.getLibelle())) {
-                                trouve = true;
-                            }
-                        }
-                    }
-                }
-            }
+            boolean trouve = isTrouve(entete, ssZone, patternZoneSousZones);
             if (!trouve) {
                 throw new FileCheckingException(Constant.ERR_FILE_MANDATORY_ZONE_MISSING + ssZone.getZone().getLabelZone() + ssZone.getLibelle());
             }
         }
+    }
+
+    private static boolean isTrouve(String entete, SousZonesAutorisees ssZone, Pattern patternZoneSousZones) {
+        Matcher matcher = patternZoneSousZones.matcher(entete);
+        boolean trouve = false;
+        while (matcher.find()) {
+            if (matcher.group("zone") != null) {
+                if (matcher.group("zone").equals(ssZone.getZone().getLabelZone())) {
+                    for (int i = 1;i<=10;i++) {
+                        String sousZone = matcher.group("sousZone" + i);
+                        if (sousZone != null && sousZone.equals(ssZone.getLibelle())) {
+                            trouve = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return trouve;
     }
 
     /**Methode de vérification d'une ligne qui pourrait être anormale : si l'utilisateur à rentré des espaces
@@ -170,7 +177,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
      * <p>
      * si l'indice Zone est egal à 0 c'est que le premier emplacement ne correspond pas à un index de recherche référencé en base.
      *
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur dans le format de fichier
      */
     private void checkFirstColumn(String ligne, TypeExemp type) throws FileCheckingException {
         this.indiceZone = checkIndexRecherche(ligne, type);
@@ -190,34 +197,13 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
         String[] tabLigne = indexLigne.split(";");
 
         //on récupère la liste des index possibles dans la BDD en fonction du type d'exemplarisation choisi
-        Set<IndexRecherche> index = getDao().getTypeExemp().findById(type.getId()).get().getIndexRechercheSet();
-        Iterator<IndexRecherche> listIndex = index.iterator();
+        Set<IndexRecherche> index = referenceService.getIndexRechercheFromTypeExemp(type.getId());
 
-        while (listIndex.hasNext()) {
-            //IndexCourant =
-            IndexRecherche indexCourant = listIndex.next();
-
+        for (IndexRecherche indexCourant : index) {
             //en fonction de l'index, le nombre de zone à examiner change
-            if (indexCourant.getIndexZones() == 3) {
-                //cas date / auteur / titre : on vérifie les 3 premières colonnes dans le fichier Date;Auteur;Titre qui doivent correspondre
-                if ((tabLigne.length >= 3) && (tabLigne[0].concat(";").concat(tabLigne[1]).concat(";").concat(tabLigne[2]).equalsIgnoreCase(indexCourant.getLibelle()))) {
-                    indexZone = indexCourant.getIndexZones();
-                    this.indexRecherche = indexCourant;
-                }
-                //Si l'utilisateur n'a pas renseigné d'index de recherche
-                if (tabLigne[0].isEmpty() || tabLigne[0].equalsIgnoreCase(" ")) {
-                    throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
-                }
-            } else {
-                //autre cas : on ne vérifie que la première colonne
-                if (tabLigne[0].equalsIgnoreCase(indexCourant.getLibelle())) {
-                    indexZone = indexCourant.getIndexZones();
-                    this.indexRecherche = indexCourant;
-                }
-                //Si l'utilisateur n'a pas renseigné d'index de recherche
-                if (tabLigne[0].isEmpty() || tabLigne[0].equalsIgnoreCase(" ")) {
-                    throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
-                }
+            indexZone = getIndexZone(indexCourant, tabLigne, indexZone);
+            if (tabLigne[0].isEmpty() || tabLigne[0].equalsIgnoreCase(" ")) {
+                throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
             }
         }
         /*A la fin on a un indexZone de :
@@ -229,11 +215,13 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
         return indexZone;
     }
 
+
+
     /**
      * Méthode de vérification des indicesZones+n colonnes
      *
      * @param listeZones : liste des zones de la ligne d'entête du fichier
-     * @throws FileCheckingException
+     * @throws FileCheckingException : erreur dans le format du fichier
      */
     public void checkZones(String listeZones) throws FileCheckingException {
         int nbSousZones = 0;
@@ -244,7 +232,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
             if (matcher.group("zone") != null) {
                 nbSousZones = 0;
                 zoneCourante = matcher.group("zone");
-                List<String> allowedZones = getDao().getZonesAutorisees().getZonesByTypeExemp(demande.getTypeExemp().getId());
+                List<String> allowedZones = zonesAutoriseesDao.getZonesByTypeExemp(demande.getTypeExemp().getId());
 
                 //contrôle si la zone est bien autorisée,
                 //la liste de zones autorisées varie selon le type d'exemplarisation
@@ -266,7 +254,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
 
     private int checkSousZones(int nbSousZones, Matcher matcher) throws FileCheckingException {
         String sousZoneCourante;
-        List<String> allowedSousZone = getDao().getSousZonesAutorisees().getSousZonesAutoriseesByZone(zoneCourante);
+        List<String> allowedSousZone = sousZonesAutoriseesDao.getSousZonesAutoriseesByZone(zoneCourante);
         for (int i = 1; i <= 10; i++) {
             if (matcher.group("sousZone" + i) != null) {
                 nbSousZones++;
@@ -292,12 +280,11 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
     public void checkBodyLine(String ligne) throws FileCheckingException {
         String[] tabLigne = ligne.split(";");
 
-        if (Utilitaires.detectsANumberOfDataDifferentFromTheNumberOfHeaderDataOnALine(ligne, nbColonnes, ligneCourantePositionNumber)) {
-            throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_WRONGNBDATA);
+        if (Utilitaires.detectsANumberOfDataDifferentFromTheNumberOfHeaderDataOnALine(ligne, nbColonnes)) {
+            throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_WRONGNBCOLUMNS);
         }
 
-        List<String> listeChamps = new ArrayList<>();
-        listeChamps.addAll(Arrays.asList(tabLigne));
+        List<String> listeChamps = new ArrayList<>(Arrays.asList(tabLigne));
 
         //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
         if ((("DAT").equals(this.indexRecherche.getCode())) && (!listeChamps.get(0).matches("\\d{4}"))) {

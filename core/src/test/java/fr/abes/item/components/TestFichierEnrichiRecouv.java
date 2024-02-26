@@ -1,7 +1,7 @@
 package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.IIndexRechercheDao;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.entities.item.EtatDemande;
 import fr.abes.item.entities.item.IndexRecherche;
@@ -10,10 +10,12 @@ import fr.abes.item.exception.FileCheckingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -23,25 +25,22 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 @DisplayName("Test fichier recouvrement")
+@SpringBootTest(classes = {FichierEnrichiRecouv.class})
 public class TestFichierEnrichiRecouv {
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private DaoProvider dao;
-
-    @InjectMocks
+    @Autowired
     private FichierEnrichiRecouv composantFichier;
+
+    @MockBean
+    private IIndexRechercheDao indexRechercheDao;
 
     private DemandeRecouv demande;
 
     @BeforeEach
     void init(){
-        composantFichier = new FichierEnrichiRecouv();
         composantFichier.setPath(Paths.get("src/test/resources/fichierEnrichiRecouv"));
-        MockitoAnnotations.initMocks(this);
         this.demande = new DemandeRecouv("341725201", new Date(), new Date(), new EtatDemande(1), "", new Utilisateur(1), new IndexRecherche(1));
-        when(dao.getIndexRecherche().findAll()).thenReturn(getIndexRecherche());
     }
 
 
@@ -55,6 +54,7 @@ public class TestFichierEnrichiRecouv {
 
     @Test
     void testIndexRechercheok() throws FileCheckingException, IOException {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("okindex.csv");
         composantFichier.checkFileContent(demande);
     }

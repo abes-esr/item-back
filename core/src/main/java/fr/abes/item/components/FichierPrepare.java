@@ -79,16 +79,14 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 				 PrintWriter out = new PrintWriter(bw)) {
 			String[] tabppn = listeppn.split(",");
 			Multimap<String, String> resJson = Utilitaires.parseJson(input);
-			for (int i=0;i<tabppn.length;i++) {
-				String ppn = tabppn[i];
-				if (resJson.containsKey(ppn)) {
-					for (String epn : resJson.get(ppn)) {
-						out.println(ppn + ";" + rcr + ";" + epn + ";");
-					}
-				}
-				else
-					out.println(ppn + ";" + rcr + ";;");
-			}			
+            for (String ppn : tabppn) {
+                if (resJson.containsKey(ppn)) {
+                    for (String epn : resJson.get(ppn)) {
+                        out.println(ppn + ";" + rcr + ";" + epn + ";");
+                    }
+                } else
+                    out.println(ppn + ";" + rcr + ";;");
+            }
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
 		} 

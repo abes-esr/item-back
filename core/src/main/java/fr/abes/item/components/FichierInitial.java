@@ -56,8 +56,8 @@ public class FichierInitial extends AbstractFichier implements Fichier {
     /**
      * Méthode de vérification d'une ligne du corps du fichier initial
      *
-     * @param ligne
-     * @throws FileCheckingException
+     * @param ligne : ligne à vérifier
+     * @throws FileCheckingException : erreur dans la format de la ligne
      */
     private void checkBodyLine(String ligne) throws FileCheckingException {
         if (ligne.length() != 9) {
@@ -77,7 +77,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
             while ((line = reader.readLine()) != null) if (!line.trim().isEmpty()) {
-                sb.append(line + System.getProperty("line.separator"));
+                sb.append(line).append(System.getProperty("line.separator"));
             }
             try (BufferedWriter out = new BufferedWriter(new FileWriter(path.resolve(this.filename).toString()))) {
                 out.write(sb.toString());

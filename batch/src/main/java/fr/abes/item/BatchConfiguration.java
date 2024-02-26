@@ -1,11 +1,6 @@
 package fr.abes.item;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.entities.item.DemandeExemp;
-import fr.abes.item.entities.item.DemandeModif;
-import fr.abes.item.entities.item.DemandeRecouv;
-import fr.abes.item.restart.SelectJobsToRestartTasklet;
-import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.*;
 import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
@@ -27,12 +22,12 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
 
 @Slf4j
@@ -47,13 +42,12 @@ public class BatchConfiguration {
     @Autowired
     protected StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    @Qualifier("kopyaJdbcTemplate")
-    @SuppressWarnings("squid:S3305")
-    private JdbcTemplate jdbcTemplate;
+    @Value("${batch.min.hour}")
+    int minHour;
 
-    @Resource
-    private ServiceProvider service;
+    @Value("${batch.max.hour}")
+    int maxHour;
+
 
     @Bean
     public ExecutionContextSerializer configureSerializer() {
@@ -118,13 +112,6 @@ public class BatchConfiguration {
                 .build().build();
     }
 
-    // Job de relance des Jobs en état Unknown
-    @Bean
-    public Job jobRelanceJobsUnknown() {
-        return jobs.get(Constant.SPRING_BATCH_JOB_RESTART_JOBS_UNKNOW).incrementer(incrementer())
-                .start(stepSelectJobsToRestart())
-                .build();
-    }
 
     // Job d'export des statistiques mensuelles
     @Bean
@@ -253,13 +240,6 @@ public class BatchConfiguration {
                 .build();
     }
 
-    @Bean
-    public Step stepSelectJobsToRestart() {
-        return stepBuilderFactory
-                .get("stepSelectJobsToRestart").allowStartIfComplete(true)
-                .tasklet(selectJobsToRestartTasklet())
-                .build();
-    }
 
     //Steps d'archivage automatique des demandes
     @Bean
@@ -332,11 +312,11 @@ public class BatchConfiguration {
 
     // ------------- TASKLETS -----------------------
     @Bean
-    public GetNextDemandeModifTasklet getNextDemandeModifTasklet() { return new GetNextDemandeModifTasklet(); }
+    public GetNextDemandeModifTasklet getNextDemandeModifTasklet() { return new GetNextDemandeModifTasklet(minHour, maxHour); }
     @Bean
-    public GetNextDemandeExempTasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(); }
+    public GetNextDemandeExempTasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(minHour, maxHour); }
     @Bean
-    public GetNextDemandeRecouvTasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(); }
+    public GetNextDemandeRecouvTasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(minHour, maxHour); }
     @Bean
     public LireLigneFichierTasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(); }
     @Bean
@@ -351,9 +331,6 @@ public class BatchConfiguration {
 
     @Bean
     public ExportStatistiquesTasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(); }
-
-    @Bean
-    public SelectJobsToRestartTasklet selectJobsToRestartTasklet() { return new SelectJobsToRestartTasklet(jdbcTemplate, service); }
 
 
     //Archivage automatique des demandes

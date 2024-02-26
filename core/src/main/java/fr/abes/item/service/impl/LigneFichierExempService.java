@@ -1,15 +1,15 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.impl.DaoProvider;
-import fr.abes.item.entities.item.*;
-import fr.abes.item.service.ILigneFichierExempService;
+import fr.abes.item.dao.item.ILigneFichierExempDao;
+import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.entities.item.LigneFichier;
+import fr.abes.item.entities.item.LigneFichierExemp;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.Strategy;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.mozilla.universalchardet.ReaderFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,21 +22,22 @@ import java.util.List;
 @Slf4j
 @Strategy(type= ILigneFichierService.class, typeDemande = {TYPE_DEMANDE.EXEMP})
 @Service
-public class LigneFichierExempService implements ILigneFichierExempService {
+public class LigneFichierExempService implements ILigneFichierService {
+    private final ILigneFichierExempDao dao;
 
-    @Getter
-    @Autowired
-    private DaoProvider dao;
+    public LigneFichierExempService(ILigneFichierExempDao dao) {
+        this.dao = dao;
+    }
 
     @Override
     public LigneFichier save(LigneFichier ligneFichier) {
         LigneFichierExemp ligneFichierExemp = (LigneFichierExemp) ligneFichier;
-        return getDao().getLigneFichierExemp().save(ligneFichierExemp);
+        return dao.save(ligneFichierExemp);
     }
 
     @Override
     public LigneFichierExemp findById(Integer id) {
-        return getDao().getLigneFichierExemp().findById(id).get();
+        return dao.findById(id).orElse(null);
     }
 
     //Construction des lignes d'exemplaires
@@ -51,25 +52,25 @@ public class LigneFichierExempService implements ILigneFichierExempService {
             int position = 0;
 
             while ((line = reader.readLine()) != null) {
-                String indexRecherche = "";
-                String valeur = "";
+                StringBuilder indexRecherche = new StringBuilder();
+                StringBuilder valeur = new StringBuilder();
                 if (line.lastIndexOf(';') == line.length() - 1) {
                     line += (char)0;
                 }
                 String [] tabLine = line.split(";");
                 for (int i = 0; i < demandeExemp.getIndexRecherche().getIndexZones();i++) {
-                    indexRecherche += tabLine[i] + ";";
+                    indexRecherche.append(tabLine[i]).append(";");
                 }
                 //suppression du ; final
-                indexRecherche = indexRecherche.substring(0, indexRecherche.length()-1);
+                indexRecherche = new StringBuilder(indexRecherche.substring(0, indexRecherche.length() - 1));
                 for (int i= demandeExemp.getIndexRecherche().getIndexZones(); i<tabLine.length;i++) {
-                    valeur += tabLine[i] + ";";
+                    valeur.append(tabLine[i]).append(";");
                 }
                 //suppression du ; final
-                valeur = valeur.substring(0,valeur.length()-1);
+                valeur = new StringBuilder(valeur.substring(0, valeur.length() - 1));
                 //création de la ligne fichier et enregistrement
-                LigneFichierExemp ligneFichierExemp = new LigneFichierExemp(indexRecherche, valeur, 0, position++, "", null, demandeExemp, null);
-                getDao().getLigneFichierExemp().save(ligneFichierExemp);
+                LigneFichierExemp ligneFichierExemp = new LigneFichierExemp(indexRecherche.toString(), valeur.toString(), 0, position++, "", null, demandeExemp, null);
+                dao.save(ligneFichierExemp);
             }
         } catch (
                 IOException e) {
@@ -78,43 +79,71 @@ public class LigneFichierExempService implements ILigneFichierExempService {
     }
 
     @Override
-    public List<LigneFichier> getLigneFichierbyDemande(Integer numDemande) {
-        List<LigneFichierExemp> ligneFichierExemps = getDao().getLigneFichierExemp().getLigneFichierbyDemande(numDemande);
-        List<LigneFichier> ligneFichiers = new ArrayList<>(ligneFichierExemps);
-        return ligneFichiers;
+    public List<LigneFichier> getLigneFichierbyDemande(Demande demande) {
+        List<LigneFichierExemp> ligneFichierExemps = dao.getLigneFichierbyDemande(demande.getId());
+        return new ArrayList<>(ligneFichierExemps);
     }
 
     @Override
-    public int getNbLigneFichierTraiteeByDemande(int numDemande) {
-        return getDao().getLigneFichierExemp().getNbLigneFichierTraitee(numDemande);
+    public int getNbLigneFichierTraiteeByDemande(Demande demande) {
+        return dao.getNbLigneFichierTraitee(demande.getId());
     }
 
 
     @Override
-    public List<LigneFichier> getLigneFichierTraitee(Integer numDemande) {
-        List<LigneFichierExemp> ligneFichierExemps = getDao().getLigneFichierExemp().getLigneFichierTraitee(numDemande);
-        List<LigneFichier> ligneFichiers = new ArrayList<>(ligneFichierExemps);
-        return ligneFichiers;
+    public List<LigneFichier> getLigneFichierTraiteeByDemande(Demande demande) {
+        List<LigneFichierExemp> ligneFichierExemps = dao.getLigneFichierTraitee(demande.getId());
+        return new ArrayList<>(ligneFichierExemps);
     }
 
     @Override
-    public int getNbLigneFichierSuccessByDemande(int numDemande) {
-        return getDao().getLigneFichierExemp().getNbLigneFichierSuccessByDemande(numDemande);
+    public LigneFichier getLigneFichierbyDemandeEtPos(Demande demande, Integer numLigne) {
+        return dao.getLigneFichierbyDemandeEtPos(demande.getId(), numLigne);
     }
 
     @Override
-    public int getNbLigneFichierErrorByDemande(int numDemande) {
-        return getDao().getLigneFichierExemp().getNbLigneFichierErrorByDemande(numDemande);
+    public int getNbLigneFichierNonTraitee(Demande demande) {
+        return dao.getNbLigneFichierNonTraitee(demande.getId());
     }
 
     @Override
-    public int getNbLigneFichierTotalByDemande(int numDemande) {
-        return getDao().getLigneFichierExemp().getNbLigneFichierTotalByDemande(numDemande);
+    public int getNbLigneFichierSuccessByDemande(Demande demande) {
+        return dao.getNbLigneFichierSuccessByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbLigneFichierErrorByDemande(Demande demande) {
+        return dao.getNbLigneFichierErrorByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbLigneFichierTotalByDemande(Demande demande) {
+        return dao.getNbLigneFichierTotalByDemande(demande.getId());
     }
 
     @Override
     @Transactional
     public void deleteByDemande(Demande demande) {
-        getDao().getLigneFichierExemp().deleteByDemandeExemp((DemandeExemp) demande);
+        dao.deleteByDemandeExemp((DemandeExemp) demande);
+    }
+
+    @Override
+    public int getNbReponseTrouveesByDemande(Demande demande) {
+        return dao.getNbReponseTrouveesByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbUneReponseByDemande(Demande demande) {
+        return dao.getNbUneReponseByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbZeroReponseByDemande(Demande demande) {
+        return dao.getNbZeroReponseByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbReponseMultipleByDemande(Demande demande) {
+        return dao.getNbReponseMultipleByDemande(demande.getId());
     }
 }

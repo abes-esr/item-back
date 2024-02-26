@@ -1,12 +1,10 @@
 package fr.abes.item.service.impl;
 
-import fr.abes.item.dao.impl.DaoProvider;
-import fr.abes.item.entities.item.Demande;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
 import fr.abes.item.entities.baseXml.LibProfile;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.entities.item.Demande;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
@@ -14,19 +12,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
+@Getter
 public class DemandeService  {
-    @Autowired
-    @Getter
-    protected DaoProvider dao;
+    protected final ILibProfileDao libProfileDao;
 
-    @Autowired
-    @Getter
-    protected ServiceProvider service;
+    public DemandeService(ILibProfileDao libProfileDao) {
+        this.libProfileDao = libProfileDao;
+    }
 
-    @Value("${batch.min.hour}")
-    protected int minHour;
-    @Value("${batch.max.hour}")
-    protected int maxHour;
     /**
      * Va mettre à jour la liste de demandeModifs préalablement récupérée interroge
      * la base XML pour completer les demandeModifs avec l'ILN et intitulé du RCR, le code RCR étant dans la table
@@ -40,14 +33,13 @@ public class DemandeService  {
     /**
      * Effectue une recherche pour retournée une entité LibProfile qui correspond à un établissement à partir
      * du rcr associé au numéro de la demande
-     *
      * Si on à partir du rcr associé à la demande trouvé un établissement dans le la table LibProfile su Shcéma autorités
      * on renseigne l'iln de la demande à partir de l'iln de l'entité issu de la table lib profile
      * on renseigne le shortname également
-     * @param demande
+     * @param demande demande à laquelle attribuer un ILN
      */
-    public void setIlnShortNameOnDemande(Demande demande) {
-        Optional<LibProfile> library = this.getDao().getLibProfile().findById(demande.getRcr());
+    protected void setIlnShortNameOnDemande(Demande demande) {
+        Optional<LibProfile> library = libProfileDao.findById(demande.getRcr());
         if (library.orElse(null) != null) {
             demande.setShortname(library.orElse(null).getShortName());
         } else {
@@ -59,9 +51,7 @@ public class DemandeService  {
         List<String> demandesIdListe = new ArrayList<>();
 
         //Alimentation d'une liste de rcr
-        Iterator<Demande> it = demandeList.iterator();
-        while (it.hasNext()) {
-            Demande demande = it.next();
+        for (Demande demande : demandeList) {
             demandesIdListe.add(demande.getRcr());
         }
 
@@ -79,31 +69,14 @@ public class DemandeService  {
         }
 
         //Récupération d'une liste d'entités LibProfile avec une liste rcr passée en paramètre
-        List<LibProfile> listLibProfile = this.getDao().getLibProfile().getShortnameAndIlnFromRcr(demandesIdListe);
+        List<LibProfile> listLibProfile = libProfileDao.getShortnameAndIlnFromRcr(demandesIdListe);
 
         //Alimentation des attributs shortname et iln de chaque entité demande en cas de manquant / vide
-        Iterator<Demande> dem = demandeList.iterator();
-        while (dem.hasNext()) {
-            Demande demande = dem.next();
+        for (Demande demande : demandeList) {
             demande.feedIlnAndShortname(listLibProfile);
         }
     }
 
-    /**
-     * Permet de savoir si il existe des demandes dans une liste avec un iln nul, ou un shortname nul
-     * @param demandeList liste de demandes
-     * @return true si demandes avec iln nul présent, ou avec shortname présent
-     */
-    private boolean isThereAtLeastOneDemandeWithIlnOrShortnameEmpty(List<Demande> demandeList) {
-        Iterator<Demande> it = demandeList.iterator();
-        while (it.hasNext()) {
-            Demande demande = it.next();
-            if(Objects.equals(demande.getIln(), "") || demande.getIln() == null || demande.getShortname() == null || Objects.equals(demande.getShortname(), "")){
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * Va ajouter des espaces entre les zones systèmes, les zones locales et les zones d'exmplaire dans la phase de visualisation

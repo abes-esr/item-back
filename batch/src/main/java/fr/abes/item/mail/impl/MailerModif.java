@@ -41,9 +41,9 @@ public class MailerModif extends Mailer implements IMailer {
         ILigneFichierService ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
         String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_MODIFICATION_START + numDemande + " terminée - ILN " + demande.getIln(),
                 "Bonjour,<br />Votre demande " + numDemande + " de modification d'exemplaires a bien été traitée.<br />" +
-                        "Nombre d'exemplaires traités : " + ligneFichierService.getNbLigneFichierTraiteeByDemande(numDemande) + Constant.HTML_BALISE_BR +
-                        "Nombre de traitements effectués avec succès : " + ligneFichierService.getNbLigneFichierSuccessByDemande(numDemande) + Constant.HTML_BALISE_BR +
-                        "Nombre de traitements échoués : " + ligneFichierService.getNbLigneFichierErrorByDemande(numDemande) + Constant.HTML_BALISE_BR +
+                        "Nombre d'exemplaires traités : " + ligneFichierService.getNbLigneFichierTraiteeByDemande(demande) + Constant.HTML_BALISE_BR +
+                        "Nombre de traitements effectués avec succès : " + ligneFichierService.getNbLigneFichierSuccessByDemande(demande) + Constant.HTML_BALISE_BR +
+                        "Nombre de traitements échoués : " + ligneFichierService.getNbLigneFichierErrorByDemande(demande) + Constant.HTML_BALISE_BR +
                         "Vous pouvez retrouver le résultat de votre demande depuis <a href='https://item.sudoc.fr/tableau'>le tableau de bord de l'application.</a> <br />" +
                         "Cordialement.<br/>Les services de l'Abes.");
         sendMailWithAttachment(requestJson, f);
@@ -53,7 +53,7 @@ public class MailerModif extends Mailer implements IMailer {
      * Mail indiquant l'echec du traitement
      * @param mailDestinataire mail de l'utilisateur qui a lancé le traitement
      * @param demande numéro de la demandeModif
-     * @param dateDebut
+     * @param dateDebut date  de début de traitement
      */
     @Override
     public void mailEchecTraitement(String mailDestinataire, Demande demande, Date dateDebut){

@@ -2,14 +2,11 @@ package fr.abes.item.mail.impl;
 
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.impl.DaoProvider;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.mail.IMailer;
 import fr.abes.item.service.factory.Strategy;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.LigneFichierRecouvService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.File;
@@ -21,12 +18,15 @@ import java.util.List;
 @Slf4j
 @Strategy(type = IMailer.class, typeDemande = TYPE_DEMANDE.RECOUV)
 public class MailerRecouv extends Mailer implements IMailer {
-    @Autowired
-    private Environment env;
-    @Autowired @Getter
-    private ServiceProvider service;
-    @Autowired @Getter
-    private DaoProvider dao;
+
+    private final Environment env;
+    private final LigneFichierRecouvService ligneFichierRecouvService;
+
+    public MailerRecouv(Environment env, LigneFichierRecouvService ligneFichierRecouvService) {
+        this.env = env;
+        this.ligneFichierRecouvService = ligneFichierRecouvService;
+    }
+
     /**
      * Mail indiquant le début du traitement
      * @param mailDestinataire mail de l'utilisateur qui a lancé le trraitement (la demandeModif)
@@ -45,11 +45,11 @@ public class MailerRecouv extends Mailer implements IMailer {
     public void mailFinTraitement(String mailDestinataire, Demande demande, File f, Date dateDebut, Date dateFin) {
         DateFormat formatDate = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
         int numDemande = demande.getId();
-        int nbRechercheTotal = getService().getLigneFichierRecouv().getNbLigneFichierTotalByDemande(numDemande);
-        int nbNoticesTrouvees = getDao().getLigneFichierRecouv().getNbReponseTrouveesByDemande(numDemande);
-        int nbZeroReponse = getDao().getLigneFichierRecouv().getNbZeroReponseByDemande(numDemande);
-        int nbUneReponse = getDao().getLigneFichierRecouv().getNbUneReponseByDemande(numDemande);
-        int nbReponseMultiple = getDao().getLigneFichierRecouv().getNbReponseMultipleByDemande(numDemande);
+        int nbRechercheTotal = ligneFichierRecouvService.getNbLigneFichierTotalByDemande(demande);
+        int nbNoticesTrouvees = ligneFichierRecouvService.getNbReponseTrouveesByDemande(demande);
+        int nbZeroReponse = ligneFichierRecouvService.getNbZeroReponseByDemande(demande);
+        int nbUneReponse = ligneFichierRecouvService.getNbUneReponseByDemande(demande);
+        int nbReponseMultiple = ligneFichierRecouvService.getNbReponseMultipleByDemande(demande);
         double tauxRecouv = ((double)nbNoticesTrouvees / (double)nbRechercheTotal) * 100;
         double tauxExemp = ((double)nbUneReponse / (double)nbRechercheTotal) * 100;
         DecimalFormat df = new DecimalFormat("0.00");

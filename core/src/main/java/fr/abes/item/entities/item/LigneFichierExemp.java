@@ -13,12 +13,9 @@ import java.io.Serializable;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name="LIGNE_FICHIER_EXEMP")
-public class LigneFichierExemp extends LigneFichier implements Serializable, GenericEntity<Integer>, ILigneFichier {
+public class LigneFichierExemp extends LigneFichier implements Serializable, ILigneFichier {
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "NUM_LIGNEFICHIER")
-    private Integer numLigneFichier;
+
 
     @Column(name = "INDEX_RECHERCHE")
     private String indexRecherche;
@@ -46,11 +43,6 @@ public class LigneFichierExemp extends LigneFichier implements Serializable, Gen
         this.numExemplaire = numExemplaire;
         this.demandeExemp = demandeExemp;
         this.listePpn = listePpn;
-    }
-
-    @Override
-    public Integer getId() {
-        return this.numLigneFichier;
     }
 
     @Override

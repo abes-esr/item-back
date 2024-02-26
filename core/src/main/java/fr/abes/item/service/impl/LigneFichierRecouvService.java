@@ -1,16 +1,13 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.ILigneFichierRecouvDao;
 import fr.abes.item.entities.item.*;
-import fr.abes.item.service.ILigneFichierRecouvService;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.mozilla.universalchardet.ReaderFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -23,35 +20,49 @@ import java.util.List;
 @Service
 @Slf4j
 @Strategy(type= ILigneFichierService.class, typeDemande = {TYPE_DEMANDE.RECOUV})
-public class LigneFichierRecouvService implements ILigneFichierRecouvService {
-    @Autowired @Getter
-    DaoProvider dao;
+public class LigneFichierRecouvService implements ILigneFichierService {
+    private final ILigneFichierRecouvDao dao;
+
+    public LigneFichierRecouvService(ILigneFichierRecouvDao dao) {
+        this.dao = dao;
+    }
+
 
     @Override
-    public int getNbLigneFichierTraiteeByDemande(int numDemande) {
-        return getDao().getLigneFichierRecouv().getNbLigneFichierTraitee(numDemande);
+    public List<LigneFichier> getLigneFichierTraiteeByDemande(Demande demande) {
+        List<LigneFichierRecouv> ligneFichierRecouvs = dao.getLigneFichierTraitee(demande.getId());
+        return new ArrayList<>(ligneFichierRecouvs);
     }
 
     @Override
-    public List<LigneFichier> getLigneFichierTraitee(Integer numDemande) {
-        List<LigneFichierRecouv> ligneFichierRecouvs = getDao().getLigneFichierRecouv().getLigneFichierTraitee(numDemande);
-        List<LigneFichier> ligneFichiers = new ArrayList<>(ligneFichierRecouvs);
-        return ligneFichiers;
+    public LigneFichier getLigneFichierbyDemandeEtPos(Demande demande, Integer numLigne) {
+        return dao.getLigneFichierbyDemandeEtPos(demande.getNumDemande(), numLigne);
     }
 
     @Override
-    public int getNbLigneFichierSuccessByDemande(int numDemande) {
-        return getDao().getLigneFichierRecouv().getNbLigneFichierSuccessByDemande(numDemande);
+    public int getNbLigneFichierNonTraitee(Demande demande) {
+        return dao.getNbLigneFichierNonTraitee(demande.getId());
+    }
+
+
+    @Override
+    public int getNbLigneFichierTraiteeByDemande(Demande demande) {
+        return dao.getNbLigneFichierTraitee(demande.getId());
     }
 
     @Override
-    public int getNbLigneFichierErrorByDemande(int numDemande) {
-        return getDao().getLigneFichierRecouv().getNbLigneFichierErrorByDemande(numDemande);
+    public int getNbLigneFichierSuccessByDemande(Demande demande) {
+        return dao.getNbLigneFichierSuccessByDemande(demande.getId());
     }
 
     @Override
-    public int getNbLigneFichierTotalByDemande(int numDemande) {
-        return getDao().getLigneFichierRecouv().getNbLigneFichierTotalByDemande(numDemande);
+    public int getNbLigneFichierErrorByDemande(Demande demande) {
+        return dao.getNbLigneFichierErrorByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbLigneFichierTotalByDemande(Demande demande) {
+        return dao.getNbLigneFichierTotalByDemande(demande.getId());
     }
 
     @Override
@@ -73,8 +84,8 @@ public class LigneFichierRecouvService implements ILigneFichierRecouvService {
                     indexRecherche.append(tabLine[i]).append(";");
                 }
                 //création de la ligne fichier et enregistrement
-                LigneFichierRecouv ligneFichierRecouv = new LigneFichierRecouv(indexRecherche.toString(), 0, position++, "", null, demandeRecouv);
-                getDao().getLigneFichierRecouv().save(ligneFichierRecouv);
+                LigneFichierRecouv ligneFichierRecouv = new LigneFichierRecouv(indexRecherche.toString(), 0, position++, null, demandeRecouv);
+                dao.save(ligneFichierRecouv);
             }
         } catch (
                 IOException e) {
@@ -83,26 +94,45 @@ public class LigneFichierRecouvService implements ILigneFichierRecouvService {
     }
 
     @Override
-    public List<LigneFichier> getLigneFichierbyDemande(Integer numDemande) {
-        List<LigneFichierRecouv> ligneFichierRecouvs = getDao().getLigneFichierRecouv().getLigneFichierbyDemande(numDemande);
-        List<LigneFichier> ligneFichiers = new ArrayList<>(ligneFichierRecouvs);
-        return ligneFichiers;
+    public List<LigneFichier> getLigneFichierbyDemande(Demande demande) {
+        List<LigneFichierRecouv> ligneFichierRecouvs = dao.getLigneFichierbyDemande(demande.getId());
+        return new ArrayList<>(ligneFichierRecouvs);
     }
 
     @Override
     public LigneFichier findById(Integer id) {
-        return getDao().getLigneFichierRecouv().findById(id).orElse(null);
+        return dao.findById(id).orElse(null);
     }
 
     @Override
     public LigneFichier save(LigneFichier ligneFichier) {
         LigneFichierRecouv ligneFichierRecouv = (LigneFichierRecouv) ligneFichier;
-        return getDao().getLigneFichierRecouv().save(ligneFichierRecouv);
+        return dao.save(ligneFichierRecouv);
     }
 
     @Override
     @Transactional
     public void deleteByDemande(Demande demande) {
-        getDao().getLigneFichierRecouv().deleteByDemandeRecouv((DemandeRecouv) demande);
+        dao.deleteByDemandeRecouv((DemandeRecouv) demande);
+    }
+
+    @Override
+    public int getNbReponseTrouveesByDemande(Demande demande) {
+        return dao.getNbReponseTrouveesByDemande(demande.getId());
+    }
+
+    @Override
+    public int getNbZeroReponseByDemande(Demande demande) {
+        return 0;
+    }
+
+    @Override
+    public int getNbUneReponseByDemande(Demande demande) {
+        return 0;
+    }
+
+    @Override
+    public int getNbReponseMultipleByDemande(Demande demande) {
+        return 0;
     }
 }

@@ -1,50 +1,60 @@
 package fr.abes.item.restart;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.mail.IMailer;
-import fr.abes.item.mail.MailDto;
-import fr.abes.item.mail.impl.Mailer;
 import fr.abes.item.service.factory.StrategyFactory;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.service.impl.DemandeExempService;
+import fr.abes.item.service.impl.DemandeModifService;
+import fr.abes.item.service.impl.DemandeRecouvService;
+import fr.abes.item.service.ReferenceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
+@Component
 public class SelectJobsToRestartTasklet implements Tasklet, StepExecutionListener {
     private final JdbcTemplate jdbcTemplate;
 
-    private final ServiceProvider service;
+    private final DemandeModifService demandeModifService;
 
-    @Autowired
+    private final DemandeExempService demandeExempService;
+
+    private final DemandeRecouvService demandeRecouvService;
+
+    private final ReferenceService referenceService;
+
     private StrategyFactory factory;
 
     @Value("${mail.admin}")
     private String mailAdmin;
 
-    public SelectJobsToRestartTasklet(JdbcTemplate jdbcTemplate, ServiceProvider service) {
-        this.service = service;
+    public SelectJobsToRestartTasklet(JdbcTemplate jdbcTemplate, DemandeModifService demandeModifService, DemandeExempService demandeExempService, DemandeRecouvService demandeRecouvService, ReferenceService referenceService, StrategyFactory factory) {
         this.jdbcTemplate = jdbcTemplate;
+        this.demandeModifService = demandeModifService;
+        this.demandeExempService = demandeExempService;
+        this.demandeRecouvService = demandeRecouvService;
+        this.referenceService = referenceService;
+        this.factory = factory;
     }
 
     @Override
@@ -65,11 +75,11 @@ public class SelectJobsToRestartTasklet implements Tasklet, StepExecutionListene
             //on récupère le numéro de la demande de modif à modifier
             String numDemande = extractNumDemandeModif(j);
             //si le numéro de la demande a été trouvé et que la demande est en cours de traitement
-            if (!numDemande.equals("") && service.getDemandeModif().findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
+            if (!numDemande.equals("") && demandeModifService.findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
                 //on repasse la demande en attente de traitement
-                Demande demande = service.getDemandeModif().findById(Integer.parseInt(numDemande));
-                demande.setEtatDemande(service.getReference().findEtatDemandeById(Constant.ETATDEM_ATTENTE));
-                service.getDemandeModif().save(demande);
+                Demande demande = demandeModifService.findById(Integer.parseInt(numDemande));
+                demande.setEtatDemande(referenceService.findEtatDemandeById(Constant.ETATDEM_ATTENTE));
+                demandeModifService.save(demande);
                 log.info("Redémarrage job sur la demande " + demande.getNumDemande());
                 finalListDemandes1.add(demande.getNumDemande());
             }
@@ -82,11 +92,11 @@ public class SelectJobsToRestartTasklet implements Tasklet, StepExecutionListene
         jobExecutionsExemp.forEach(j -> {
             //on récupère le numéro de la demande d'exemplarisation à modifier
             String numDemande = extractNumDemandeExemp(j);
-            if (!numDemande.equals("") && service.getDemandeExemp().findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
+            if (!numDemande.equals("") && demandeExempService.findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
                 //on repasse la demande en attente de traitement
-                Demande demande = service.getDemandeExemp().findById(Integer.parseInt(numDemande));
-                demande.setEtatDemande(service.getReference().findEtatDemandeById(Constant.ETATDEM_ATTENTE));
-                service.getDemandeExemp().save(demande);
+                Demande demande = demandeExempService.findById(Integer.parseInt(numDemande));
+                demande.setEtatDemande(referenceService.findEtatDemandeById(Constant.ETATDEM_ATTENTE));
+                demandeExempService.save(demande);
                 log.info("Redémarrage job sur la demande " + demande.getNumDemande());
                 finalListDemandes2.add(demande.getNumDemande());
             }
@@ -99,11 +109,11 @@ public class SelectJobsToRestartTasklet implements Tasklet, StepExecutionListene
         jobExecutionsRecouv.forEach(j -> {
             //on récupère le numéro de la demande de recouvrement à modifier
             String numDemande = extractNumDemandeRecouv(j);
-            if (!numDemande.equals("") && service.getDemandeRecouv().findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
+            if (!numDemande.equals("") && demandeRecouvService.findById(Integer.parseInt(numDemande)).getEtatDemande().getId() == Constant.ETATDEM_ENCOURS) {
                 //on repasse la demande en attente de traitement
-                Demande demande = service.getDemandeRecouv().findById(Integer.parseInt(numDemande));
-                demande.setEtatDemande(service.getReference().findEtatDemandeById(Constant.ETATDEM_ATTENTE));
-                service.getDemandeRecouv().save(demande);
+                Demande demande = demandeRecouvService.findById(Integer.parseInt(numDemande));
+                demande.setEtatDemande(referenceService.findEtatDemandeById(Constant.ETATDEM_ATTENTE));
+                demandeRecouvService.save(demande);
                 log.info("Redémarrage job sur la demande " + demande.getNumDemande());
                 finalListDemandes.add(demande.getNumDemande());
             }

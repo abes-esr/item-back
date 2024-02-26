@@ -8,10 +8,9 @@ import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.FileCheckingException;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.buf.Utf8Decoder;
-import org.apache.tomcat.util.buf.Utf8Encoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,11 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
+@NoArgsConstructor
 public class Utilitaires {
-
-    private Utilitaires() {
-        //nothing to initialize
-    }
 
     public static Multimap<String, String> parseJson(String input) throws IOException {
         //la correspondance pouvant retourner plusieurs fois un ppn, on crée une multimap pour récupérer le résultat
@@ -42,8 +38,6 @@ public class Utilitaires {
                 Iterator<JsonNode> ppnepn = liste.elements();
                 while (ppnepn.hasNext()) {
                     JsonNode record;
-                    JsonNode ppn;
-                    JsonNode epn;
                     //si on a plusieurs valeurs dans le json elles sont sous forme de tableau
                     if (ppnepn.getClass().toString().contains("ArrayList")) {
                         record = ppnepn.next();
@@ -71,7 +65,7 @@ public class Utilitaires {
     }
 
     public static String checkBom(String chaine) {
-        if (chaine != null && !("").equals(chaine)) {
+        if (chaine != null && !chaine.isEmpty()) {
             if (chaine.codePointAt(0) == 0xfeff) {
                 return chaine.substring(1);
             }
@@ -99,12 +93,12 @@ public class Utilitaires {
      */
     public static String getExempFromNotice(String notice, String epn) {
         String[] listExemps = notice.split(Constants.STR_1E + Constants.VTXTE);
-        for (int i = 0; i < listExemps.length; i++) {
-            if (listExemps[i].contains("A99 " + epn)) {
+        for (String listExemp : listExemps) {
+            if (listExemp.contains("A99 " + epn)) {
                 //la fin de la chaine est différente en fonction de si l'exemplaire trouvé est le dernier ou non, on adapte le retour en fonction
-                return (listExemps[i].contains(Constants.STR_1E + Constants.VMC))
-                        ? listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F), listExemps[i].indexOf(Constants.STR_1E + Constants.VMC)) + Constants.STR_1E
-                        : listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F));
+                return (listExemp.contains(Constants.STR_1E + Constants.VMC))
+                        ? listExemp.substring(listExemp.indexOf(Constants.STR_1F), listExemp.indexOf(Constants.STR_1E + Constants.VMC)) + Constants.STR_1E
+                        : listExemp.substring(listExemp.indexOf(Constants.STR_1F));
             }
         }
         return "";
@@ -155,9 +149,9 @@ public class Utilitaires {
     public static int getAsciiCodeFromTag(String tag) {
         int returnCode = 0;
         if (tag.length() == 3) {
-            Iterator listChars = tag.chars().iterator();
+            PrimitiveIterator.OfInt listChars = tag.chars().iterator();
             while (listChars.hasNext()) {
-                returnCode += ((PrimitiveIterator.OfInt) listChars).next();
+                returnCode += listChars.next();
             }
         }
         return returnCode;
@@ -178,37 +172,10 @@ public class Utilitaires {
         return strBuilder.toString();
     }
 
-    public static boolean detectsANumberOfDataDifferentFromTheNumberOfHeaderDataOnALine(String currentDataLine, int numberOfHeaderColumns, int currentDataLinePositionNumber) throws FileCheckingException {
-        return (StringUtils.countMatches(currentDataLine, ";") != numberOfHeaderColumns);
+    public static boolean detectsANumberOfDataDifferentFromTheNumberOfHeaderDataOnALine(String currentDataLine, int numberOfHeaderColumns) {
+        return (StringUtils.countMatches(currentDataLine, ";") + 1 != numberOfHeaderColumns);
     }
 
-    public static String addNecessarySemiColonFromEndOfLine(String lineToAddSemiColons, Integer nbColonnes){
-        int initialySemiColonFinded = 0;
-
-        Pattern patternLine = Pattern.compile(";");
-        Matcher matcherLine = patternLine.matcher(lineToAddSemiColons);
-
-        while (matcherLine.find()) {
-            initialySemiColonFinded++;
-        }
-
-        if(nbColonnes - initialySemiColonFinded == 2){
-            lineToAddSemiColons = Utilitaires.addCharactersToEndOfString(lineToAddSemiColons, new StringBuilder().append((char)0).append(';'), 1);
-            return lineToAddSemiColons;
-        }
-
-        return lineToAddSemiColons;
-    }
-
-    public static <T> String addCharactersToEndOfString(String lineToAddCharacters, T characterToAdd, Integer numberOfCharactersToAdd){
-        String lineToReturn = lineToAddCharacters;
-
-        for (int i = 1; i <= numberOfCharactersToAdd; i++) {
-                lineToReturn = lineToReturn + characterToAdd + (char)0;
-        }
-
-        return lineToReturn;
-    }
 
     /**
      * @param ligneANettoyer ligne de données d'exemplaires ou l'on veut supprimer l'ensemble des ; qui auraient été insérés en fin de ligne
@@ -233,24 +200,6 @@ public class Utilitaires {
         return ligneANettoyer;
     }
 
-    public static String removeSemicolonFromEndOfLine(String lineToClean, int zonesNumber) {
-        Pattern patternLine = Pattern.compile(";");
-        Matcher matcherLine = patternLine.matcher(lineToClean);
-        int count = 0;
-        while (matcherLine.find()) {
-            count++;
-        }
-
-        while (count > zonesNumber) {
-            Pattern pattern = Pattern.compile(";$");
-            Matcher matcher = pattern.matcher(lineToClean);
-            while (matcher.find()) {
-                lineToClean = lineToClean.substring(0, lineToClean.length() - 1);
-            }
-            count--;
-        }
-        return lineToClean;
-    }
 
 
     /**Methode permettant de détecter si une ligne est anormale
@@ -295,11 +244,9 @@ public class Utilitaires {
 
             }
         }
-        Iterator iterator = headerListe.iterator();
-        int i = 0;
         //on reconstruit la ligne avec les ; entre chaque champ
-        while (iterator.hasNext()) {
-            headerARetourner.append(iterator.next());
+        for (String s : headerListe) {
+            headerARetourner.append(s);
             headerARetourner.append(";");
         }
         return headerARetourner.toString();
@@ -315,27 +262,21 @@ public class Utilitaires {
         if (zone.startsWith("L")) {
             return true;
         }
-        if (zone.startsWith("$") && zonePrecedente.startsWith("L")) {
-            return true;
-        }
-        return false;
+        return zone.startsWith("$") && zonePrecedente.startsWith("L");
     }
 
     public static boolean isEtatCollection(String zone) {
-        if (("955").equals(zone) || ("956").equals(zone) || ("957").equals(zone) || ("959").equals(zone)) {
-            return true;
-        }
-        return false;
+        return ("955").equals(zone) || ("956").equals(zone) || ("957").equals(zone) || ("959").equals(zone);
     }
 
     /**Methode permettant de supprimer les caractères ASCII problématiques
-     * https://fr.wikibooks.org/wiki/Les_ASCII_de_0_%C3%A0_127/La_table_ASCII
+     * <a href="https://fr.wikibooks.org/wiki/Les_ASCII_de_0_%C3%A0_127/La_table_ASCII">table ASCII</a>
      * @param text Chaine à nettoyer des caractères ACSII
      * @return chaine avec les caractères ASCII supprimés
      */
     public static String removeNonPrintableCharacters(String text) {
-        text = text.replaceAll("[\\x1E]", "");
-        text = text.replaceAll("[\\x1F]", "");
+        text = text.replaceAll("\\x1E", "");
+        text = text.replaceAll("\\x1F", "");
         return text;
     }
 

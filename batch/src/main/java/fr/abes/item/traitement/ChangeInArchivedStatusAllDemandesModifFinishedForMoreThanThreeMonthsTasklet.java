@@ -4,8 +4,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeModif;
 import fr.abes.item.exception.DemandeCheckingException;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.DemandeModifService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -22,8 +21,7 @@ import java.util.List;
 @Slf4j
 public class ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    @Getter
-    ServiceProvider service;
+    DemandeModifService demandeModifService;
 
     List<DemandeModif> demandes;
 
@@ -34,7 +32,7 @@ public class ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonth
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.warn("entrée dans execute de ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet...");
         try {
-            this.demandes = getService().getDemandeModif().getIdNextDemandeToArchive();
+            this.demandes = demandeModifService.getIdNextDemandeToArchive();
             if (this.demandes == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
@@ -45,7 +43,7 @@ public class ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonth
             while (it.hasNext()) {
                 Demande demande = it.next();
                 log.info("Passage de la demande de modification" + demande.getNumDemande() + "au statut" + Constant.ETATDEM_ARCHIVEE);
-                getService().getDemandeModif().changeState(demande, Constant.ETATDEM_ARCHIVEE);
+                demandeModifService.changeState(demande, Constant.ETATDEM_ARCHIVEE);
             }
             stepContribution.setExitStatus(ExitStatus.COMPLETED);
         } catch (DemandeCheckingException e) {

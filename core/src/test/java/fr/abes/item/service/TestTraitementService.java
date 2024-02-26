@@ -1,29 +1,30 @@
 package fr.abes.item.service;
 
-import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.utilitaire.Constants;
-import fr.abes.item.service.impl.TraitementService;
-import org.junit.jupiter.api.BeforeAll;
+import fr.abes.item.dao.item.ITraitementDao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Test Couche service / traitement")
+@SpringBootTest(classes = {TraitementService.class})
 public class TestTraitementService {
-    private static TraitementService tManager;
+    @Autowired
+    TraitementService tManager;
+    @MockBean
+    ITraitementDao traitementDao;
 
     private static Properties prop;
 
-    @BeforeAll
-    static void initAll() {
-        tManager = new TraitementService();
-    }
+
 
 
     @DisplayName("test creerNouvelleZone")

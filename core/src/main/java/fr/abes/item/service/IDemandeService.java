@@ -1,8 +1,11 @@
 package fr.abes.item.service;
 
 import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.entities.item.LigneFichierExemp;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileTypeException;
+import fr.abes.item.exception.QueryToSudocException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -15,13 +18,11 @@ public interface IDemandeService {
 
     Demande findById(Integer id);
 
-    Demande archiverDemande(Demande entity) throws DemandeCheckingException;
+    Demande archiverDemande(Demande demande) throws DemandeCheckingException;
 
     void deleteById(Integer id);
 
     void initFiles(Demande demande) throws FileTypeException;
-
-    void setIlnShortNameOnDemande(Demande demande);
 
     Demande previousState(Demande demande) throws DemandeCheckingException, IOException;
 
@@ -29,11 +30,10 @@ public interface IDemandeService {
 
     List<Demande> getActiveDemandesForUser(String iln);
 
-    Demande getIdNextDemandeToProceed();
+    Demande getIdNextDemandeToProceed(int minHour, int maxHour);
 
     String getInfoHeaderFichierResultat(Demande demande, Date dateDebut);
 
-    String getInfoFooterFichierResultat(Demande demande);
 
     String getSeparationBetweenBlocks(String demandeBrute);
 

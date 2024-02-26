@@ -2,18 +2,16 @@ package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.IIndexRechercheDao;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.entities.item.IndexRecherche;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,27 +21,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.ListIterator;
 
-@NoArgsConstructor
+
 @ToString
 @Slf4j
 @Component
+@Getter
 public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
-    @Getter
-    private IndexRecherche indexRecherche;
-
-    @Autowired @Getter
-    DaoProvider dao;
+    private final IIndexRechercheDao indexRechercheDao;
 
     @Getter @Setter
-    DemandeRecouv demande;
+    private DemandeRecouv demande;
 
     private int ligneCourante;
     private int indice;
 
-    @Autowired
-    public FichierEnrichiRecouv(@Value("") final String filename) {
+
+    public FichierEnrichiRecouv(@Value("") final String filename, IIndexRechercheDao indexRechercheDao) {
+        this.indexRechercheDao = indexRechercheDao;
         this.filename = filename;
         this.ligneCourante = 2;
     }
@@ -129,26 +124,11 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
         }
         //on récupère la liste des index possibles dans la BDD : DAT, ISBN, ISSN, PPN, SOU
-        List<IndexRecherche> index = getDao().getIndexRecherche().findAll();
-        ListIterator<IndexRecherche> listIndex = index.listIterator();
+        List<IndexRecherche> index = indexRechercheDao.findAll();
 
-        while (listIndex.hasNext()) {
-            IndexRecherche indexCourant = listIndex.next();
-
+        for (IndexRecherche indexCourant : index) {
             //en fonction de l'index, le nombre de zone à examiner change
-            if (indexCourant.getIndexZones() == 3) {
-                //cas date / auteur / titre : on vérifie les 3 premières colonnes dans le fichier Date;Auteur;Titre qui doivent correspondre
-                if ((tabLigne.length >= 3) && (tabLigne[0].concat(";").concat(tabLigne[1]).concat(";").concat(tabLigne[2]).equalsIgnoreCase(indexCourant.getLibelle()))) {
-                    indexZone = indexCourant.getIndexZones();
-                    this.indexRecherche = indexCourant;
-                }
-            } else {
-                //autre cas : on ne vérifie que la première colonne
-                if (tabLigne[0].equalsIgnoreCase(indexCourant.getLibelle())) {
-                    indexZone = indexCourant.getIndexZones();
-                    this.indexRecherche = indexCourant;
-                }
-            }
+            indexZone = getIndexZone(indexCourant, tabLigne, indexZone);
         }
         /*A la fin on a un indexZone de :
             3 pour Date;Auteur;Titre, 1 pour les Autres
@@ -165,6 +145,15 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
      * @param ligne ligne du fichier à analyser
      */
     public void checkBodyLine(String ligne) throws FileCheckingException {
+        String[] tabLigne = getLigne(ligne);
+
+        //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
+        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.REG_EXP_DATE_A_4_DECIMALES))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
+            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATENOK);
+        }
+    }
+
+    private String[] getLigne(String ligne) throws FileCheckingException {
         String[] tabLigne = ligne.split(";");
 
         /*controle que la taille du tableau correspondant à une ligne de données splitée correspond au nombre exact
@@ -175,11 +164,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             }
             throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_WRONGNBCOLUMNS);
         }
-
-        //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
-        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.REG_EXP_DATE_A_4_DECIMALES))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATENOK);
-        }
+        return tabLigne;
     }
 
     /**Methode de vérification d'une ligne qui pourrait être anormale : si l'utilisateur à rentré des espaces

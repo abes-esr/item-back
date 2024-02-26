@@ -7,10 +7,7 @@ import fr.abes.item.entities.item.Demande;
 import fr.abes.item.mail.IMailer;
 import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.factory.StrategyFactory;
-import fr.abes.item.service.impl.DemandeService;
-import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.model.LigneFichierDto;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -40,9 +37,7 @@ public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListen
     private String mailAdmin;
     @Autowired
     ProxyRetry proxyRetry;
-    @Autowired
-    @Getter
-    ServiceProvider service;
+
 
     private IDemandeService demandeService;
 

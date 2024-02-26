@@ -4,8 +4,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.exception.DemandeCheckingException;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.DemandeRecouvService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -22,8 +21,7 @@ import java.util.List;
 @Slf4j
 public class ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    @Getter
-    ServiceProvider service;
+    DemandeRecouvService demandeRecouvService;
 
     List<DemandeRecouv> demandes;
 
@@ -34,7 +32,7 @@ public class ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMont
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.warn("entrée dans execute de ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet...");
         try {
-            this.demandes = getService().getDemandeRecouv().getIdNextDemandeToArchive();
+            this.demandes = demandeRecouvService.getIdNextDemandeToArchive();
             if (this.demandes == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
@@ -45,7 +43,7 @@ public class ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMont
             while (it.hasNext()) {
                 Demande demande = it.next();
                 log.info("Passage de la demande de recouvrement " + demande.getNumDemande() + "au statut" + Constant.ETATDEM_ARCHIVEE);
-                getService().getDemandeRecouv().changeState(demande, Constant.ETATDEM_ARCHIVEE);
+                demandeRecouvService.changeState(demande, Constant.ETATDEM_ARCHIVEE);
             }
             stepContribution.setExitStatus(ExitStatus.COMPLETED);
         } catch (DemandeCheckingException e) {

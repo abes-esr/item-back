@@ -1,9 +1,8 @@
-package fr.abes.item.service.impl;
+package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.service.IStatusService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,7 @@ import javax.sql.DataSource;
 
 @Slf4j
 @Service
-public class StatusService implements IStatusService {
+public class StatusService {
     @Getter
     private ProcessCBS cbs;
 
@@ -43,7 +42,6 @@ public class StatusService implements IStatusService {
      * Service sondant le status de la connexion au CBS
      * @return true si le client CBS repond, false dans le cas contraire
      */
-    @Override
     public Boolean getCbsConnectionStatus(){
         try {
             cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
@@ -58,7 +56,6 @@ public class StatusService implements IStatusService {
      * @return true si la requete SQL a fonctionné, ce qui signifie que la base XML est opérationnelle
      * false si la connection à la base XML à échoué
      */
-    @Override
     public Boolean getXmlConnectionStatus(){
         JdbcTemplate jdbcTemplateBaseXml;
         jdbcTemplateBaseXml = new JdbcTemplate(baseXmlDataSource);
@@ -76,7 +73,6 @@ public class StatusService implements IStatusService {
      * @return true si la requete SQL a fonctionné, ce qui signifie que la base ITEM est opérationnelle
      * false si la connection à la base ITEM à échoué
      */
-    @Override
     public Boolean getKopyaDataBaseStatus(){
         try {
             this.kopyaJdbcTemplate.queryForRowSet("SELECT user FROM role limit 1"); //Micro requête pour un tps de réponse très rapide (juste première occurence)
@@ -87,7 +83,6 @@ public class StatusService implements IStatusService {
         }
     }
 
-    @Override
     public String getStatusOfServices(){
         StringBuilder result = new StringBuilder();
 

@@ -12,19 +12,22 @@ import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiExemp;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
+import fr.abes.item.dao.item.IDemandeExempDao;
+import fr.abes.item.dao.item.ILigneFichierExempDao;
+import fr.abes.item.dao.item.IZonesAutoriseesDao;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.exception.FileTypeException;
 import fr.abes.item.exception.QueryToSudocException;
-import fr.abes.item.service.IDemandeExempService;
-import fr.abes.item.service.IDemandeService;
+import fr.abes.item.service.*;
 import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,10 +41,25 @@ import java.util.regex.Pattern;
 
 @Service
 @ToString
-@NoArgsConstructor
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.EXEMP})
 public class DemandeExempService extends DemandeService implements IDemandeExempService {
     private FichierEnrichiExemp fichierEnrichiExemp;
+
+    private final IDemandeExempDao demandeExempDao;
+
+    private final FileSystemStorageService storageService;
+
+    private final ILigneFichierService ligneFichierService;
+
+    private final ReferenceService referenceService;
+
+    private final JournalService journalService;
+
+    private final TraitementService traitementService;
+
+    private final IZonesAutoriseesDao zonesAutoriseesDao;
+
+    private final ILigneFichierExempDao ligneFichierExempDao;
 
     @Value("${files.upload.path}")
     private String uploadPath;
@@ -55,17 +73,28 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Getter
     private int nbReponses;
 
+    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, ILigneFichierService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
+        super(libProfileDao);
+        this.demandeExempDao = demandeExempDao;
+        this.storageService = storageService;
+        this.ligneFichierService = ligneFichierExempService;
+        this.referenceService = referenceService;
+        this.journalService = journalService;
+        this.traitementService = traitementService;
+        this.zonesAutoriseesDao = zonesAutoriseesDao;
+        this.ligneFichierExempDao = ligneFichierExempDao;
+    }
+
     @Override
     public List<Demande> findAll() {
-        List<Demande> liste = new ArrayList<>();
-        liste.addAll(getDao().getDemandeExemp().findAll());
+        List<Demande> liste = new ArrayList<>(demandeExempDao.findAll());
         setIlnShortNameOnList(new ArrayList<>(liste));
         return liste;
     }
 
     @Override
     public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeExemp> demandeExemps = getDao().getDemandeExemp().getAllActiveDemandesExempForAdmin(iln);
+        List<DemandeExemp> demandeExemps = demandeExempDao.getAllActiveDemandesExempForAdmin(iln);
         List<Demande> demandeList = new ArrayList<>(demandeExemps);
         //TODO 1 chopper les rcr en une iste string, 2 dao xml pour recuperer la liste des libelle avec un tableau mappé, 3 alimenter les entites LIB iteration
 
@@ -75,7 +104,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeExemp> demandeExemp = getDao().getDemandeExemp().getAllActiveDemandesExempForAdminExtended();
+        List<DemandeExemp> demandeExemp = demandeExempDao.getAllActiveDemandesExempForAdminExtended();
         List<Demande> demandeList = new ArrayList<>(demandeExemp);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -83,28 +112,27 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public String getTypeExempDemande(Integer idDemande) {
-        return getDao().getDemandeExemp().getTypeExemp(idDemande);
+        return demandeExempDao.getTypeExemp(idDemande);
     }
 
     @Override
     public Demande save(Demande entity) {
         DemandeExemp demande = (DemandeExemp) entity;
         entity.setDateModification(new Date());
-        return getDao().getDemandeExemp().save(demande);
+        return demandeExempDao.save(demande);
     }
 
     @Override
     public DemandeExemp findById(Integer id) {
-        Optional<DemandeExemp> demandeExemp = getDao().getDemandeExemp().findById(id);
-        if (demandeExemp.isPresent()) { /*On contrôle si la demande est présente*/
-            setIlnShortNameOnDemande(demandeExemp.get());
-        }
+        Optional<DemandeExemp> demandeExemp = demandeExempDao.findById(id);
+        /*On contrôle si la demande est présente*/
+        demandeExemp.ifPresent(this::setIlnShortNameOnDemande);
         return demandeExemp.orElse(null);
     }
 
     @Override
     public void deleteById(Integer id) {
-        getDao().getDemandeExemp().deleteById(id);
+        demandeExempDao.deleteById(id);
     }
 
     /**
@@ -115,7 +143,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      */
     @Override
     public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeExemp> demandeExemps = this.getDao().getDemandeExemp().getActiveDemandesExempForUserExceptedPreparedStatus(iln);
+        List<DemandeExemp> demandeExemps = demandeExempDao.getActiveDemandesExempForUserExceptedPreparedStatus(iln);
         List<Demande> listeDemande = new ArrayList<>(demandeExemps);
         setIlnShortNameOnList(listeDemande);
         return listeDemande;
@@ -123,7 +151,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public boolean hasDonneeLocaleExistante() {
-        return (donneeLocaleExistante.isEmpty())?false:true;
+        return !donneeLocaleExistante.isEmpty();
     }
 
     /**
@@ -131,17 +159,17 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      *
      * @param demandeId identifiant de la demande
      * @param typeExemp valeur du type d'exemplarisation
-     * @return
+     * @return la demande modifiée
      */
     @Override
     public DemandeExemp majTypeExemp(Integer demandeId, TypeExemp typeExemp) {
-        Optional<DemandeExemp> demandeExemp = getDao().getDemandeExemp().findById(demandeId);
+        Optional<DemandeExemp> demandeExemp = demandeExempDao.findById(demandeId);
         if (demandeExemp.isPresent()) {
             DemandeExemp dem = demandeExemp.get();
             dem.setDateModification(new Date());
             dem.setTypeExemp(typeExemp);
             dem.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
-            return getDao().getDemandeExemp().save(dem);
+            return demandeExempDao.save(dem);
         }
         return null;
     }
@@ -152,9 +180,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param demande demande concernée
      * @return message indiquant le bon déroulement de l'opération renvoyé au front
      * @throws IOException
-     * @throws FileTypeException
-     * @throws FileCheckingException
-     * @throws DemandeCheckingException
+     * @throws FileTypeException : erreur de type de fichier en entrée
+     * @throws FileCheckingException : erreur dans la vérification de l'extension du fichier
+     * @throws DemandeCheckingException  : erreur dans l'état de la demande
      */
     @Override
     public String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
@@ -185,16 +213,16 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeExemp demandeExemp) throws IOException, FileCheckingException {
         Integer numDemande = demandeExemp.getId();
         try {
-            getService().getStorage().changePath(Paths.get(uploadPath + numDemande));
-            getService().getStorage().init();
-            getService().getStorage().store(file, fichier.getFilename());
+            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.init();
+            storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));
             //Ici l'objet fichierExemp va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeExemp); //Contrôle de l'entête et contenu du fichier
             return Constant.MSG + file.getOriginalFilename() + " a bien été déposé sur le serveur avec le nom "
                     + fichier.getFilename();
         } catch (FileCheckingException e) {
-            getService().getStorage().delete(fichier.getFilename());
+            storageService.delete(fichier.getFilename());
             throw e;
         } catch (IOException e) {
             throw new IOException(Constant.ERR_FILE_STORAGE_FILE_UNREADABLE);
@@ -211,7 +239,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     private void majDemandeWithFichierEnrichi(DemandeExemp demandeExemp) throws IOException, DemandeCheckingException {
         demandeExemp.setIndexRecherche(fichierEnrichiExemp.getIndexRecherche()); //Index de recherche
         demandeExemp.setListeZones(fichierEnrichiExemp.getValeurZones()); //Ligne d'entête sans l'index de recherche
-        getService().getLigneFichierExemp().saveFile(getService().getStorage().loadAsResource(fichierEnrichiExemp.getFilename()).getFile(), demandeExemp); //Construction des lignes d'exemplaires pour insertion en base sur table LIGNE_FICHIER_EXEMP
+        ligneFichierService.saveFile(storageService.loadAsResource(fichierEnrichiExemp.getFilename()).getFile(), demandeExemp); //Construction des lignes d'exemplaires pour insertion en base sur table LIGNE_FICHIER_EXEMP
         changeState(demandeExemp, Constant.ETATDEM_SIMULATION);
     }
 
@@ -241,9 +269,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
         if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
-            EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+            EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
-            getService().getJournal().addEntreeJournal((DemandeExemp) demande, etat);
+            journalService.addEntreeJournal((DemandeExemp) demande, etat);
             return this.save(demande);
         } else {
             throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
@@ -252,9 +280,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
         demande.setEtatDemande(etat);
-        getService().getJournal().addEntreeJournal((DemandeExemp) demande, etat);
+        journalService.addEntreeJournal((DemandeExemp) demande, etat);
         return this.save(demande);
     }
 
@@ -301,7 +329,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         if (etatDemande == Constant.ETATDEM_ACOMPLETER) {
             demandeExemp.setTypeExemp(null);
             demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-            getService().getDemandeExemp().save(demandeExemp);
+            save(demandeExemp);
         } else {
             throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
         }
@@ -330,9 +358,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                 demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //retour en ETAT 1
                 /*suppression des lignes de la table LIGNE_FICHIER_EXEMP crées à chargement du fichier : ETAPE3
                 On supprime les lignes qui ont en REF_DEMANDE l'id de la demande*/
-                this.getDao().getLigneFichierExemp().deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
+                ligneFichierExempDao.deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
                 //Mise à jour de l'entité
-                getService().getDemandeExemp().save(demandeExemp);
+                save(demandeExemp);
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
                 //Retour de la demande
                 return demandeExemp;
@@ -340,8 +368,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                 demandeExemp.setIndexRecherche(null);
                 demandeExemp.setListeZones(null);
                 demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER)); //retour en ETAT3
-                this.getDao().getLigneFichierExemp().deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
-                getService().getDemandeExemp().save(demandeExemp);
+                ligneFichierExempDao.deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
+                save(demandeExemp);
                 return demandeExemp;
             default:
                 throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
@@ -362,12 +390,12 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      */
     public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException {
         try {
-            getService().getTraitement().authenticate("M" + demande.getRcr());
+            traitementService.authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
             //Retourne le tableau exemplaires existants / Exemplaire à créer
             return new String[]{
                     //L'indice 0 retourne le PPN de la notice
-                    getService().getTraitement().getCbs().getPpnEncours(),
+                    traitementService.getCbs().getPpnEncours(),
                     //L'indice 1 retourne les données locales et les exemplaires existants tous ensemble sous forme d'une chaine
                     Utilitaires.removeNonPrintableCharacters(donneeLocaleExistante).replace("\r", "\r\n") + "\r\n" + exemplairesExistants.replace("\r", "\r\n"), //2*r\n\ comptent pour un saut de ligne
                     //L'indice 2 retourne le bloc de données locales et l'exemplaire à créer
@@ -379,7 +407,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         } catch (CBSException | ZoneException | QueryToSudocException e) {
             return new String[]{e.getMessage(), e.getMessage()};
         } finally {
-            getService().getTraitement().disconnect();
+            traitementService.disconnect();
         }
     }
 
@@ -396,8 +424,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
         if (query != "") {
             try {
-                getService().getTraitement().getCbs().search(query);
-                nbReponses = getService().getTraitement().getCbs().getNbNotices();
+                traitementService.getCbs().search(query);
+                nbReponses = traitementService.getCbs().getNbNotices();
             } catch (CBSException e) {
                 nbReponses = 0;
             }
@@ -407,7 +435,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
                 case 1:
                     //Le sudoc à trouvé une notice correspondant au critère
-                    String notice = getService().getTraitement().getCbs().getClientCBS().mod("1", String.valueOf(getService().getTraitement().getCbs().getLotEncours()));
+                    String notice = traitementService.getCbs().getClientCBS().mod("1", String.valueOf(traitementService.getCbs().getLotEncours()));
                     String numExStr = Utilitaires.getLastNumExempFromNotice(notice);
                     //On controle ici pour la notice trouvée dans le sudoc le nombre d'exemplaires déjà présents sur ce RCR
                     donneeLocaleExistante = Utilitaires.getDonneeLocaleExistante(notice);
@@ -416,7 +444,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     numEx++;
                     return (numEx < 10) ? "0" + numEx : numEx.toString(); //On retourne le numero d'exemplaire ou sera enregistré le nouvel exemplaire
                 default:
-                    throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + getService().getTraitement().getCbs().getListePpn());
+                    throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
             }
         } else {
             throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_NOT_COMPLIANT);
@@ -429,14 +457,14 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @return demande récupérée dans la base
      */
     @Override
-    public DemandeExemp getIdNextDemandeToProceed() {
+    public DemandeExemp getIdNextDemandeToProceed(int minHour, int maxHour) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
         List<DemandeExemp> listeDemandes;
         if (currentHour >= minHour && currentHour < maxHour) {
-            listeDemandes = getDao().getDemandeExemp().getNextDemandeToProceedWithoutDAT();
+            listeDemandes = demandeExempDao.getNextDemandeToProceedWithoutDAT();
         } else {
-            listeDemandes = getDao().getDemandeExemp().getNextDemandeToProceed();
+            listeDemandes = demandeExempDao.getNextDemandeToProceed();
         }
         if (!listeDemandes.isEmpty())
             return listeDemandes.get(0);
@@ -451,7 +479,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public List<DemandeExemp> getIdNextDemandeToArchive() {
         List<DemandeExemp> listeDemandes;
-        listeDemandes = getDao().getDemandeExemp().getNextDemandeToArchive();
+        listeDemandes = demandeExempDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -465,7 +493,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public List<DemandeExemp> getIdNextDemandeToPlaceInDeletedStatus() {
         List<DemandeExemp> listeDemandes;
-        listeDemandes = getDao().getDemandeExemp().getNextDemandeToPlaceInDeletedStatus();
+        listeDemandes = demandeExempDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -479,7 +507,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public List<DemandeExemp> getIdNextDemandeToDelete() {
         List<DemandeExemp> listeDemandes;
-        listeDemandes = getDao().getDemandeExemp().getNextDemandeToDelete();
+        listeDemandes = demandeExempDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -488,7 +516,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public DemandeExemp creerDemande(String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
         DemandeExemp demandeExemp = new DemandeExemp(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
-        demandeExemp.setIln(getDao().getLibProfile().findById(rcr).orElse(null).getIln());
+        demandeExemp.setIln(libProfileDao.findById(rcr).orElse(null).getIln());
         return demandeExemp;
     }
 
@@ -525,14 +553,14 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     if (Utilitaires.isEtatCollection(labelZone)) {
                         //cas d'une zone d'état de collection
                         if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
-                            exemp.addZoneEtatCollection(labelZone, matcher.group("sousZone"), valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(labelZone).toCharArray());
+                            exemp.addZoneEtatCollection(labelZone, matcher.group("sousZone"), valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(labelZone).toCharArray());
                         } else {
                             zonePrecedenteVide = true;
                         }
                     } else {
                         //cas ou le header en cours est une zone + indicateur + sous zone classique
                         if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
-                            exemp.addZone(labelZone, matcher.group("sousZone"), valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(labelZone).toCharArray());
+                            exemp.addZone(labelZone, matcher.group("sousZone"), valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(labelZone).toCharArray());
                         } else {
                             zonePrecedenteVide = true;
                         }
@@ -543,12 +571,12 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     if (zonePrecedenteVide) {
                         if (Utilitaires.isEtatCollection(zonePrecedente)) {
                             if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
-                                exemp.addZoneEtatCollection(zonePrecedente, headerEnCours, valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
+                                exemp.addZoneEtatCollection(zonePrecedente, headerEnCours, valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
                             }
                         } else {
                             if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
                                 if (!added930)
-                                    exemp.addZone(zonePrecedente, headerEnCours, valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
+                                    exemp.addZone(zonePrecedente, headerEnCours, valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
                                 else
                                     exemp.addSousZone(zonePrecedente, headerEnCours, valeurEnCours);
                                 if (zonePrecedente.equals("930")) {
@@ -567,7 +595,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                                 } else {
                                     if (headerEnCours.equals("$4")) {
                                         //cas où on essaie d'ajouter une $4 seule dans la 955
-                                        exemp.addZoneEtatCollection(zonePrecedente, headerEnCours, valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
+                                        exemp.addZoneEtatCollection(zonePrecedente, headerEnCours, valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
                                         ZoneEtatColl zone = (ZoneEtatColl) exemp.findZones(zonePrecedente).get(0);
                                         zone.addSousZone(headerEnCours, valeurEnCours, 0);
                                     }
@@ -576,10 +604,10 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                         } else {
                             if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
                                 //cas ou le header en cours est une sous zone seule
-                                if (exemp.findZones(zonePrecedente).size() != 0) {
+                                if (!exemp.findZones(zonePrecedente).isEmpty()) {
                                     exemp.addSousZone(zonePrecedente, headerEnCours, valeurEnCours);
                                 } else {
-                                    exemp.addZone(zonePrecedente, headerEnCours, valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
+                                    exemp.addZone(zonePrecedente, headerEnCours, valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());
                                     if (zonePrecedente.equals("930")) {
                                         added930 = true;
                                     }
@@ -595,7 +623,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
             exemp.addSousZone("930", "$b", rcr);
         } else {
             //pas de 930 ajoutée par l'utilisateur, on la crée avec une $b
-            exemp.addZone("930", "$b", rcr, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone("930").toCharArray());
+            exemp.addZone("930", "$b", rcr, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone("930").toCharArray());
         }
         //ajout de la exx
         exemp.addZone("e" + numExemp, "$b", "x");
@@ -642,7 +670,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                 Matcher matcher = patternHeader.matcher(headerEnCours);
 
                 if (matcher.find()) {
-                    donneeLocale.addZone(matcher.group("zone"), matcher.group("sousZone"), valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(matcher.group("zone")).toCharArray());
+                    donneeLocale.addZone(matcher.group("zone"), matcher.group("sousZone"), valeurEnCours, zonesAutoriseesDao.getIndicateursByTypeExempAndLabelZone(matcher.group("zone")).toCharArray());
                     zonePrecedente = matcher.group("zone");
                 } else {
                     donneeLocale.addSousZone(zonePrecedente, headerEnCours, valeurEnCours);
@@ -654,18 +682,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         return donneeLocale.toString();
     }
 
-
-    /**
-     * Méthode de récupération des lignes du fichier par demande et position dans le fichier initial
-     *
-     * @param demande  : demande concernée
-     * @param numLigne : numéro de la ligne à récupérer (champ pos dans la table)
-     * @return : entité ligneFichierExemp correspondante
-     */
-    @Override
-    public LigneFichierExemp getLigneFichier(DemandeExemp demande, Integer numLigne) {
-        return this.getDao().getLigneFichierExemp().getLigneFichierbyDemandeEtPos(demande.getNumDemande(), numLigne);
-    }
 
     /**
      * Méthode de génération de la première ligne d'en tête du fichier résultat
@@ -681,7 +697,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeExemp> demandeExemp = this.getDao().getDemandeExemp().getAllArchivedDemandesExemp(iln);
+        List<DemandeExemp> demandeExemp = demandeExempDao.getAllArchivedDemandesExemp(iln);
         List<Demande> demandeList = new ArrayList<>(demandeExemp);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -689,22 +705,12 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeExemp> demandeExemp = this.getDao().getDemandeExemp().getAllArchivedDemandesExempExtended();
+        List<DemandeExemp> demandeExemp = demandeExempDao.getAllArchivedDemandesExempExtended();
         List<Demande> demandeList = new ArrayList<>(demandeExemp);
         setIlnShortNameOnList(demandeList);
         return demandeList;
     }
 
-    /**
-     * Méthode de récupération des informations à écrire dans le pied de page du fichier résultat : Exemplarisation non concernée
-     *
-     * @param demande
-     * @return
-     */
-    @Override
-    public String getInfoFooterFichierResultat(Demande demande) {
-        return "";
-    }
 
     /**
      * Méthode construisant la requête che en fonction des paramètres d'une demande d'exemplarisation
@@ -763,7 +769,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        getService().getLigneFichierExemp().deleteByDemande(demande);
-        return getService().getDemandeExemp().changeState(demandeExemp, Constant.ETATDEM_ARCHIVEE);
+        ligneFichierExempDao.deleteByDemandeExemp(demandeExemp);
+        return changeState(demandeExemp, Constant.ETATDEM_ARCHIVEE);
     }
 }

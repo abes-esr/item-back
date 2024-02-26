@@ -4,12 +4,18 @@ import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
-import fr.abes.item.service.impl.DemandeExempService;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
+import fr.abes.item.dao.item.IDemandeExempDao;
+import fr.abes.item.dao.item.ILigneFichierExempDao;
+import fr.abes.item.dao.item.IZonesAutoriseesDao;
+import fr.abes.item.service.impl.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,11 +24,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @DisplayName("Test couche service / demande d'exemplarisation")
+@SpringBootTest(classes = DemandeExempService.class)
 public class TestDemandeExempService {
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private DaoProvider dao;
-    @InjectMocks
-    private DemandeExempService demandeService;
+    @MockBean
+    IDemandeExempDao demandeExempDao;
+    @MockBean
+    FileSystemStorageService storageService;
+    @MockBean
+    LigneFichierExempService ligneFichierExempService;
+    @MockBean
+    ReferenceService referenceService;
+    @MockBean
+    JournalService journalService;
+    @MockBean
+    TraitementService traitementService;
+    @MockBean
+    IZonesAutoriseesDao dao;
+    @MockBean
+    ILigneFichierExempDao ligneFichierExempDao;
+    @MockBean
+    ILibProfileDao libProfileDao;
+
+    @Autowired
+    private DemandeExempService demandeExempService;
 
     private final String RCR = "341725201";
     private final String NUMEXEMP = "01";
@@ -33,8 +57,7 @@ public class TestDemandeExempService {
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.initMocks(this);
-        when(dao.getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(Mockito.anyString())).thenReturn("##");
+        when(dao.getIndicateursByTypeExempAndLabelZone(Mockito.anyString())).thenReturn("##");
         formater = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         aujourdhui = new Date();
     }
@@ -44,7 +67,7 @@ public class TestDemandeExempService {
         String header = "930 $c";
         String valeur = "test";
 
-        assertThat(demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
+        assertThat(demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
                 "e01 $bx\r" +
                 "930 ##$b341725201$ctest\r" +
                 "991 ##$a" + Constant.TEXTE_991_CREA + " le " + formater.format(aujourdhui) + "\r" +
@@ -55,7 +78,7 @@ public class TestDemandeExempService {
     void getExempWithOneZoneAndTwoSousZones() throws ZoneException, CBSException {
         String header = "930 $d;$c";
         String valeur = "testd;testc";
-        assertThat(demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
+        assertThat(demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
                 "e01 $bx\r" +
                 "930 ##$b341725201$ctestc$dtestd\r" +
                 "991 ##$a" + Constant.TEXTE_991_CREA + " le " + formater.format(aujourdhui) + "\r" +
@@ -66,7 +89,7 @@ public class TestDemandeExempService {
     void getExempWithTwoZonesAndOneSousZone() throws ZoneException, CBSException {
         String header = "930 $d;915 $a";
         String valeur = "testd;testa";
-        assertThat(demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
+        assertThat(demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
                 "e01 $bx\r" +
                 "915 ##$atesta\r" +
                 "930 ##$b341725201$dtestd\r" +
@@ -78,7 +101,7 @@ public class TestDemandeExempService {
     void getExempWithTwoZonesAndTwoSousZone() throws ZoneException, CBSException {
         String header = "930 $d;$c;915 $a;$b";
         String valeur = "testd;testc;test2;test3";
-        assertThat(demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
+        assertThat(demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP)).contains(Constants.STR_1F +
                 "e01 $bx\r" +
                 "915 ##$atest2$btest3\r" +
                 "930 ##$b341725201$ctestc$dtestd\r" +
@@ -90,7 +113,7 @@ public class TestDemandeExempService {
     void getExempWithThreeZonesAndTwoSousZone() throws ZoneException, CBSException {
         String header = "E317 $a;E856 $u;$9;930 $j";
         String valeur = "DeGruyter LN;http://buadistant;2018-145;g;";
-        String notice = demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
+        String notice = demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
         assertThat(notice).contains(Constants.STR_1F +
                 "e01 $bx\r" +
                 "930 ##$b341725201$jg\r" +
@@ -104,7 +127,7 @@ public class TestDemandeExempService {
     void getExempWithALotOfEverything() throws ZoneException, CBSException {
         String header = "930 $d;$c;915 $a;$b";
         String valeur = "testd;testc;test2;test3";
-        String notice = demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
+        String notice = demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
         assertThat(notice).isEqualTo(Constants.STR_1F +
                 "e01 $bx\r" +
                 "915 ##$atest2$btest3\r" +
@@ -118,7 +141,7 @@ public class TestDemandeExempService {
     void getExempWithALotOfEverything2() throws ZoneException, CBSException {
         String header = "E856$u;$l;$z;930$a;$j;955 41$a;$k;$4;991$a;E702$3";
         String valeur = "https://federation.unimes.fr:8443/login?url=https://rd.springer.com/journal/766;UN | DIP;[Springer Journal Archives - Licence Nationale - Accès UNîmes] (1996)-(2014);Springer Journal Archives;g;1996;2014;Springer Journal Archives;Springer-revues-UN;test";
-        String notice = demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
+        String notice = demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
         assertThat(notice).isEqualTo(Constants.STR_1F +
                 "e01 $bx\r" +
                 "930 ##$b341725201$aSpringer Journal Archives$jg\r" +
@@ -138,7 +161,7 @@ public class TestDemandeExempService {
         String valeur = "915a;915b;917a;930c;930d;930e;930a;930i;930v;9302;991a;999a;999b;999c;999i;999o;999s;999z;E316a;E317a;E319a;E319b;E319c;E319d;E319x";
 
         // WHEN
-        String notice = demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
+        String notice = demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
         // THEN
         assertThat(notice).isEqualTo(Constants.STR_1F +
                 "e01 $bx\r" +
@@ -158,7 +181,7 @@ public class TestDemandeExempService {
         String header = "915 $a;930 $c;$d;$a;$j";
         String valeur = ";DROIT;SDR;M31733;a";
 
-        String notice = demandeService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
+        String notice = demandeExempService.creerExemplaireFromHeaderEtValeur(header, valeur, RCR, NUMEXEMP);
         assertThat(notice).isEqualTo(Constants.STR_1F +
                 "e01 $bx\r" +
                 "930 ##$b341725201$cDROIT$dSDR$aM31733$ja\r" +

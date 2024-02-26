@@ -3,8 +3,7 @@ package fr.abes.item.traitement;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.exception.DemandeCheckingException;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.DemandeRecouvService;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -18,16 +17,23 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 
-import javax.persistence.Transient;
 import java.sql.SQLException;
 
 @Slf4j
 public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListener {
-    @Getter
     @Autowired
-    ServiceProvider service;
+    DemandeRecouvService demandeRecouvService;
 
     private DemandeRecouv demande;
+
+    int minHour;
+
+    int maxHour;
+
+    public GetNextDemandeRecouvTasklet(int minHour, int maxHour) {
+        this.minHour = minHour;
+        this.maxHour = maxHour;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
@@ -47,13 +53,13 @@ public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListe
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET);
         try {
-            this.demande = (DemandeRecouv) getService().getDemandeRecouv().getIdNextDemandeToProceed();
+            this.demande = (DemandeRecouv) demandeRecouvService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }
-            getService().getDemandeRecouv().changeState(this.demande, Constant.ETATDEM_ENCOURS);
+            demandeRecouvService.changeState(this.demande, Constant.ETATDEM_ENCOURS);
         } catch (DemandeCheckingException e) {
             log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDERECOUVTASKLET
                     + e.toString());

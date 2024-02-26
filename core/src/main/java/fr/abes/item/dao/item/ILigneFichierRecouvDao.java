@@ -37,6 +37,13 @@ public interface ILigneFichierRecouvDao extends JpaRepository<LigneFichierRecouv
     List<LigneFichierRecouv> getLigneFichierTraitee(@Param("numDemande") Integer numDemande);
 
     /**
+     * @param numDemande le numéro de la demande qui va aller filtrer les retours sur l'attribut REF_DEMANDE
+     * @return Une liste contenant toutes les lignes d'exemplaires correspondant à une demande
+     *          qui n'ont pas été traités (= absence d'echec sur le traitement de ces lignes)
+     */
+    @Query("select count(lf) from LigneFichierRecouv lf where lf.demandeRecouv.numDemande = :numDemande and lf.traitee=0")
+    int getNbLigneFichierNonTraitee(Integer numDemande);
+    /**
      * @param demande le numéro de la demande dont les lignes fichiers vont être supprimées
      */
     void deleteByDemandeRecouv(DemandeRecouv demande);
@@ -54,7 +61,7 @@ public interface ILigneFichierRecouvDao extends JpaRepository<LigneFichierRecouv
      * @return Le nombre de ligne du fichier qui ont été traitées sur cette demande et dont le retour du sudoc n'a pas
      * été positif pour le traitement
      */
-    @Query("select count(lf) from LigneFichierRecouv lf where demandeRecouv.numDemande = :numDemande and traitee=1 and retourSudoc != 'Le traitement a été effectué.'")
+    @Query("select count(lf) from LigneFichierRecouv lf where lf.demandeRecouv.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc != 'Le traitement a été effectué.'")
     int getNbLigneFichierErrorByDemande(@Param("numDemande") Integer numDemande);
 
     /**
@@ -95,4 +102,6 @@ public interface ILigneFichierRecouvDao extends JpaRepository<LigneFichierRecouv
      */
     @Query("select count(lf) from LigneFichierRecouv lf where lf.demandeRecouv.numDemande = :numDemande and lf.traitee = 1 and lf.nbReponses > 1")
     int getNbReponseMultipleByDemande(@Param("numDemande") Integer numDemande);
+
+
 }

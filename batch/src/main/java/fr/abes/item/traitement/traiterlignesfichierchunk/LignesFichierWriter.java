@@ -95,7 +95,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     }
 
     private void majPourcentageTraitementDemande(){
-        Integer percent = (int) Math.round((double)this.ligneFichierService.getNbLigneFichierTraiteeByDemande(demande.getNumDemande()) / (double)this.ligneFichierService.getNbLigneFichierTotalByDemande(demande.getNumDemande())*100);
+        Integer percent = (int) Math.round((double)this.ligneFichierService.getNbLigneFichierTraiteeByDemande(demande) / (double)this.ligneFichierService.getNbLigneFichierTotalByDemande(demande)*100);
         demande.setPourcentageProgressionTraitement(percent);
         demandeService.save(demande);
     }

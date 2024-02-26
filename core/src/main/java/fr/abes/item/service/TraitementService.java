@@ -1,4 +1,4 @@
-package fr.abes.item.service.impl;
+package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
@@ -8,13 +8,11 @@ import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.ITraitementDao;
 import fr.abes.item.entities.item.Traitement;
-import fr.abes.item.service.ITraitementService;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,27 +22,24 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class TraitementService implements ITraitementService {
+public class TraitementService {
+	private final ITraitementDao traitementDao;
 
 	@Value("${sudoc.serveur}")
 	private String serveurSudoc;
 
 	@Value("${sudoc.port}")
 	private String portSudoc;
-	
-	private String datePattern = "dd-MM-yyyy HH:mm";
 
 	@Getter
 	private ProcessCBS cbs;
 
-	@Autowired @Getter
-	private DaoProvider dao;
 
-	public TraitementService() {
-	    cbs = new ProcessCBS();
+	public TraitementService(ITraitementDao traitementDao) {
+		this.traitementDao = traitementDao;
+		cbs = new ProcessCBS();
     }
 
-	@Override
 	public void authenticate(String login) throws CBSException {
 		this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
 	}
@@ -55,7 +50,6 @@ public class TraitementService implements ITraitementService {
 	 * @return notice d'exemplaire trouvée
 	 * @throws CBSException : Erreur CBS
 	 */
-	@Override
 	public String getNoticeFromEPN(String epn) throws CBSException {
 		cbs.search("che EPN " + epn);
 		if (cbs.getNbNotices() == 1) {
@@ -75,7 +69,6 @@ public class TraitementService implements ITraitementService {
 	 * @param notice notice à modifier
 	 * @return notice avec nouvelle zone / sous zone préfixée de STR_1F
 	 */
-	@Override
 	public String creerNouvelleZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
 		Exemplaire exemp = new Exemplaire(notice);
 		exemp.addZone(tag, subTag, valeur);
@@ -89,7 +82,6 @@ public class TraitementService implements ITraitementService {
 	 * @param tag zone à supprimer
 	 * @return chaine de l'exemplaire modifié préfixé par STR_1F
 	 */
-	@Override
 	public String supprimerZone(String notice, String tag) throws ZoneException {
 		Exemplaire exemp = new Exemplaire(notice);
 		exemp.deleteZone(tag);
@@ -104,7 +96,6 @@ public class TraitementService implements ITraitementService {
 	 * @param subTag zone à supprimer
 	 * @return chaine de l'exemplaire modifié préfixé par STR_1F
 	 */
-	@Override
 	public String supprimerSousZone(String notice, String tag, String subTag) throws ZoneException {
 		Exemplaire exemp = new Exemplaire(notice);
 		exemp.deleteSousZone(tag, subTag);
@@ -119,9 +110,8 @@ public class TraitementService implements ITraitementService {
 	 * @param tag zone qui contient la sous-zone
 	 * @param subTag sous-zone à créer
 	 * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
-	 * @return
+	 * @return l'exemplaire avec la zone ajoutée
 	 */
-	@Override
 	public String creerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
 		Exemplaire exemp = new Exemplaire(notice);
 		exemp.addSousZone(tag, subTag, valeur);
@@ -135,9 +125,8 @@ public class TraitementService implements ITraitementService {
 	 * @param tag zone qui contient la sous-zone
 	 * @param subTag sous-zone à remplacer
 	 * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
-	 * @return
+	 * @return l'exemplaire avec la sous zone remplacée
 	 */
-	@Override
 	public String remplacerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
 		Exemplaire exemp = new Exemplaire(notice);
 		try {
@@ -155,6 +144,7 @@ public class TraitementService implements ITraitementService {
 	 * @return exemplaire modifié
 	 */
 	public Exemplaire ajout991(Exemplaire exemp) throws ZoneException {
+		String datePattern = "dd-MM-yyyy HH:mm";
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
 		String date = simpleDateFormat.format(new Date());
 		char[] indicateurs = new char[2];
@@ -176,7 +166,6 @@ public class TraitementService implements ITraitementService {
 	 * @return : retour CBS
 	 * @throws CBSException : erreur CBS
 	 */
-	@Override
 	public String saveExemplaire(String noticeModifiee, String epn) throws CBSException {
 		String numEx = Utilitaires.getNumExFromExemp(noticeModifiee);
 		String noticeModifieeClean = "e" + numEx + Utilitaire.recupEntre(noticeModifiee, 'e' + numEx, Constants.STR_1E);
@@ -187,7 +176,6 @@ public class TraitementService implements ITraitementService {
 	/**
 	 * Deconnexion du client CBS (sudoc)
 	 */
-	@Override
     public void disconnect() throws CBSException {
 	    cbs.getClientCBS().disconnect();
     }
@@ -195,16 +183,14 @@ public class TraitementService implements ITraitementService {
 
 	/**
 	 * Retourner l'ensemble de la liste des traitements disponibles
-	 * @return
+	 * @return l'ensemble des traitements disponibles en base
 	 */
-	@Override
 	public List<Traitement> findAll() {
-		return dao.getTraitement().findAll();
+		return traitementDao.findAll();
 	}
 
-	@Override
 	public Integer findTraitementByDemandeId(Integer id){
-		return dao.getTraitement().findTraitementByDemandeModifId(id);
+		return traitementDao.findTraitementByDemandeModifId(id);
 	}
 
 

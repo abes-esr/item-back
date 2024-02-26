@@ -40,11 +40,9 @@ import java.util.List;
  *      ligneFichierModif : les valeurs que l'on souhaite modifier rattachées aux zone et sous zones
  * - findAllAdmin : récupérer la liste des demandes de modification de tout les rcr associé à un iln,
  *      qu'importe leur statut (tous les status)
- * - getIdNextDemandeToproceed : retourne la prochaine demande en attente
  *
  */
 public interface IDemandeModifService extends IDemandeService{
-    LigneFichierModif getLigneFichier(DemandeModif demandeModif, Integer numLigne);
 
     String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException;
 

@@ -1,5 +1,6 @@
 package fr.abes.item.entities.item;
 
+import fr.abes.item.entities.GenericEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,15 +10,19 @@ import javax.persistence.*;
 @MappedSuperclass
 @NoArgsConstructor
 @Setter @Getter
-public abstract class LigneFichier {
+public abstract class LigneFichier implements GenericEntity<Integer> {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "NUM_LIGNEFICHIER")
+    protected Integer numLigneFichier;
     @Column(name = "VALEUR_ZONE", length = 2000)
-    private String valeurZone;
+    protected String valeurZone;
     @Column(name="TRAITEE")
-    private Integer traitee;
+    protected Integer traitee;
     @Column(name="POS")
-    private Integer position;
+    protected Integer position;
     @Column(name="RETOUR_SUDOC")
-    private String retourSudoc;
+    protected String retourSudoc;
 
 
     public LigneFichier(String valeurZone, Integer traitee, Integer position, String retourSudoc) {
@@ -26,4 +31,7 @@ public abstract class LigneFichier {
         this.position = position;
         this.retourSudoc = retourSudoc;
     }
+
+    @Override
+    public Integer getId() { return this.numLigneFichier; }
 }

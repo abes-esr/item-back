@@ -8,12 +8,15 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.QueryToSudocException;
+import fr.abes.item.service.IDemandeModifService;
 import fr.abes.item.service.IDemandeService;
+import fr.abes.item.service.TraitementService;
 import fr.abes.item.service.factory.StrategyFactory;
-import fr.abes.item.service.service.ServiceProvider;
-import fr.abes.item.traitement.*;
+import fr.abes.item.service.impl.DemandeExempService;
+import fr.abes.item.service.impl.DemandeModifService;
+import fr.abes.item.service.impl.DemandeRecouvService;
+import fr.abes.item.traitement.ProxyRetry;
 import fr.abes.item.traitement.model.*;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -36,18 +39,24 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     StrategyFactory factory;
     @Autowired
     ProxyRetry proxyRetry;
-
     @Autowired
-    @Getter
-    private ServiceProvider service;
+    TraitementService traitementService;
 
     private IDemandeService demandeService;
 
     private Integer demandeId;
     private TYPE_DEMANDE typeDemande;
     private Demande demande;
+    
+    @Autowired
+    private DemandeModifService demandeModifService;
 
-
+    @Autowired
+    private DemandeExempService demandeExempService;
+    
+    @Autowired
+    private DemandeRecouvService demandeRecouvService;
+    
     @Override
     public void beforeStep(StepExecution stepExecution) {
         ExecutionContext executionContext = stepExecution
@@ -107,9 +116,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         ILigneFichierDtoMapper ligneFichierDtoMapper = factory.getStrategy(ILigneFichierDtoMapper.class, TYPE_DEMANDE.MODIF);
         LigneFichierDtoModif ligneFichierDtoModif = (LigneFichierDtoModif) ligneFichierDto;
         //récupération de la notice correpondant à la ligne du fichier en cours
-        String notice = getService().getTraitement().getNoticeFromEPN(ligneFichierDtoModif.getEpn());
+        String notice = traitementService.getNoticeFromEPN(ligneFichierDtoModif.getEpn());
         //modification de la notice d'exemplaire
-        String noticetraitee = getService().getDemandeModif().getNoticeTraitee(demandeModif, notice, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
+        String noticetraitee = demandeModifService.getNoticeTraitee(demandeModif, notice, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
         //sauvegarde la notice modifiée
         this.proxyRetry.saveExemplaire(noticetraitee, ligneFichierDtoModif.getEpn());
         ligneFichierDtoModif.setRetourSudoc(Constant.EXEMPLAIRE_MODIFIE);
@@ -129,28 +138,28 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
 
         LigneFichierDtoExemp ligneFichierDtoExemp = (LigneFichierDtoExemp) ligneFichierDto;
         try {
-            ligneFichierDtoExemp.setRequete(getService().getDemandeExemp().getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
             //lancement de la requête de récupération de la notice dans le CBS
-            String numEx = getService().getDemandeExemp().launchQueryToSudoc(demandeExemp, ligneFichierDtoExemp.getIndexRecherche());
-            ligneFichierDtoExemp.setNbReponses(getService().getDemandeExemp().getNbReponses());
+            String numEx = demandeExempService.launchQueryToSudoc(demandeExemp, ligneFichierDtoExemp.getIndexRecherche());
+            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
             switch (ligneFichierDtoExemp.getNbReponses()) {
                 case 1:
-                    ligneFichierDtoExemp.setListePpn(getService().getTraitement().getCbs().getPpnEncours());
+                    ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getPpnEncours());
                     break;
                 default:
-                    ligneFichierDtoExemp.setListePpn(getService().getTraitement().getCbs().getListePpn().toString());
+                    ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString());
             }
 
-            String exemplaire = getService().getDemandeExemp().creerExemplaireFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demandeExemp.getRcr(), numEx);
-            String donneeLocale = getService().getDemandeExemp().creerDonneesLocalesFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone());
+            String exemplaire = demandeExempService.creerExemplaireFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demandeExemp.getRcr(), numEx);
+            String donneeLocale = demandeExempService.creerDonneesLocalesFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone());
 
-            this.proxyRetry.newExemplaire(numEx, exemplaire, donneeLocale, getService().getDemandeExemp().hasDonneeLocaleExistante());
+            this.proxyRetry.newExemplaire(numEx, exemplaire, donneeLocale, demandeExempService.hasDonneeLocaleExistante());
             ligneFichierDtoExemp.setNumExemplaire(numEx);
             ligneFichierDtoExemp.setL035(getL035fromDonneesLocales(donneeLocale));
             ligneFichierDtoExemp.setRetourSudoc(Constant.EXEMPLAIRE_CREE);
         } catch (QueryToSudocException e) {
-            ligneFichierDtoExemp.setNbReponses(getService().getDemandeExemp().getNbReponses());
-            ligneFichierDtoExemp.setListePpn(getService().getTraitement().getCbs().getListePpn().toString().replace(';', ','));
+            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
+            ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
             ligneFichierDtoExemp.setRetourSudoc("");
         } catch (DataAccessException d) {
             if (d.getRootCause() instanceof SQLException) {
@@ -181,17 +190,17 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) this.demande;
         LigneFichierDtoRecouv ligneFichierDtoRecouv = (LigneFichierDtoRecouv) ligneFichierDto;
-        ligneFichierDtoRecouv.setRequete(getService().getDemandeRecouv().getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
-        ligneFichierDtoRecouv.setNbReponses(getService().getDemandeRecouv().launchQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
+        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+        ligneFichierDtoRecouv.setNbReponses(demandeRecouvService.launchQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
         switch (ligneFichierDtoRecouv.getNbReponses()) {
             case 0:
                 ligneFichierDtoRecouv.setListePpn("");
                 break;
             case 1:
-                ligneFichierDtoRecouv.setListePpn(getService().getTraitement().getCbs().getPpnEncours());
+                ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getPpnEncours());
                 break;
             default:
-                ligneFichierDtoRecouv.setListePpn(getService().getTraitement().getCbs().getListePpn().toString().replace(';', ','));
+                ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
         }
 
         return ligneFichierDtoRecouv;

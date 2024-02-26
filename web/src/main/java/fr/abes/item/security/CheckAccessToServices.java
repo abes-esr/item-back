@@ -1,14 +1,16 @@
 package fr.abes.item.security;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
 import fr.abes.item.entities.baseXml.LibProfile;
 import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.ForbiddenException;
 import fr.abes.item.exception.UserExistException;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.service.impl.DemandeExempService;
+import fr.abes.item.service.impl.DemandeModifService;
+import fr.abes.item.service.impl.DemandeRecouvService;
+import fr.abes.item.service.UtilisateurService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -17,10 +19,20 @@ import java.util.Optional;
 @Component
 public class CheckAccessToServices {
 
-   @Autowired
-   ServiceProvider service;
-   @Autowired
-   private DaoProvider dao;
+    private final UtilisateurService utilisateurService;
+    private final DemandeExempService demandeExempService;
+    private final DemandeModifService demandeModifService;
+    private final DemandeRecouvService demandeRecouvService;
+
+    private final ILibProfileDao libProfileDao;
+
+    public CheckAccessToServices(UtilisateurService utilisateurService, DemandeExempService demandeExempService, DemandeModifService demandeModifService, DemandeRecouvService demandeRecouvService, ILibProfileDao libProfileDao) {
+        this.utilisateurService = utilisateurService;
+        this.demandeExempService = demandeExempService;
+        this.demandeModifService = demandeModifService;
+        this.demandeRecouvService = demandeRecouvService;
+        this.libProfileDao = libProfileDao;
+    }
 
     /**
      * On ne peut accéder qu'aux demandeModifs de son ILN
@@ -31,22 +43,22 @@ public class CheckAccessToServices {
      */
     public void autoriserAccesDemandeParIln(Integer id, String userNum) throws UserExistException, ForbiddenException {
         log.debug(Constant.ENTER_AUTORISER_ACCES_DEMANDE_ILN);
-        if (service.getUtilisateur().findById(Integer.parseInt(userNum)) == null) {
+        if (utilisateurService.findById(Integer.parseInt(userNum)) == null) {
             log.error(Constant.UTILISATEUR_ABSENT_BASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
 
         String iln;
-        if (service.getDemandeExemp().findById(id) != null) {
-            iln = service.getDemandeExemp().findById(id).getIln();
-        } else if (service.getDemandeModif().findById(id) != null) {
-            iln = service.getDemandeModif().findById(id).getIln();
+        if (demandeExempService.findById(id) != null) {
+            iln = demandeExempService.findById(id).getIln();
+        } else if (demandeModifService.findById(id) != null) {
+            iln = demandeModifService.findById(id).getIln();
         } else {
-            iln = service.getDemandeRecouv().findById(id).getIln();
+            iln = demandeRecouvService.findById(id).getIln();
         }
-        if (!iln.equals(service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln())
+        if (!iln.equals(utilisateurService.findById(Integer.parseInt(userNum)).getIln())
                 // iln 1 can access to all
-                && !service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln().equals("1")) {
+                && !utilisateurService.findById(Integer.parseInt(userNum)).getIln().equals("1")) {
             throw new ForbiddenException(Constant.ACCES_INTERDIT);
         }
 
@@ -61,13 +73,13 @@ public class CheckAccessToServices {
      */
     public void autoriserAccessFichierDemandePourAdmin(Integer id, String userNum) throws ForbiddenException, UserExistException {
         log.debug(Constant.ENTER_AUTORISER_ACCES_FICHIER_DEMANDE_ADMIN);
-        Utilisateur utilisateur = service.getUtilisateur().findById(Integer.parseInt(userNum));
+        Utilisateur utilisateur = utilisateurService.findById(Integer.parseInt(userNum));
         if (utilisateur == null) {
             log.error(Constant.USERNUM_NOT_PRESENT_ON_DATABASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
-        String iln = (service.getDemandeExemp().findById(id) != null) ? service.getDemandeExemp().findById(id).getIln() : service.getDemandeModif().findById(id).getIln();
-        if (!iln.equals(utilisateur.getIln()) || (service.getUtilisateur().isAdmin(utilisateur))) {
+        String iln = demandeExempService.findById(id).getIln();
+        if (!iln.equals(utilisateur.getIln()) || (utilisateurService.isAdmin(utilisateur))) {
             throw new ForbiddenException(Constant.ACCES_INTERDIT);
         }
     }
@@ -85,16 +97,16 @@ public class CheckAccessToServices {
         log.debug(Constant.ENTER_CREATION_DEMANDE_BY_USERNUM);
 
         // verification que le user existe dans la base
-        if (service.getUtilisateur().findById(Integer.parseInt(userNum)) == null) {
+        if (utilisateurService.findById(Integer.parseInt(userNum)) == null) {
             log.error(Constant.UTILISATEUR_ABSENT_BASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
 
         // recupération de l'iln du user
-        String ilnUser = service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln();
+        String ilnUser = utilisateurService.findById(Integer.parseInt(userNum)).getIln();
 
         // récupération de l'iln du rcr
-        Optional<LibProfile> library = dao.getLibProfile().findById(rcr);
+        Optional<LibProfile> library = libProfileDao.findById(rcr);
         if (library.isPresent()) {
             String ilnRcr = library.get().getIln();
             if (!ilnUser.equals(ilnRcr)) {

@@ -13,12 +13,7 @@ import java.io.Serializable;
 @Table(name="LIGNE_FICHIER_RECOUV")
 @NoArgsConstructor
 @Getter @Setter
-public class LigneFichierRecouv extends LigneFichier implements Serializable, GenericEntity<Integer>, ILigneFichier {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "NUM_LIGNEFICHIER")
-    private Integer numLigneFichier;
-
+public class LigneFichierRecouv extends LigneFichier implements Serializable, ILigneFichier {
     @Column(name = "INDEX_RECHERCHE")
     private String indexRecherche;
 
@@ -32,15 +27,10 @@ public class LigneFichierRecouv extends LigneFichier implements Serializable, Ge
     @JoinColumn(name = "REF_DEMANDE") @NotNull
     private DemandeRecouv demandeRecouv;
 
-    public LigneFichierRecouv(String indexRecherche, Integer traitee, Integer position, String retourSudoc, String numExemplaire, DemandeRecouv demandeRecouv) {
+    public LigneFichierRecouv(String indexRecherche, Integer traitee, Integer position, String retourSudoc, DemandeRecouv demandeRecouv) {
         super("", traitee, position, retourSudoc);
         this.indexRecherche = indexRecherche;
         this.demandeRecouv = demandeRecouv;
-    }
-
-    @Override
-    public Integer getId() {
-        return this.numLigneFichier;
     }
 
     @Override

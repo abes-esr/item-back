@@ -4,7 +4,6 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.Advised;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
@@ -16,11 +15,15 @@ import java.util.*;
 @Slf4j
 @Component
 public class StrategyFactory {
-    @Autowired
-    private ApplicationContext applicationContext;
+
+    private final ApplicationContext applicationContext;
 
     private Map<Class, List<Object>> annotatedTypes = new HashMap<>();
     private Map<Class, Strategy> strategyCache = new HashMap<>();
+
+    public StrategyFactory(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * Finds all beans annotated with Strategy. Does a quick sanity

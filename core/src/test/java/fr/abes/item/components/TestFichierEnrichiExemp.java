@@ -1,48 +1,52 @@
 package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
+import fr.abes.item.dao.item.ISousZonesAutoriseesDao;
+import fr.abes.item.dao.item.IZonesAutoriseesDao;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.FileCheckingException;
+import fr.abes.item.service.ReferenceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @DisplayName("test fichier exemplarisation")
-public class TestFichierEnrichiExemp {
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private DaoProvider dao;
+@SpringBootTest(classes = FichierEnrichiExemp.class)
+class TestFichierEnrichiExemp {
+    @Autowired
+    FichierEnrichiExemp composantFichier;
+    @MockBean
+    IZonesAutoriseesDao zonesAutoriseesDao;
+    @MockBean
+    ISousZonesAutoriseesDao sousZonesAutoriseesDao;
+    @MockBean
+    ReferenceService referenceService;
 
-    @InjectMocks
-    private FichierEnrichiExemp composantFichier;
 
-    private DemandeExemp demande;
+    DemandeExemp demande;
 
 
     @BeforeEach
     void init(){
-        composantFichier = new FichierEnrichiExemp();
         composantFichier.setPath(Paths.get("src/test/resources/fichierEnrichiExemp"));
-        MockitoAnnotations.initMocks(this);
         this.demande = new DemandeExemp("341725201", new Date(), new Date(), new EtatDemande(1), "", new Utilisateur(1), new TypeExemp(1), new IndexRecherche(1));
-        when(dao.getZonesAutorisees().getZonesByTypeExemp(anyInt())).thenReturn(getZonesAutorisees());
-        when(dao.getSousZonesAutorisees().getSousZonesAutoriseesByZone(anyString())).thenReturn(getSousZonesAutorisees());
-        when(dao.getTypeExemp().findById(anyInt())).thenReturn(Optional.ofNullable(getTypeExemp()));
-        when(dao.getSousZonesAutorisees().getSousZonesAutoriseesMandatory(Optional.ofNullable(demande.getTypeExemp().getId()))).thenReturn(getSousZonesMandatory());
+        when(zonesAutoriseesDao.getZonesByTypeExemp(anyInt())).thenReturn(getZonesAutorisees());
+        when(sousZonesAutoriseesDao.getSousZonesAutoriseesByZone(anyString())).thenReturn(getSousZonesAutorisees());
+        when(sousZonesAutoriseesDao.getSousZonesAutoriseesMandatory(Optional.ofNullable(demande.getTypeExemp().getId()))).thenReturn(getSousZonesMandatory());
+        when(referenceService.getIndexRechercheFromTypeExemp(anyInt())).thenReturn(getIndexRecherche());
     }
 
     private List<String> getZonesAutorisees() {
@@ -72,15 +76,13 @@ public class TestFichierEnrichiExemp {
         return listeZones;
     }
 
-    private TypeExemp getTypeExemp() {
-        TypeExemp type = new TypeExemp(1);
+    private Set<IndexRecherche> getIndexRecherche() {
         Set<IndexRecherche> liste = new HashSet<>();
         liste.add(new IndexRecherche(1, "ISBN", "ISBN", 1));
         liste.add(new IndexRecherche(3, "PPN", "PPN", 1));
         liste.add(new IndexRecherche(4, "Numéro Source", "SOU", 1));
         liste.add(new IndexRecherche(5, "Date;Auteur;Titre", "DAT", 3));
-        type.setIndexRechercheSet(liste);
-        return type;
+        return liste;
     }
 
     @Test
@@ -98,11 +100,6 @@ public class TestFichierEnrichiExemp {
         assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU)).isTrue();
     }
 
-    /**
-     * test de base avec un fichier ok
-     * @throws FileCheckingException
-     * @throws IOException
-     */
     @Test
     void testZonesOk() throws FileCheckingException, IOException {
         composantFichier.setFilename("okzones.csv");
@@ -135,7 +132,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testNoZone() {
         composantFichier.setFilename("noZone.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_NOZONE));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_NOZONE));
     }
 
     /**
@@ -144,7 +141,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testCaracteres() {
         composantFichier.setFilename("caracteres.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_CARACTERES));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_CARACTERES));
     }
 
     /**
@@ -153,7 +150,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testZoneSansSousZone() {
         composantFichier.setFilename("zoneSansSousZone.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains("n'a pas de sous zone associée"));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ZONEINCOMPLETE));
     }
 
     /**
@@ -162,7 +159,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testNbColonnes() {
         composantFichier.setFilename("nokNbColonnes.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "3" + Constant.ERR_FILE_WRONGNBCOLUMNS));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "3 : " + Constant.ERR_FILE_WRONGNBCOLUMNS));
     }
 
     /**
@@ -171,7 +168,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testDate() {
         composantFichier.setFilename("nokDate.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_DATENOK));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_DATENOK));
     }
 
     /**
@@ -180,7 +177,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testPpn() {
         composantFichier.setFilename("nokPpn.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_WRONGPPN));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_WRONGPPN));
     }
 
     /**
@@ -189,7 +186,7 @@ public class TestFichierEnrichiExemp {
     @Test
     void testNbLignes() throws IOException, FileCheckingException{
         composantFichier.setFilename("nokNbLignes.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_TOOMUCH_EXEMP));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_TOOMUCH_EXEMP));
         composantFichier.setFilename("okNbLignes.csv");
         composantFichier.checkFileContent(demande);
     }
@@ -200,13 +197,13 @@ public class TestFichierEnrichiExemp {
     @Test
     void testIndexRecherche() {
         composantFichier.setFilename("nokIndexRecherche.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
     }
 
     @Test
     void checkMandatoryZones() throws FileCheckingException, IOException {
         composantFichier.setFilename("nokMandatoryZones.csv");
-        assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().equals("La zone 930$j est obligatoire");
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_MANDATORY_ZONE_MISSING));
         composantFichier.setFilename("okMandatoryZones.csv");
         composantFichier.checkFileContent(demande);
     }

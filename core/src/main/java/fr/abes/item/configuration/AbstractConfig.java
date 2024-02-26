@@ -1,11 +1,8 @@
 package fr.abes.item.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 
 public abstract class AbstractConfig {

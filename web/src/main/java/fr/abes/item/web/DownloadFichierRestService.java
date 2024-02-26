@@ -1,11 +1,10 @@
-package fr.abes.item.web.impl;
+package fr.abes.item.web;
 
 import fr.abes.item.exception.ForbiddenException;
 import fr.abes.item.exception.UserExistException;
 import fr.abes.item.security.CheckAccessToServices;
-import fr.abes.item.web.AbstractRestService;
-import fr.abes.item.web.IDownloadFichierRestService;
-import org.springframework.beans.factory.annotation.Autowired;
+import fr.abes.item.service.FileSystemStorageService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -16,13 +15,18 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Paths;
 
 @RestController
-public class DownloadFichierRestService extends AbstractRestService implements IDownloadFichierRestService {
-
+@RequestMapping("/api/v1")
+public class DownloadFichierRestService {
+	private final FileSystemStorageService storageService;
 	@Value("${files.upload.path}")
 	private String uploadPath;
 
-	@Autowired
-	CheckAccessToServices checkAccessToServices;
+	private final CheckAccessToServices checkAccessToServices;
+
+	public DownloadFichierRestService(FileSystemStorageService storageService, CheckAccessToServices checkAccessToServices) {
+		this.storageService = storageService;
+		this.checkAccessToServices = checkAccessToServices;
+	}
 
 	/**
 	 * Webservice de téléchargement d'un fichier en fonction d'une demande
@@ -30,8 +34,8 @@ public class DownloadFichierRestService extends AbstractRestService implements I
 	 * @param numDemande : numéro de la demande concernée
 	 * @return : Resource correspondant au fichier à télécharger
 	 */
-	@Override
 	@GetMapping(value="/files/{filename:.+}")
+	@ApiOperation(value = "permet de récupérer les fichiers relatifs à une demandeModif")
 	public ResponseEntity<Resource> downloadFile(
 			@PathVariable String filename, @RequestParam("id") Integer numDemande, HttpServletRequest request
 	) throws UserExistException, ForbiddenException {
@@ -39,10 +43,10 @@ public class DownloadFichierRestService extends AbstractRestService implements I
 		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString());
 
 		if (numDemande != null && numDemande != 0) {
-			getService().getStorage().changePath(Paths.get(uploadPath + numDemande));
-			getService().getStorage().init();
+			storageService.changePath(Paths.get(uploadPath + numDemande));
+			storageService.init();
 		}
-		Resource file = getService().getStorage().loadAsResource(filename);
+		Resource file = storageService.loadAsResource(filename);
 
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=\"" + file.getFilename() + "\"")

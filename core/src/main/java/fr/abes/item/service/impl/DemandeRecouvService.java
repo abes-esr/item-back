@@ -5,13 +5,17 @@ import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiRecouv;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.entities.item.*;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
+import fr.abes.item.dao.item.IDemandeRecouvDao;
+import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeRecouv;
+import fr.abes.item.entities.item.EtatDemande;
+import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.exception.FileTypeException;
 import fr.abes.item.exception.QueryToSudocException;
-import fr.abes.item.service.IDemandeRecouvService;
-import fr.abes.item.service.IDemandeService;
+import fr.abes.item.service.*;
 import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;
@@ -28,22 +32,36 @@ import java.util.*;
 @Strategy(type= IDemandeService.class, typeDemande = {TYPE_DEMANDE.RECOUV})
 @Slf4j
 public class DemandeRecouvService extends DemandeService implements IDemandeRecouvService {
+    private final IDemandeRecouvDao demandeRecouvDao;
+    private final FileSystemStorageService storageService;
+    private final ReferenceService referenceService;
+    private final TraitementService traitementService;
+    private final ILigneFichierService ligneFichierService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
+
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, ILigneFichierService ligneFichierRecouvService, TraitementService traitementService) {
+        super(libProfileDao);
+        this.demandeRecouvDao = demandeRecouvDao;
+        this.storageService = storageService;
+        this.referenceService = referenceService;
+        this.ligneFichierService = ligneFichierRecouvService;
+        this.traitementService = traitementService;
+    }
+
     @Override
     public List<Demande> findAll() {
-        List<Demande> liste = new ArrayList<>();
-        liste.addAll(getDao().getDemandeRecouv().findAll());
+        List<Demande> liste = new ArrayList<>(demandeRecouvDao.findAll());
         setIlnShortNameOnList(new ArrayList<>(liste));
         return liste;
     }
 
     @Override
     public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeRecouv> demandeRecouvs = getDao().getDemandeRecouv().getAllActiveDemandesRecouvForAdmin(iln);
+        List<DemandeRecouv> demandeRecouvs = demandeRecouvDao.getAllActiveDemandesRecouvForAdmin(iln);
         List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -53,27 +71,26 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     public Demande save(Demande entity) {
         DemandeRecouv demande = (DemandeRecouv) entity;
         entity.setDateModification(new Date());
-        return getDao().getDemandeRecouv().save(demande);
+        return demandeRecouvDao.save(demande);
     }
 
     @Override
     public Demande findById(Integer id) {
-        Optional<DemandeRecouv> demandeRecouv = getDao().getDemandeRecouv().findById(id);
-        if (demandeRecouv.isPresent()) { /*On contrôle si la demande est présente*/
-            setIlnShortNameOnDemande(demandeRecouv.get());
-        }
+        Optional<DemandeRecouv> demandeRecouv = demandeRecouvDao.findById(id);
+        /*On contrôle si la demande est présente*/
+        demandeRecouv.ifPresent(this::setIlnShortNameOnDemande);
         return demandeRecouv.orElse(null);
     }
 
     @Override
     public void deleteById(Integer id) {
-        getDao().getDemandeRecouv().deleteById(id);
+        demandeRecouvDao.deleteById(id);
     }
 
     @Override
     public DemandeRecouv creerDemande(String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
         DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
-        demandeRecouv.setIln(getDao().getLibProfile().findById(rcr).orElse(null).getIln());
+        demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         return demandeRecouv;
     }
 
@@ -85,7 +102,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      */
     @Override
     public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeRecouv> demandeRecouvs = this.getDao().getDemandeRecouv().getActiveDemandesRecouvForUserExceptedPreparedStatus(iln);
+        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getActiveDemandesRecouvForUserExceptedPreparedStatus(iln);
         List<Demande> listeDemande = new ArrayList<>(demandeRecouvs);
         setIlnShortNameOnList(listeDemande);
         return listeDemande;
@@ -93,7 +110,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
 
     @Override
     public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeRecouv> demandeRecouv = getDao().getDemandeRecouv().getAllActiveDemandesRecouvForAdminExtended();
+        List<DemandeRecouv> demandeRecouv = demandeRecouvDao.getAllActiveDemandesRecouvForAdminExtended();
         List<Demande> demandeList = new ArrayList<>(demandeRecouv);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -109,12 +126,12 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public Demande previousState(Demande demande) throws DemandeCheckingException, IOException {
+    public Demande previousState(Demande demande) throws DemandeCheckingException {
         int etatDemande = demande.getEtatDemande().getId();
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         if (etatDemande == Constant.ETATDEM_ACOMPLETER) {
             demandeRecouv.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-            getService().getDemandeRecouv().save(demandeRecouv);
+            save(demandeRecouv);
         }
         else {
             throw new DemandeCheckingException(Constant.GO_BACK_TO_PREVIOUS_STEP_ON_DEMAND_FAILED);
@@ -123,23 +140,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     /**
+     * Méthode permettant de changer l'état d'une demande vers l'état ciblé dans le processus global de l'application
      * @param etape etape à laquelle on souhaite retourner
      * @param demande demande que l'on souhaite modifier
      * @return demande modifiée
      * @throws DemandeCheckingException : demande dans un etat incorrect
      */
     @Override
-    /**
-     * Méthode permettant de changer l'état d'une demande vers l'état ciblé dans le processus global de l'application
-     */
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        switch (etape) {
-            case 2 :
-                return demandeRecouv;
-            default :
-                throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
+        if (etape == 2) {
+            return demandeRecouv;
         }
+        throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
     }
 
     @Override
@@ -148,13 +161,13 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public Demande getIdNextDemandeToProceed() {
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         List<DemandeRecouv> listeDemandes;
         if (currentHour >= minHour && currentHour <= maxHour) {
-            listeDemandes = getDao().getDemandeRecouv().getNextDemandeToProceedWithoutDAT();
+            listeDemandes = demandeRecouvDao.getNextDemandeToProceedWithoutDAT();
         } else {
-            listeDemandes = getDao().getDemandeRecouv().getNextDemandeToProceed();
+            listeDemandes = demandeRecouvDao.getNextDemandeToProceed();
         }
         if (!listeDemandes.isEmpty())
             return listeDemandes.get(0);
@@ -164,7 +177,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public Demande getIdNextDemandeToClean() {
         List<DemandeRecouv> listeDemandes;
-        listeDemandes = getDao().getDemandeRecouv().getNextDemandeToClean();
+        listeDemandes = demandeRecouvDao.getNextDemandeToClean();
         if (!listeDemandes.isEmpty())
             return listeDemandes.get(0);
         return null;
@@ -173,7 +186,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public List<DemandeRecouv> getListDemandesToClean() {
         List<DemandeRecouv> listeDemandes;
-        listeDemandes = getDao().getDemandeRecouv().getListDemandesToClean();
+        listeDemandes = demandeRecouvDao.getListDemandesToClean();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -188,7 +201,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
         if (demande.getEtatDemande().getId() == getPreviousState(etatDemande) || (etatDemande == Constant.ETATDEM_ERREUR)) {
-            EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+            EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             return this.save(demande);
         }
@@ -199,14 +212,14 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
 
     @Override
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
         demande.setEtatDemande(etat);
         return this.save(demande);
     }
 
     @Override
     public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeRecouv> demandeRecouvs = this.getDao().getDemandeRecouv().getAllArchivedDemandesRecouv(iln);
+        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getAllArchivedDemandesRecouv(iln);
         List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -214,7 +227,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
 
     @Override
     public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeRecouv> demandeRecouvs = this.getDao().getDemandeRecouv().getAllArchivedDemandesRecouvExtended();
+        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getAllArchivedDemandesRecouvExtended();
         List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -238,7 +251,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
 
     private void majDemandeWithFichierEnrichi(DemandeRecouv demandeRecouv) throws DemandeCheckingException, IOException {
         demandeRecouv.setIndexRecherche(fichierEnrichiRecouv.getIndexRecherche());
-        getService().getLigneFichierRecouv().saveFile(getService().getStorage().loadAsResource(fichierEnrichiRecouv.getFilename()).getFile(), demandeRecouv);
+        ligneFichierService.saveFile(storageService.loadAsResource(fichierEnrichiRecouv.getFilename()).getFile(), demandeRecouv);
         changeState(demandeRecouv, Constant.ETATDEM_ATTENTE);
     }
     /**
@@ -247,22 +260,22 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      * @param fichier objet correspondant au fichier
      * @param demandeRecouv demande rattachée au fichier
      * @return message indiquant le bon déroulement du processus renvoyé au front
-     * @throws IOException
-     * @throws FileCheckingException
+     * @throws IOException : erreur d'accès au fichier
+     * @throws FileCheckingException : erreur dans le format du fichier
      */
     private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeRecouv demandeRecouv) throws IOException, FileCheckingException {
         Integer numDemande = demandeRecouv.getId();
         try {
-            getService().getStorage().changePath(Paths.get(uploadPath + numDemande));
-            getService().getStorage().init();
-            getService().getStorage().store(file, fichier.getFilename());
+            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.init();
+            storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));
             //Ici l'objet fichierRecouv va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeRecouv);
             return Constant.MSG + file.getOriginalFilename() + " a bien été déposé sur le serveur avec le nom "
                     + fichier.getFilename();
         } catch (FileCheckingException e) {
-            getService().getStorage().delete(fichier.getFilename());
+            storageService.delete(fichier.getFilename());
             throw e;
         } catch (IOException e) {
             throw new IOException(Constant.ERR_FILE_STORAGE_FILE_UNREADABLE);
@@ -292,42 +305,40 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     public int launchQueryToSudoc(String codeIndex, String valeurs) throws CBSException, QueryToSudocException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(codeIndex, tabvaleurs);
-        getService().getTraitement().getCbs().search(query);
-        return getService().getTraitement().getCbs().getNbNotices();
+        traitementService.getCbs().search(query);
+        return traitementService.getCbs().getNbNotices();
     }
 
     @Override
     public String getInfoFooterFichierResultat(Demande demande) {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        int nbRechercheTotal = getService().getLigneFichierRecouv().getNbLigneFichierTotalByDemande(demandeRecouv.getId());
-        int nbNoticesTrouvees = getDao().getLigneFichierRecouv().getNbReponseTrouveesByDemande(demandeRecouv.getId());
-        int nbZeroReponse = getDao().getLigneFichierRecouv().getNbZeroReponseByDemande(demandeRecouv.getId());
-        int nbUneReponse = getDao().getLigneFichierRecouv().getNbUneReponseByDemande(demandeRecouv.getId());
-        int nbReponseMultiple = getDao().getLigneFichierRecouv().getNbReponseMultipleByDemande(demandeRecouv.getId());
+        int nbRechercheTotal = ligneFichierService.getNbLigneFichierTotalByDemande(demandeRecouv);
+        int nbNoticesTrouvees = ligneFichierService.getNbReponseTrouveesByDemande(demandeRecouv);
+        int nbZeroReponse = ligneFichierService.getNbZeroReponseByDemande(demandeRecouv);
+        int nbUneReponse = ligneFichierService.getNbUneReponseByDemande(demandeRecouv);
+        int nbReponseMultiple = ligneFichierService.getNbReponseMultipleByDemande(demandeRecouv);
 
-        StringBuilder stringToReturn = new StringBuilder(System.lineSeparator());
-        stringToReturn.append(nbNoticesTrouvees).append(" notices trouvées sur ")
-                .append(nbRechercheTotal)
-                .append(System.lineSeparator())
-                .append(System.lineSeparator())
-                .append("Nb de 1 réponse : ")
-                .append(nbUneReponse)
-                .append(" | Nb sans réponse : ")
-                .append(nbZeroReponse)
-                .append(" | Nb plusieurs réponses : ")
-                .append(nbReponseMultiple)
-                .append(System.lineSeparator())
-                .append(System.lineSeparator())
-                .append("Taux de recouvrement : ")
-                .append((nbNoticesTrouvees / nbRechercheTotal) * 100)
-                .append("% Taux de création d'exemplaires : ")
-                .append((nbUneReponse / nbRechercheTotal) * 100)
-                .append("%")
-                .append(System.lineSeparator())
-                .append(System.lineSeparator())
-                .append("Fin du recouvrement : ")
-                .append(new Date());
-        return stringToReturn.toString();
+        return System.lineSeparator() + nbNoticesTrouvees + " notices trouvées sur " +
+                nbRechercheTotal +
+                System.lineSeparator() +
+                System.lineSeparator() +
+                "Nb de 1 réponse : " +
+                nbUneReponse +
+                " | Nb sans réponse : " +
+                nbZeroReponse +
+                " | Nb plusieurs réponses : " +
+                nbReponseMultiple +
+                System.lineSeparator() +
+                System.lineSeparator() +
+                "Taux de recouvrement : " +
+                (nbNoticesTrouvees / nbRechercheTotal) * 100 +
+                "% Taux de création d'exemplaires : " +
+                (nbUneReponse / nbRechercheTotal) * 100 +
+                "%" +
+                System.lineSeparator() +
+                System.lineSeparator() +
+                "Fin du recouvrement : " +
+                new Date();
     }
 
     /**
@@ -361,19 +372,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      * supprime les lignes fichiers au moment de l'archivage
      * @param demande demande à archiver
      * @return la demande dans l'état archivé
-     * @throws DemandeCheckingException
+     * @throws DemandeCheckingException : problème dans l'état de la demande
      */
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        getService().getLigneFichierRecouv().deleteByDemande(demande);
-        return getService().getDemandeRecouv().changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
+        ligneFichierService.deleteByDemande(demande);
+        return changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
     }
 
     @Override
     public List<DemandeRecouv> getIdNextDemandeToArchive() {
         List<DemandeRecouv> listeDemandes;
-        listeDemandes = getDao().getDemandeRecouv().getNextDemandeToArchive();
+        listeDemandes = demandeRecouvDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -386,7 +397,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public List<DemandeRecouv> getIdNextDemandeToPlaceInDeletedStatus() {
         List<DemandeRecouv> listeDemandes;
-        listeDemandes = getDao().getDemandeRecouv().getNextDemandeToPlaceInDeletedStatus();
+        listeDemandes = demandeRecouvDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -399,7 +410,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public List<DemandeRecouv> getIdNextDemandeToDelete() {
         List<DemandeRecouv> listeDemandes;
-        listeDemandes = getDao().getDemandeRecouv().getNextDemandeToDelete();
+        listeDemandes = demandeRecouvDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;

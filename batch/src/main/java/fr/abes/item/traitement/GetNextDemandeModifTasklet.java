@@ -3,8 +3,7 @@ package fr.abes.item.traitement;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeModif;
 import fr.abes.item.exception.DemandeCheckingException;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.DemandeModifService;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -23,10 +22,18 @@ import java.sql.SQLException;
 @Slf4j
 public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    @Getter
-    ServiceProvider service;
+    DemandeModifService demandeModifService;
 
     private DemandeModif demande;
+
+    int minHour;
+
+    int maxHour;
+
+    public GetNextDemandeModifTasklet(int minHour, int maxHour) {
+        this.minHour = minHour;
+        this.maxHour = maxHour;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
@@ -46,13 +53,13 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTASKLET);
         try {
-            this.demande = (DemandeModif) getService().getDemandeModif().getIdNextDemandeToProceed();
+            this.demande = (DemandeModif) demandeModifService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }
-            getService().getDemandeModif().changeState(this.demande, Constant.ETATDEM_ENCOURS);
+            demandeModifService.changeState(this.demande, Constant.ETATDEM_ENCOURS);
         } catch (DemandeCheckingException e) {
             log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEMODIFTASKLET
                     + e.toString());

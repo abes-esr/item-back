@@ -1,9 +1,8 @@
 package fr.abes.item.webstats;
 
+import com.opencsv.CSVWriter;
 import fr.abes.item.LogTime;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -17,8 +16,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.opencsv.CSVWriter;
-
 import javax.sql.DataSource;
 import java.io.FileWriter;
 import java.util.Date;
@@ -27,11 +24,6 @@ import java.util.ListIterator;
 
 @Slf4j
 public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener {
-
-    @Autowired
-    @Getter
-    ServiceProvider service;
-
     @Autowired
     @Qualifier("itemDataSource")
     protected DataSource kopyaDataSource;

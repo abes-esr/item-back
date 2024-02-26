@@ -3,8 +3,7 @@ package fr.abes.item.traitement;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeExemp;
 import fr.abes.item.exception.DemandeCheckingException;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.impl.DemandeExempService;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -23,10 +22,17 @@ import java.sql.SQLException;
 @Slf4j
 public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    @Getter
-    ServiceProvider service;
-
+    DemandeExempService demandeExempService;
     DemandeExemp demande;
+
+    int minHour;
+
+    int maxHour;
+
+    public GetNextDemandeExempTasklet(int minHour, int maxHour) {
+        this.minHour = minHour;
+        this.maxHour = maxHour;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
@@ -46,13 +52,13 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTASKLET);
         try {
-            this.demande = (DemandeExemp) getService().getDemandeExemp().getIdNextDemandeToProceed();
+            this.demande = demandeExempService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }
-            getService().getDemandeExemp().changeState(this.demande, Constant.ETATDEM_ENCOURS);
+            demandeExempService.changeState(this.demande, Constant.ETATDEM_ENCOURS);
             stepContribution.setExitStatus(ExitStatus.COMPLETED);
         } catch (JDBCConnectionException | ConstraintViolationException j){
             log.error("Erreur hibernate JDBC");

@@ -38,7 +38,7 @@ import java.util.List;
  * - majTypeExemp : mise à jour du type d'exemplarisation à partir du numero de la demande d'exemplarisation
  * - getQueryToSudoc : fabrique la requête WINIBW à partir du sudoc
  */
-public interface IDemandeExempService extends IDemandeService{
+public interface IDemandeExempService extends IDemandeService {
     boolean hasDonneeLocaleExistante();
 
     String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, ZoneException;
@@ -48,8 +48,6 @@ public interface IDemandeExempService extends IDemandeService{
     String creerDonneesLocalesFromHeaderEtValeur(String header, String valeur) throws ZoneException;
 
     String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException;
-
-    LigneFichierExemp getLigneFichier(DemandeExemp demande, Integer numLigne);
 
     DemandeExemp majTypeExemp(Integer idDemande, TypeExemp typeExemp);
 

@@ -1,6 +1,7 @@
 package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
+import fr.abes.item.entities.item.IndexRecherche;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,11 +15,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public abstract class AbstractFichier {
-    @Getter @Setter
+
     protected String filename;
-    @Getter @Setter
+
     protected Path path;
+
+    protected IndexRecherche indexRecherche;
 
 
     /**
@@ -53,6 +58,25 @@ public abstract class AbstractFichier {
 
         return tabResult;
 
+    }
+
+    protected int getIndexZone(IndexRecherche indexCourant, String[] tabLigne, int indexZone) {
+        if (indexCourant.getIndexZones() == 3) {
+            //cas date / auteur / titre : on vérifie les 3 premières colonnes dans le fichier Date;Auteur;Titre qui doivent correspondre
+            if ((tabLigne.length >= 3) && (tabLigne[0].concat(";").concat(tabLigne[1]).concat(";").concat(tabLigne[2]).equalsIgnoreCase(indexCourant.getLibelle()))) {
+                indexZone = indexCourant.getIndexZones();
+                this.indexRecherche = indexCourant;
+            }
+            //Si l'utilisateur n'a pas renseigné d'index de recherche
+        } else {
+            //autre cas : on ne vérifie que la première colonne
+            if (tabLigne[0].equalsIgnoreCase(indexCourant.getLibelle())) {
+                indexZone = indexCourant.getIndexZones();
+                this.indexRecherche = indexCourant;
+            }
+            //Si l'utilisateur n'a pas renseigné d'index de recherche
+        }
+        return indexZone;
     }
 
 }

@@ -13,12 +13,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Table(name= "LIGNE_FICHIER_MODIF")
 @Getter @Setter
-public class LigneFichierModif extends LigneFichier implements Serializable, GenericEntity<Integer>, ILigneFichier {
+public class LigneFichierModif extends LigneFichier implements Serializable, ILigneFichier {
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "NUM_LIGNEFICHIER")
-    private Integer numLigneFichier;
+
     @Column(name="PPN")
     private String ppn;
     @Column(name="RCR")
@@ -39,9 +36,6 @@ public class LigneFichierModif extends LigneFichier implements Serializable, Gen
         this.epn = epn;
         this.demandeModif = demandeModif;
     }
-
-    @Override
-    public Integer getId() { return this.numLigneFichier; }
 
     @Override
     public void setEntityAfterBatch(LigneFichier ligneFichier) {

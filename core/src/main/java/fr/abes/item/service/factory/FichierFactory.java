@@ -4,7 +4,6 @@ import fr.abes.item.components.Fichier;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.exception.FileTypeException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -14,14 +13,16 @@ import java.util.Map;
 
 @Service
 public class FichierFactory {
-
-	@Autowired
-	private List<Fichier> fichiers;
+	private final List<Fichier> fichiers;
 	
 	private static final Map<Integer, Fichier> fichierCacheModif = new HashMap<>();
 	private static final Map<Integer, Fichier> fichierCacheExemp = new HashMap<>();
 	private static final Map<Integer, Fichier> fichierCacheRecouv = new HashMap<>();
-	
+
+	public FichierFactory(List<Fichier> fichiers) {
+		this.fichiers = fichiers;
+	}
+
 	@PostConstruct
 	public void initFichierCache() {
 		for (Fichier fichier : fichiers) {

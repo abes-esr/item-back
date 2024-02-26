@@ -1,8 +1,7 @@
 package fr.abes.item.security;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.service.UtilisateurService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -40,8 +38,8 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     @Autowired
     AuthenticationEventPublisher authenticationEventPublisher;
 
-    @Resource
-    private ServiceProvider service;
+    @Autowired
+    UtilisateurService utilisateurService;
 
     private JdbcTemplate jdbcTemplateBaseKopya;
 
@@ -104,7 +102,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     }
     public String getEmail(Integer userNum) {
         try {
-            return service.getUtilisateur().findEmailById(userNum);
+            return utilisateurService.findEmailById(userNum);
         }
         catch (EmptyResultDataAccessException e)
         {

@@ -77,7 +77,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception{
         log.warn(Constant.ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET);
         try {
-            for (LigneFichier localLigne : ligneFichierService.getLigneFichierbyDemande(demande.getId())) {
+            for (LigneFichier localLigne : ligneFichierService.getLigneFichierbyDemande(demande)) {
                 if (localLigne.getTraitee().equals(0)) {
                     switch (demande.getTypeDemande()){
                         case EXEMP:

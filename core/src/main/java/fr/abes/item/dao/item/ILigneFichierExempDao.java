@@ -40,6 +40,14 @@ public interface ILigneFichierExempDao extends JpaRepository<LigneFichierExemp, 
     List<LigneFichierExemp> getLigneFichierTraitee(@Param("numDemande") Integer numDemande);
 
     /**
+     * @param numDemande le numéro de la demande qui va aller filtrer les retours sur l'attribut REF_DEMANDE
+     * @return Une liste contenant toutes les lignes d'exemplaires correspondant à une demande
+     *          qui n'ont pas été traités (= absence d'echec sur le traitement de ces lignes)
+     */
+    @Query("select count(lf) from LigneFichierExemp lf where lf.demandeExemp.numDemande = :numDemande and lf.traitee=1 order by lf.position")
+    int getNbLigneFichierNonTraitee(@Param("numDemande") Integer numDemande);
+
+    /**
      * @param numDemande le numéro de la demande
      * @return Le nombre de ligne du fichier qui ont été traitées sur cette demande et dont le retour du sudoc à été
      * positif pour le traitement

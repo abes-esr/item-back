@@ -9,17 +9,17 @@ import fr.abes.item.components.FichierPrepare;
 import fr.abes.item.components.basexml.Ppntoepn;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
+import fr.abes.item.dao.baseXml.ILibProfileDao;
+import fr.abes.item.dao.item.IDemandeModifDao;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.exception.FileTypeException;
-import fr.abes.item.service.IDemandeModifService;
-import fr.abes.item.service.IDemandeService;
+import fr.abes.item.service.*;
 import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,27 +32,40 @@ import java.util.*;
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.MODIF})
 public class DemandeModifService extends DemandeService implements IDemandeModifService {
+    private final IDemandeModifDao demandeModifDao;
+    private final FileSystemStorageService storageService;
+    private final ILigneFichierService ligneFichierService;
+    private final TraitementService traitementService;
+    private final JournalService journalService;
+    private final ReferenceService referenceService;
+    private final Ppntoepn procStockee;
 
-    @Autowired
-    Ppntoepn procStockee;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
-    private FichierEnrichiModif fichierEnrichiModif;
+
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, ILigneFichierService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, Ppntoepn procStockee) {
+        super(libProfileDao);
+        this.demandeModifDao = demandeModifDao;
+        this.storageService = storageService;
+        this.ligneFichierService = ligneFichierModifService;
+        this.traitementService = traitementService;
+        this.journalService = journalService;
+        this.referenceService = referenceService;
+        this.procStockee = procStockee;
+    }
 
     @Override
     public List<Demande> findAll() {
-        List<Demande> liste = new ArrayList<>();
-        liste.addAll(getDao().getDemandeModif().findAll());
-        return liste;
+        return new ArrayList<>(demandeModifDao.findAll());
     }
 
     @Override
     public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeModif> demandeModif = getDao().getDemandeModif().getAllActiveDemandesModifForAdminExtended();
+        List<DemandeModif> demandeModif = demandeModifDao.getAllActiveDemandesModifForAdminExtended();
         List<Demande> demandeList = new ArrayList<>(demandeModif);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -67,7 +80,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     @Override
     public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeModif> demandeModifs = this.getDao().getDemandeModif().getActiveDemandesModifForUserExceptedPreparedStatus(iln);
+        List<DemandeModif> demandeModifs = this.demandeModifDao.getActiveDemandesModifForUserExceptedPreparedStatus(iln);
         List<Demande> listeDemande = new ArrayList<>(demandeModifs);
         setIlnShortNameOnList(listeDemande);
         return listeDemande;
@@ -75,7 +88,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     @Override
     public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeModif> demandeModifs = this.getDao().getDemandeModif().getAllArchivedDemandesModif(iln);
+        List<DemandeModif> demandeModifs = this.demandeModifDao.getAllArchivedDemandesModif(iln);
         List<Demande> listeDemandes = new ArrayList<>(demandeModifs);
         setIlnShortNameOnList(listeDemandes);
         return listeDemandes;
@@ -83,7 +96,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     @Override
     public List<Demande> getAllArchivedDemandesAllIln(){
-        List<DemandeModif> demandeModifs = this.getDao().getDemandeModif().getAllArchivedDemandesModifExtended();
+        List<DemandeModif> demandeModifs = this.demandeModifDao.getAllArchivedDemandesModifExtended();
         List<Demande> listeDemandes = new ArrayList<>(demandeModifs);
         setIlnShortNameOnList(listeDemandes);
         return listeDemandes;
@@ -111,7 +124,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 //appel méthode d'alimentation de la base avec les lignes du fichier
                 FichierEnrichiModif fichier = (FichierEnrichiModif) FichierFactory.getFichier(demandeModif.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
 
-                getService().getLigneFichierModif().saveFile(getService().getStorage().loadAsResource(fichier.getFilename()).getFile(), demandeModif);
+                ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demandeModif);
 
                 String tagSubTab = fichier.getTagSubtag();
                 String zone;
@@ -141,7 +154,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     private void preparerFichierEnPrep(DemandeModif dem) throws IOException, FileTypeException, DemandeCheckingException {
         //Suppression d'un éventuel fichier existant sur le disque
-        getService().getStorage().delete(fichierPrepare.getFilename());
+        storageService.delete(fichierPrepare.getFilename());
         //Ecriture ligne d'en-tête dans FichierApresWS
         fichierPrepare.ecrireEnTete();
         //Alimentation du fichier par appel à la procédure Oracle ppntoepn
@@ -218,9 +231,9 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeModif demandeModif) throws FileCheckingException, IOException, FileTypeException, DemandeCheckingException {
         Integer numDemande = demandeModif.getNumDemande();
         try {
-            getService().getStorage().changePath(Paths.get(uploadPath + numDemande));
-            getService().getStorage().init();
-            getService().getStorage().store(file, fichier.getFilename());
+            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.init();
+            storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));
             fichier.checkFileContent(demandeModif); //Controle de l'adequation des entêtes
             //Cas d'un fichier initial pouvant contenir des lignes vides à supprimer
@@ -233,7 +246,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                     + fichier.getFilename();
 
         } catch (FileCheckingException e) {
-            getService().getStorage().delete(fichier.getFilename());
+            storageService.delete(fichier.getFilename());
             throw e;
         } catch (IOException e) {
             throw new IOException(Constant.ERR_FILE_STORAGE_FILE_UNREADABLE);
@@ -272,9 +285,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     private void appelProcStockee(String rcr) throws IOException {
         List<String> listppn = fichierInit.cutFile();
-        ListIterator<String> lesppns = listppn.listIterator();
-        while (lesppns.hasNext()) {
-            String listeppn = lesppns.next();
+        for (String listeppn : listppn) {
             String resultProcStockee = procStockee.callFunction(listeppn, rcr);
             fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
         }
@@ -283,20 +294,8 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public DemandeModif creerDemande(String rcr, Date dateCreation, Date dateModification, String zone, String sousZone, String comment, EtatDemande etatDemande, Utilisateur utilisateur, Traitement traitement) {
         DemandeModif demandeModif = new DemandeModif(rcr, dateCreation, dateModification, zone, sousZone, comment, etatDemande, utilisateur, traitement);
-        demandeModif.setIln(getDao().getLibProfile().findById(rcr).orElse(null).getIln());
+        demandeModif.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         return demandeModif;
-    }
-
-    /**
-     * Méthode de récupération d'une ligne correspondant à une demandeModif dans la table LigneFichierModif
-     *
-     * @param demandeModif  demandeModif sur laquelle chercher
-     * @param numLigne numéro de la ligne à récupérer
-     * @return LigneFichierModif trouvée
-     */
-    @Override
-    public LigneFichierModif getLigneFichier(DemandeModif demandeModif, Integer numLigne) {
-        return this.getDao().getLigneFichierModif().getLigneFichierbyDemandeEtPos(demandeModif.getNumDemande(), numLigne);
     }
 
 
@@ -311,12 +310,12 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException {
         try {
-            getService().getTraitement().authenticate('M' + demandeModif.getRcr());
+            traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
-            return getService().getTraitement().getNoticeFromEPN(epn);
+            return traitementService.getNoticeFromEPN(epn);
         } finally {
             // déconnexion du CBS après avoir lancé la requête
-            getService().getTraitement().disconnect();
+            traitementService.disconnect();
         }
     }
 
@@ -333,15 +332,15 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         String exempStr = Utilitaires.getExempFromNotice(noticeInit, ligneFichierModif.getEpn());
         switch (demandeModif.getTraitement().getNomMethode()) {
             case "creerNouvelleZone":
-                return getService().getTraitement().creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return traitementService.creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             case "supprimerZone":
-                return getService().getTraitement().supprimerZone(exempStr, demandeModif.getZone());
+                return traitementService.supprimerZone(exempStr, demandeModif.getZone());
             case "supprimerSousZone":
-                return getService().getTraitement().supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
+                return traitementService.supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
             case "ajoutSousZone":
-                return getService().getTraitement().creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return traitementService.creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             case "remplacerSousZone":
-                return getService().getTraitement().remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return traitementService.remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             default:
         }
         return "";
@@ -349,7 +348,6 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     /**
      * Lance une requête pour récupérer l'ensemble des demandeModifs
-     *
      * Lance une requête pour récupérer :
      * Les demandeModifs Terminées / En Erreur de tout le monde
      * ET toutes les demandeModifs créées par cet admin
@@ -357,7 +355,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     @Override
     public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeModif> demandeModifs = getDao().getDemandeModif().getAllActiveDemandesModifForAdmin(iln);
+        List<DemandeModif> demandeModifs = demandeModifDao.getAllActiveDemandesModifForAdmin(iln);
         List<Demande> demandeList = new ArrayList<>(demandeModifs);
         setIlnShortNameOnList(demandeList);
         return demandeList;
@@ -369,10 +367,8 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     @Override
     public DemandeModif findById(Integer id) {
-        Optional<DemandeModif> demandeModif = getDao().getDemandeModif().findById(id);
-        if(demandeModif.isPresent()) {
-            setIlnShortNameOnDemande(demandeModif.get());
-        }
+        Optional<DemandeModif> demandeModif = demandeModifDao.findById(id);
+        demandeModif.ifPresent(this::setIlnShortNameOnDemande);
         return demandeModif.orElse(null);
     }
 
@@ -380,22 +376,22 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     public Demande save(Demande entity) {
         DemandeModif demande = (DemandeModif) entity;
         entity.setDateModification(new Date());
-        return getDao().getDemandeModif().save(demande);
+        return demandeModifDao.save(demande);
     }
 
     @Override
     public void deleteById(Integer id) {
         //suppression des fichiers et du répertoire
-        getService().getStorage().changePath(Paths.get(uploadPath + id));
-        getService().getStorage().deleteAll();
-        getDao().getDemandeModif().deleteById(id);
+        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.deleteAll();
+        demandeModifDao.deleteById(id);
     }
 
     @Override
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
         demande.setEtatDemande(etat);
-        getService().getJournal().addEntreeJournal((DemandeModif) demande, etat);
+        journalService.addEntreeJournal((DemandeModif) demande, etat);
         return this.save(demande);
     }
 
@@ -408,7 +404,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      */
     @Override
     public Demande closeDemande(Demande demande) throws DemandeCheckingException {
-        if (getDao().getLigneFichierModif().getNbLigneFichierNonTraitee(demande.getNumDemande()) != 0) {
+        if (ligneFichierService.getNbLigneFichierNonTraitee(demande) != 0) {
             throw new DemandeCheckingException(Constant.LINES_TO_BE_PROCESSED_REMAIN);
         }
         return changeState(demande, Constant.ETATDEM_TERMINEE);
@@ -426,9 +422,9 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
         if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
-            EtatDemande etat = getService().getReference().findEtatDemandeById(etatDemande);
+            EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
-            getService().getJournal().addEntreeJournal((DemandeModif)demande, etat);
+            journalService.addEntreeJournal((DemandeModif)demande, etat);
             return save(demande);
         }
         else {
@@ -436,25 +432,17 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         }
     }
 
-    /**
-     * Permet de supprimer les lignes du journal d'une demande lors de la suppression de cette demande notamment
-     * @param demande demande dont on souhaite supprimer les lignes en base
-     */
-    public void removeEntreesJournal(Demande demande){
-            getService().getJournal().removeEntreesJournal((DemandeModif)demande);
-    }
-
     @Override
-    public DemandeModif getIdNextDemandeToProceed() {
-        if (!getDao().getDemandeModif().getNextDemandeToProceed().isEmpty())
-            return this.getDao().getDemandeModif().getNextDemandeToProceed().get(0);
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
+        if (!demandeModifDao.getNextDemandeToProceed().isEmpty())
+            return this.demandeModifDao.getNextDemandeToProceed().get(0);
         return null;
     }
 
     @Override
     public List<DemandeModif> getListDemandesToClean() {
         List<DemandeModif> listeDemandes;
-        listeDemandes = getDao().getDemandeModif().getListDemandesToClean();
+        listeDemandes = demandeModifDao.getListDemandesToClean();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -471,7 +459,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
             case Constant.ETATDEM_ACOMPLETER:
                 if ( demandeModif.getTraitement() != null) {
                     demandeModif.setTraitement(null);
-                    getService().getDemandeModif().save(demandeModif);
+                    save(demandeModif);
                 } else {
                     resetDemande(demandeModif);
                 }
@@ -489,9 +477,6 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @throws DemandeCheckingException : demande dans un etat incorrect
      */
     @Override
-    /**
-     * Méthode permettant de changer l'état d'une demande vers l'état ciblé dans le processus global de l'application
-     */
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
         switch (etape) {
@@ -502,9 +487,9 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 demandeModif.setEtatDemande(new EtatDemande(1)); //On repasse DEM_ETAT_ID à 1
                 //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
                 /*Suppression des lignes de la table LIGNE_FICHIER_MODIF crées à ETAPE 5*/
-                this.getDao().getLigneFichierModif().deleteLigneFichierModifByDemandeExempId(demandeModif.getId());
+                ligneFichierService.deleteByDemande(demandeModif);
                 //Mise à jour de l'entité
-                getService().getDemandeModif().save(demandeModif);
+                save(demandeModif);
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
                 return demandeModif;
             case 3 :
@@ -512,16 +497,16 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 demandeModif.setTraitement(null);
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
-                this.getDao().getLigneFichierModif().deleteLigneFichierModifByDemandeExempId(demandeModif.getId());
-                getService().getDemandeModif().save(demandeModif);
+                ligneFichierService.deleteByDemande(demandeModif);
+                save(demandeModif);
                 return demandeModif;
             case 4 :
                 demandeModif.setEtatDemande(new EtatDemande(3));
                 //On ne modifie pas le traitement obtenu a etape 3
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
-                this.getDao().getLigneFichierModif().deleteLigneFichierModifByDemandeExempId(demandeModif.getId());
-                getService().getDemandeModif().save(demandeModif);
+                ligneFichierService.deleteByDemande(demandeModif);
+                save(demandeModif);
                 return demandeModif;
             default :
                 throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
@@ -529,10 +514,10 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
     private void resetDemande(DemandeModif demandeModif) throws IOException{
-        getService().getStorage().delete(fichierInit.getFilename());
-        getService().getStorage().delete(fichierPrepare.getFilename());
+        storageService.delete(fichierInit.getFilename());
+        storageService.delete(fichierPrepare.getFilename());
         demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-        getService().getDemandeModif().save(demandeModif);
+        save(demandeModif);
     }
 
     @Override
@@ -543,27 +528,18 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le" + dateDebut;
     }
 
-    /**
-     * Méthode de récupération des informations à écrire dans le pied de page du fichier résultat : modification non concernée
-     * @param demande
-     * @return
-     */
-    @Override
-    public String getInfoFooterFichierResultat(Demande demande) {
-        return "";
-    }
 
     /** méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage
      * @param demande demande à archiver
      * @return la demande dans l'état archivé
-     * @throws DemandeCheckingException
+     * @throws DemandeCheckingException : problème dans l'état de la demande
      */
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
-        getService().getLigneFichierModif().deleteByDemande(demande);
-        return getService().getDemandeModif().changeState(demandeModif, Constant.ETATDEM_ARCHIVEE);
+        ligneFichierService.deleteByDemande(demande);
+        return changeState(demandeModif, Constant.ETATDEM_ARCHIVEE);
     }
 
     /**
@@ -573,7 +549,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public List<DemandeModif> getIdNextDemandeToArchive() {
         List<DemandeModif> listeDemandes;
-        listeDemandes = getDao().getDemandeModif().getNextDemandeToArchive();
+        listeDemandes = demandeModifDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -586,7 +562,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public List<DemandeModif> getIdNextDemandeToPlaceInDeletedStatus() {
         List<DemandeModif> listeDemandes;
-        listeDemandes = getDao().getDemandeModif().getNextDemandeToPlaceInDeletedStatus();
+        listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -599,7 +575,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public List<DemandeModif> getIdNextDemandeToDelete() {
         List<DemandeModif> listeDemandes;
-        listeDemandes = getDao().getDemandeModif().getNextDemandeToDelete();
+        listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;

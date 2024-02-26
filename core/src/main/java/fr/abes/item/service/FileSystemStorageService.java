@@ -1,10 +1,9 @@
-package fr.abes.item.service.impl;
+package fr.abes.item.service;
 
 import fr.abes.item.configuration.StorageProperties;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.StorageException;
 import fr.abes.item.exception.StorageFileNotFoundException;
-import fr.abes.item.service.IStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -20,11 +19,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
-public class FileSystemStorageService implements IStorageService {
+public class FileSystemStorageService {
 
     private Path rootLocation;
 
@@ -36,7 +34,6 @@ public class FileSystemStorageService implements IStorageService {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void changePath(Path path) {
         this.rootLocation = path;
     }
@@ -73,24 +70,10 @@ public class FileSystemStorageService implements IStorageService {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Stream<Path> loadAll() {
-        try {
-            return Files.walk(this.rootLocation, 1).filter(path -> !path.equals(this.rootLocation))
-                    .map(path -> this.rootLocation.relativize(path));
-        } catch (IOException e) {
-            throw new StorageException(Constant.ERR_FILE_STORAGE_FILE_READING, e);
-        }
-
-    }
 
     /**
      * {@inheritDoc}
      */
-    @Override
     public Path load(String filename) {
         return rootLocation.resolve(filename);
     }
@@ -98,7 +81,6 @@ public class FileSystemStorageService implements IStorageService {
     /**
      * {@inheritDoc}
      */
-    @Override
     public Resource loadAsResource(String filename) {
         try {
             Path file = load(filename);
@@ -116,12 +98,11 @@ public class FileSystemStorageService implements IStorageService {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
 
-    @Override
+
     public void delete(String filename) throws IOException {
         FileSystemUtils.deleteRecursively(load(filename));
     }
@@ -129,7 +110,7 @@ public class FileSystemStorageService implements IStorageService {
     /**
      * {@inheritDoc}
      */
-    @Override
+
     public void init() {
         try {
             Files.createDirectories(rootLocation);
@@ -141,7 +122,7 @@ public class FileSystemStorageService implements IStorageService {
     /**
      * {@inheritDoc}
      */
-    @Override
+
     public boolean exist(String filename) {
         Path fileExist = load(filename);
         Resource resource;
