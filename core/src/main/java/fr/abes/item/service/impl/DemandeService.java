@@ -1,11 +1,10 @@
 package fr.abes.item.service.impl;
 
-import fr.abes.item.dao.baseXml.ILibProfileDao;
 import fr.abes.item.entities.baseXml.LibProfile;
 import fr.abes.item.entities.item.Demande;
+import fr.abes.item.repository.baseXml.ILibProfileDao;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 import java.util.regex.Matcher;

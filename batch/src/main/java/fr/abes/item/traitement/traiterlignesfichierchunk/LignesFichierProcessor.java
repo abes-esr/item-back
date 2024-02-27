@@ -8,7 +8,6 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.QueryToSudocException;
-import fr.abes.item.service.IDemandeModifService;
 import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.TraitementService;
 import fr.abes.item.service.factory.StrategyFactory;
@@ -42,10 +41,6 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     @Autowired
     TraitementService traitementService;
 
-    private IDemandeService demandeService;
-
-    private Integer demandeId;
-    private TYPE_DEMANDE typeDemande;
     private Demande demande;
     
     @Autowired
@@ -62,10 +57,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
                 .getExecutionContext();
-        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
-        demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
-        this.demandeId = (Integer) executionContext.get("demandeId");
-        this.demande = demandeService.findById(this.demandeId);
+        TYPE_DEMANDE typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        IDemandeService demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
+        Integer demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = demandeService.findById(demandeId);
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }
 
@@ -77,14 +72,11 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     @Override
     public LigneFichierDto process(LigneFichierDto ligneFichierDto) {
         try {
-            switch (ligneFichierDto.getTypeDemande()) {
-                case MODIF:
-                    return processDemandeModif(ligneFichierDto);
-                case EXEMP:
-                    return processDemandeExemp(ligneFichierDto);
-                default:
-                    return processDemandeRecouv(ligneFichierDto);
-            }
+            return switch (ligneFichierDto.getTypeDemande()) {
+                case MODIF -> processDemandeModif(ligneFichierDto);
+                case EXEMP -> processDemandeExemp(ligneFichierDto);
+                default -> processDemandeRecouv(ligneFichierDto);
+            };
         } catch (CBSException e) {
             log.error(Constant.ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE + e.toString());
             ligneFichierDto.setRetourSudoc(e.getMessage());
@@ -92,8 +84,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
             log.error("Erreur hibernate JDBC");
             log.error(j.toString());
         } catch (DataAccessException d) {
-            if (d.getRootCause() instanceof SQLException) {
-                SQLException sqlEx = (SQLException) d.getRootCause();
+            if (d.getRootCause() instanceof SQLException sqlEx) {
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
@@ -109,7 +100,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement de modification
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws CBSException
+     * @throws CBSException : erreur d'accès au Sudoc
      */
     private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException {
         DemandeModif demandeModif = (DemandeModif) demande;
@@ -130,7 +121,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement d'exemplarisation
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws CBSException
+     * @throws CBSException : erreur d'accès au Sudoc
      * @throws QueryToSudocException 0 ou plus de 1 résultat à la requête che
      */
     private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws Exception {
@@ -142,12 +133,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
             //lancement de la requête de récupération de la notice dans le CBS
             String numEx = demandeExempService.launchQueryToSudoc(demandeExemp, ligneFichierDtoExemp.getIndexRecherche());
             ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
-            switch (ligneFichierDtoExemp.getNbReponses()) {
-                case 1:
-                    ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getPpnEncours());
-                    break;
-                default:
-                    ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString());
+            if (ligneFichierDtoExemp.getNbReponses() == 1) {
+                ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getPpnEncours());
+            } else {
+                ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString());
             }
 
             String exemplaire = demandeExempService.creerExemplaireFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demandeExemp.getRcr(), numEx);
@@ -162,8 +151,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
             ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
             ligneFichierDtoExemp.setRetourSudoc("");
         } catch (DataAccessException d) {
-            if (d.getRootCause() instanceof SQLException) {
-                SQLException sqlEx = (SQLException) d.getRootCause();
+            if (d.getRootCause() instanceof SQLException sqlEx) {
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
@@ -174,7 +162,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     private String getL035fromDonneesLocales(String donneeLocale) throws ZoneException {
         DonneeLocale donneeLocale1 = new DonneeLocale(donneeLocale);
         List<Zone> listeL035 = donneeLocale1.findZones("L035");
-        if (listeL035.size() > 0) {
+        if (!listeL035.isEmpty()) {
             return listeL035.get(listeL035.size() - 1).findSubLabel("$a");
         }
         return null;
@@ -185,7 +173,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer la requête
      * @return la DTO ligneFichier mise à jour en fonction du résultat de la requête che
-     * @throws CBSException
+     * @throws CBSException : erreur d'accès au Sudoc
      */
     private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) this.demande;

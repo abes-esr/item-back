@@ -33,7 +33,7 @@ public class StatusService {
     private DataSource baseXmlDataSource;
 
     @Autowired
-    private JdbcTemplate kopyaJdbcTemplate;
+    private JdbcTemplate itemJdbcTemplate;
 
     public StatusService() {
         this.cbs = new ProcessCBS();
@@ -75,7 +75,7 @@ public class StatusService {
      */
     public Boolean getKopyaDataBaseStatus(){
         try {
-            this.kopyaJdbcTemplate.queryForRowSet("SELECT user FROM role limit 1"); //Micro requête pour un tps de réponse très rapide (juste première occurence)
+            this.itemJdbcTemplate.queryForRowSet("SELECT user FROM role limit 1"); //Micro requête pour un tps de réponse très rapide (juste première occurence)
             return true;
         } catch (DataAccessException e) {
             log.error(e.getMessage());

@@ -2,10 +2,10 @@ package fr.abes.item.entities.item;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.abes.item.entities.GenericEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
 

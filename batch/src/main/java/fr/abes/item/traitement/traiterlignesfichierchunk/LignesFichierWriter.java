@@ -5,25 +5,25 @@ import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.ILigneFichier;
 import fr.abes.item.entities.item.LigneFichier;
+import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileLineException;
-import fr.abes.item.mail.IMailer;
 import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.StrategyFactory;
 import fr.abes.item.traitement.model.ILigneFichierDtoMapper;
 import fr.abes.item.traitement.model.LigneFichierDto;
-import fr.abes.item.exception.DemandeCheckingException;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -34,12 +34,9 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     @Autowired
     private StrategyFactory factory;
 
-    private IMailer mailer;
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
-    private TYPE_DEMANDE typeDemande;
-    private Integer demandeId;
     private Demande demande;
 
     @Override
@@ -48,12 +45,11 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
                 .getJobExecution()
                 .getExecutionContext();
         this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
-        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
-        this.demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
-        this.demandeId = (Integer) executionContext.get("demandeId");
-        this.demande = demandeService.findById(this.demandeId);
+        TYPE_DEMANDE typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
+        Integer demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = demandeService.findById(demandeId);
         this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
-        this.mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
     }
 
     @Override
@@ -61,15 +57,13 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
         try {
             demandeService.closeDemande(this.demande);
         } catch (DataAccessException d){
-            if(d.getRootCause() instanceof SQLException){
-                SQLException sqlEx = (SQLException) d.getRootCause();
+            if(d.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
         }
         catch (DemandeCheckingException e) {
-            log.error(Constant.ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE
-                    + e.toString());
+            log.error(Constant.ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE + e);
             return ExitStatus.FAILED;
         }
         stepExecution.getJobExecution().getExecutionContext().put("lignes", this.lignesFichier);
@@ -77,14 +71,13 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     }
 
     @Override
-    public void write(List<? extends LigneFichierDto> liste) {
+    public void write(Chunk<? extends LigneFichierDto> liste) throws Exception {
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
                 this.majLigneFichier(ligneFichierDto);
                 this.majPourcentageTraitementDemande();
             } catch (DataAccessException d){
-                if(d.getRootCause() instanceof SQLException){
-                    SQLException sqlEx = (SQLException) d.getRootCause();
+                if(d.getRootCause() instanceof SQLException sqlEx){
                     log.error("Erreur SQL : " + sqlEx.getErrorCode());
                     log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
                 }
@@ -111,18 +104,15 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
             log.error("Erreur hibernate JDBC");
             log.error(j.toString());
         } catch (DataAccessException e) {
-            if(e.getRootCause() instanceof SQLException){
-                SQLException sqlEx = (SQLException) e.getRootCause();
+            if(e.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
             log.error(Constant.ERROR_MAJ_LIGNE + item.getNumLigneFichier()
                     + " pour la demande " + item.getRefDemande()
                     + " "
-                    + e.toString());
+                    + e);
             throw new FileLineException(Constant.ERR_FILE_LINEFILE);
         }
     }
-
-
 }

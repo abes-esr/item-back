@@ -1,13 +1,13 @@
 package fr.abes.item.service;
 
-import fr.abes.item.dao.item.IEtatDemandeDao;
-import fr.abes.item.dao.item.IIndexRechercheDao;
-import fr.abes.item.dao.item.ITypeExempDao;
-import fr.abes.item.dao.item.IZonesAutoriseesDao;
 import fr.abes.item.entities.item.EtatDemande;
 import fr.abes.item.entities.item.IndexRecherche;
 import fr.abes.item.entities.item.TypeExemp;
 import fr.abes.item.entities.item.ZonesAutorisees;
+import fr.abes.item.repository.item.IEtatDemandeDao;
+import fr.abes.item.repository.item.IIndexRechercheDao;
+import fr.abes.item.repository.item.ITypeExempDao;
+import fr.abes.item.repository.item.IZonesAutoriseesDao;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

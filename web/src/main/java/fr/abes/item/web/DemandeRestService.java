@@ -9,7 +9,6 @@ import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.*;
 import fr.abes.item.security.CheckAccessToServices;
-import fr.abes.item.security.JwtTokenProvider;
 import fr.abes.item.service.JournalService;
 import fr.abes.item.service.ReferenceService;
 import fr.abes.item.service.TraitementService;

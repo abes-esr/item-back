@@ -1,9 +1,11 @@
-package fr.abes.item.dao.item;
+package fr.abes.item.repository.item;
 
+import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.entities.item.DemandeExemp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ import java.util.List;
  * méthodes disponibles (CRUD)
  * https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html
  */
+@Repository
+@ItemConfiguration
 public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
     @Query("select d from DemandeExemp d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
     List<DemandeExemp> getNextDemandeToProceed();

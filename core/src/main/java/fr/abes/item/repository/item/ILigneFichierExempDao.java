@@ -1,5 +1,6 @@
-package fr.abes.item.dao.item;
+package fr.abes.item.repository.item;
 
+import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeExemp;
 import fr.abes.item.entities.item.LigneFichierExemp;
@@ -7,10 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Repository
+@ItemConfiguration
 public interface ILigneFichierExempDao extends JpaRepository<LigneFichierExemp, Integer> {
     /**
      * @param numDemande le numero de la demande d'exemplarisation

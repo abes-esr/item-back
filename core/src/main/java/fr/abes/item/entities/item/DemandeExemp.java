@@ -2,11 +2,11 @@ package fr.abes.item.entities.item;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.abes.item.constant.TYPE_DEMANDE;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
 

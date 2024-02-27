@@ -3,23 +3,22 @@ package fr.abes.item.entities.item;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.GenericEntity;
 import fr.abes.item.entities.baseXml.LibProfile;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 @NoArgsConstructor
 @Getter @Setter @ToString
 @MappedSuperclass
 public abstract class Demande implements Serializable, GenericEntity<Integer> {
-    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="NUM_DEMANDE")
@@ -122,20 +121,16 @@ public abstract class Demande implements Serializable, GenericEntity<Integer> {
     public void feedIlnAndShortname(List<LibProfile> libProfileList){
         //Si l'iln de la demande est nul, on l'alimente avec la liste d'entités Libprofile récupérée précédemment
         if(this.iln == null) {
-            Iterator<LibProfile> it = libProfileList.iterator();
-            while (it.hasNext()) {
-                LibProfile libProfile = it.next();
-                if(libProfile.getRcr() == this.rcr){
+            for (LibProfile libProfile : libProfileList) {
+                if (Objects.equals(libProfile.getRcr(), this.rcr)) {
                     this.iln = libProfile.getIln();
                 }
             }
         }
         //Si le shortname de la demande est nul, on l'alimente avec la liste d'entités Libprofile récupérée précédemment
         if (this.shortname == null) {
-            Iterator<LibProfile> it = libProfileList.iterator();
-            while (it.hasNext()) {
-                LibProfile libProfile = it.next();
-                if(libProfile.getRcr().equals(this.rcr)){
+            for (LibProfile libProfile : libProfileList) {
+                if (libProfile.getRcr().equals(this.rcr)) {
                     this.shortname = libProfile.getShortName();
                 }
             }

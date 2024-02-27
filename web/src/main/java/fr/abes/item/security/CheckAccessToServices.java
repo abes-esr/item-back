@@ -1,15 +1,15 @@
 package fr.abes.item.security;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.baseXml.ILibProfileDao;
 import fr.abes.item.entities.baseXml.LibProfile;
 import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.ForbiddenException;
 import fr.abes.item.exception.UserExistException;
+import fr.abes.item.repository.baseXml.ILibProfileDao;
+import fr.abes.item.service.UtilisateurService;
 import fr.abes.item.service.impl.DemandeExempService;
 import fr.abes.item.service.impl.DemandeModifService;
 import fr.abes.item.service.impl.DemandeRecouvService;
-import fr.abes.item.service.UtilisateurService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

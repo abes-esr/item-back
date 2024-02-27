@@ -1,5 +1,6 @@
 package fr.abes.item.configuration;
 
+import jakarta.persistence.EntityManagerFactory;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,15 +15,15 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(transactionManagerRef = "itemTransactionManager",
 		entityManagerFactoryRef = "itemEntityManagerFactory",
-		basePackages = "fr.abes.item.dao.item")
+		basePackages = "fr.abes.item.repository.item")
 @NoArgsConstructor
+@ItemConfiguration
 public class ItemPostgreConfig extends AbstractConfig {
 	@Value("${spring.jpa.item.database-platform}")
 	protected String platform;
@@ -70,7 +71,7 @@ public class ItemPostgreConfig extends AbstractConfig {
 		return new PersistenceExceptionTranslationPostProcessor();
 	}
 
-	@Bean(name = "kopyaJdbcTemplate")
-	public JdbcTemplate kopyaJdbcTemplate() { return new JdbcTemplate(itemDataSource());}
+	@Bean(name = "itemJdbcTemplate")
+	public JdbcTemplate itemJdbcTemplate() { return new JdbcTemplate(itemDataSource());}
 
 }

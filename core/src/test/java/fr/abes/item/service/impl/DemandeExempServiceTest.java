@@ -1,10 +1,10 @@
 package fr.abes.item.service.impl;
 
-import fr.abes.item.dao.baseXml.ILibProfileDao;
-import fr.abes.item.dao.item.IDemandeExempDao;
-import fr.abes.item.dao.item.ILigneFichierExempDao;
-import fr.abes.item.dao.item.IZonesAutoriseesDao;
 import fr.abes.item.exception.QueryToSudocException;
+import fr.abes.item.repository.baseXml.ILibProfileDao;
+import fr.abes.item.repository.item.IDemandeExempDao;
+import fr.abes.item.repository.item.ILigneFichierExempDao;
+import fr.abes.item.repository.item.IZonesAutoriseesDao;
 import fr.abes.item.service.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

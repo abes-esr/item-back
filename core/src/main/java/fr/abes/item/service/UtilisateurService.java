@@ -1,12 +1,12 @@
 package fr.abes.item.service;
 
-import fr.abes.item.dao.baseXml.ILibProfileDao;
-import fr.abes.item.dao.baseXml.IUserProfileDao;
-import fr.abes.item.dao.item.IRoleDao;
-import fr.abes.item.dao.item.IUtilisateurDao;
 import fr.abes.item.entities.baseXml.LibProfile;
 import fr.abes.item.entities.baseXml.UserProfile;
 import fr.abes.item.entities.item.Utilisateur;
+import fr.abes.item.repository.baseXml.ILibProfileDao;
+import fr.abes.item.repository.baseXml.IUserProfileDao;
+import fr.abes.item.repository.item.IRoleDao;
+import fr.abes.item.repository.item.IUtilisateurDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

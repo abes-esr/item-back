@@ -1,16 +1,19 @@
-package fr.abes.item.dao.item;
+package fr.abes.item.repository.item;
 
-import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.entities.item.DemandeModif;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * Service permettant de retourner une liste de Demande de modification, variant selon des critères.
  */
+@Repository
+@ItemConfiguration
 public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
     /**
      * @param iln l'établissement auquel appartient la bibliothèque, une bibliothèque pouvant appartenir à

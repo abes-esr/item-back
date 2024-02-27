@@ -1,8 +1,8 @@
 package fr.abes.item.service;
 
-import fr.abes.item.dao.item.IJournalDemandeExempDao;
-import fr.abes.item.dao.item.IJournalDemandeModifDao;
 import fr.abes.item.entities.item.*;
+import fr.abes.item.repository.item.IJournalDemandeExempDao;
+import fr.abes.item.repository.item.IJournalDemandeModifDao;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;

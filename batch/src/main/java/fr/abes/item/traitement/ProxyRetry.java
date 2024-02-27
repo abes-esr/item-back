@@ -2,10 +2,8 @@ package fr.abes.item.traitement;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.service.service.ServiceProvider;
-import lombok.Getter;
+import fr.abes.item.service.TraitementService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
@@ -13,9 +11,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ProxyRetry {
-    @Autowired
-    @Getter
-    ServiceProvider service;
+    private final TraitementService traitementService;
+
+    public ProxyRetry(TraitementService traitementService) {
+        this.traitementService = traitementService;
+    }
 
     /**
      * permet de retenter plusieurs fois la connexion à CBS
@@ -26,7 +26,7 @@ public class ProxyRetry {
     @Retryable
     public void authenticate(String login) throws CBSException {
         log.warn(Constant.PROXY_AUTHENTICATION_WITH_LOGIN + login);
-        getService().getTraitement().authenticate(login);
+        traitementService.authenticate(login);
     }
 
     /**
@@ -38,7 +38,7 @@ public class ProxyRetry {
     @Retryable(maxAttempts = 4, include = Exception.class,
             exclude = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void saveExemplaire(String noticeTraitee, String epn) throws CBSException {
-        getService().getTraitement().saveExemplaire(noticeTraitee, epn);
+        traitementService.saveExemplaire(noticeTraitee);
     }
 
     /**
@@ -55,16 +55,16 @@ public class ProxyRetry {
         //si on a des données locales à créer
         String donneesLocalesToCreate = donneeLocale.substring(1, donneeLocale.length()-1);
         //création de l'exemplaire
-        getService().getTraitement().getCbs().creerExemplaire(numEx);
-        getService().getTraitement().getCbs().newExemplaire(noticeACreer.substring(1, noticeACreer.length()-1));
+        traitementService.getCbs().creerExemplaire(numEx);
+        traitementService.getCbs().newExemplaire(noticeACreer.substring(1, noticeACreer.length()-1));
         if (!donneesLocalesToCreate.isEmpty()) {
             //s'il y a des données locales existantes, on modifie
             if (modDonneeLocale) {
-                getService().getTraitement().getCbs().modLoc(donneesLocalesToCreate);
+                traitementService.getCbs().modLoc(donneesLocalesToCreate);
             } else {
                 //s'il n'y a pas de donnée locale dans la notice, on crée le bloc
-                getService().getTraitement().getCbs().creerDonneeLocale();
-                getService().getTraitement().getCbs().newLoc(donneesLocalesToCreate);
+                traitementService.getCbs().creerDonneeLocale();
+                traitementService.getCbs().newLoc(donneesLocalesToCreate);
             }
         }
     }

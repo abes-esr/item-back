@@ -18,8 +18,9 @@ import javax.sql.DataSource;
 @Configuration
 @EnableJpaRepositories(transactionManagerRef = "baseXmlTransactionManager",
 		entityManagerFactoryRef = "baseXmlEntityManager",
-		basePackages = "fr.abes.item.dao.baseXml")
+		basePackages = "fr.abes.item.repository.baseXml")
 @NoArgsConstructor
+@BaseXMLConfiguration
 public class BaseXMLOracleConfig extends AbstractConfig {
 	@Value("${spring.jpa.basexml.database-platform}")
 	protected String platform;

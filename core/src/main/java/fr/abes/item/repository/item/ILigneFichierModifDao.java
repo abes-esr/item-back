@@ -1,11 +1,13 @@
-package fr.abes.item.dao.item;
+package fr.abes.item.repository.item;
 
+import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.entities.item.DemandeModif;
 import fr.abes.item.entities.item.LigneFichierModif;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
  * Dao permettant de travailler sur les lignes du fichier que l'utilisateur à charger pour précéder à une
  * demande de modification d'une sous-zone d'une zone se rattachant à un ou plusieurs exemplaires existants
  */
+@Repository
+@ItemConfiguration
 public interface ILigneFichierModifDao extends JpaRepository<LigneFichierModif, Integer> {
 
     /**

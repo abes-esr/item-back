@@ -8,8 +8,8 @@ import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.item.ITraitementDao;
 import fr.abes.item.entities.item.Traitement;
+import fr.abes.item.repository.item.ITraitementDao;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -166,7 +166,7 @@ public class TraitementService {
 	 * @return : retour CBS
 	 * @throws CBSException : erreur CBS
 	 */
-	public String saveExemplaire(String noticeModifiee, String epn) throws CBSException {
+	public String saveExemplaire(String noticeModifiee) throws CBSException {
 		String numEx = Utilitaires.getNumExFromExemp(noticeModifiee);
 		String noticeModifieeClean = "e" + numEx + Utilitaire.recupEntre(noticeModifiee, 'e' + numEx, Constants.STR_1E);
 		return cbs.modifierExemp(noticeModifieeClean, numEx);

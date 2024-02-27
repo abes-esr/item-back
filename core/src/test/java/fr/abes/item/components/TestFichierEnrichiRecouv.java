@@ -1,21 +1,19 @@
 package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.item.IIndexRechercheDao;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.entities.item.EtatDemande;
 import fr.abes.item.entities.item.IndexRecherche;
 import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.FileCheckingException;
+import fr.abes.item.repository.item.IIndexRechercheDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
 import java.nio.file.Paths;

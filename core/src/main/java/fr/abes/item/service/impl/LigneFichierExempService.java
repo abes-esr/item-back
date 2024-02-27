@@ -1,11 +1,11 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.item.ILigneFichierExempDao;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeExemp;
 import fr.abes.item.entities.item.LigneFichier;
 import fr.abes.item.entities.item.LigneFichierExemp;
+import fr.abes.item.repository.item.ILigneFichierExempDao;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.Strategy;
 import lombok.extern.slf4j.Slf4j;

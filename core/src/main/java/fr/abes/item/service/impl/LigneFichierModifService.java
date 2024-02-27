@@ -2,11 +2,11 @@ package fr.abes.item.service.impl;
 
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.item.ILigneFichierModifDao;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeModif;
 import fr.abes.item.entities.item.LigneFichier;
 import fr.abes.item.entities.item.LigneFichierModif;
+import fr.abes.item.repository.item.ILigneFichierModifDao;
 import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.utilitaire.Utilitaires;

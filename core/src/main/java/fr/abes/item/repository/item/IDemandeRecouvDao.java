@@ -1,5 +1,6 @@
-package fr.abes.item.dao.item;
+package fr.abes.item.repository.item;
 
+import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.entities.item.DemandeRecouv;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+@ItemConfiguration
 public interface IDemandeRecouvDao extends JpaRepository<DemandeRecouv, Integer> {
     @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToProceed();

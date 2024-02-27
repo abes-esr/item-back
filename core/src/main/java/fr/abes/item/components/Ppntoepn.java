@@ -1,4 +1,4 @@
-package fr.abes.item.components.basexml;
+package fr.abes.item.components;
 
 
 import org.springframework.jdbc.core.JdbcTemplate;

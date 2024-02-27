@@ -1,7 +1,8 @@
 package fr.abes.item.traitement.traiterlignesfichierchunk;
 
-import fr.abes.item.traitement.model.LigneFichierDto;
 import fr.abes.item.traitement.ProxyRetry;
+import fr.abes.item.traitement.model.LigneFichierDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -9,7 +10,6 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +37,7 @@ public class LignesFichierReader implements ItemReader<LigneFichierDto>, StepExe
     }
 
     @Override
-    public LigneFichierDto read() throws Exception{
+    public LigneFichierDto read() throws Exception {
         LigneFichierDto ligne = null;
         if (i.intValue() < this.lignesFichier.size()) {
             ligne = this.lignesFichier.get(i.getAndIncrement());

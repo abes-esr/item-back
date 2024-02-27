@@ -12,7 +12,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -20,17 +19,14 @@ import javax.sql.DataSource;
 import java.io.FileWriter;
 import java.util.Date;
 import java.util.List;
-import java.util.ListIterator;
 
 @Slf4j
 public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener {
     @Autowired
-    @Qualifier("itemDataSource")
-    protected DataSource kopyaDataSource;
+    protected DataSource itemDataSource;
 
     @Autowired
-    @Qualifier("kopyaJdbcTemplate")
-    protected JdbcTemplate jdbcTemplate;
+    protected JdbcTemplate itemJdbcTemplate;
 
     private Integer annee;
     private Integer mois;
@@ -55,19 +51,15 @@ public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         try (CSVWriter writer = new CSVWriter(new FileWriter(getFilename(Constant.STAT_NBDEMANDESTRAITEES_FILENAME)), ';', CSVWriter.NO_QUOTE_CHARACTER)){
-            ListIterator<NbDemandesTraiteesDto> liste = listeDemandesTraitees.listIterator();
-            while (liste.hasNext()) {
-                NbDemandesTraiteesDto demande = liste.next();
-                writer.writeNext(new String[] {demande.getRcr(), demande.getNbDemandesTraitees().toString()});
+            for (NbDemandesTraiteesDto demande : listeDemandesTraitees) {
+                writer.writeNext(new String[]{demande.getRcr(), demande.getNbDemandesTraitees().toString()});
             }
         } catch (Exception e) {
             log.error(Constant.ERROR_OPENING_FILE_FOR_NUMBER_OF_REQUESTS_PROCESSED_BY_RCR);
         }
         try (CSVWriter writer = new CSVWriter(new FileWriter(getFilename(Constant.STAT_NBEXEMPLAIRESTRAITES_FILENAME)), ';', CSVWriter.NO_QUOTE_CHARACTER)) {
-            ListIterator<NbExemplairesTraitesDto> liste = listeExemplairesTraites.listIterator();
-            while(liste.hasNext()) {
-                NbExemplairesTraitesDto exemp = liste.next();
-                writer.writeNext(new String[] {exemp.getRcr(), exemp.getTypeTraitement().toString(), exemp.getNbExemplaires().toString()});
+            for (NbExemplairesTraitesDto exemp : listeExemplairesTraites) {
+                writer.writeNext(new String[]{exemp.getRcr(), exemp.getTypeTraitement().toString(), exemp.getNbExemplaires().toString()});
             }
         } catch (Exception e) {
             log.error(Constant.ERROR_OPENING_FILE_FOR_NUMBER_OF_EXEMPLARIES_PROCESSES_BY_RCR_AND_TREATMENT);
@@ -77,7 +69,7 @@ public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener
 
     private List<NbDemandesTraiteesDto> getNbDemandesTraitees(Date dateDebut, Date dateFin) {
         String query = "select RCR, count(*) from DEMANDE_MODIF d, JOURNAL_DEMANDE_MODIF j where j.JOU_DEM_ID = d.NUM_DEMANDE and j.JOU_ETA_ID=7 and j.DATE_ENTREE between ? and ? group by d.RCR";
-        return jdbcTemplate.query(query, new Object[] {dateDebut, dateFin}, new NbDemandesTraiteesMapper());
+        return itemJdbcTemplate.query(query, new Object[] {dateDebut, dateFin}, new NbDemandesTraiteesMapper());
     }
 
     private List<NbExemplairesTraitesDto> getNbExemplairesTraites(Date dateDebut, Date dateFin) {
@@ -86,7 +78,7 @@ public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener
                 "where j.DATE_ENTREE between ? and ? "+
                 "and j.JOU_ETA_ID=6 and j.JOU_DEM_ID = d.NUM_DEMANDE and d.NUM_DEMANDE = lf.REF_DEMANDE and lf.TRAITEE=1 " +
                 "group by d.DEM_TRAIT_ID, d.RCR";
-        return jdbcTemplate.query(query, new Object[] {dateDebut, dateFin}, new NbExemplairesTraitesMapper());
+        return itemJdbcTemplate.query(query, new Object[] {dateDebut, dateFin}, new NbExemplairesTraitesMapper());
     }
 
     private String getFilename(String filename) {

@@ -1,14 +1,15 @@
 package fr.abes.item.web.impl;
 
-import fr.abes.item.dao.item.IDemandeExempDao;
 import fr.abes.item.entities.item.*;
+import fr.abes.item.repository.item.IDemandeExempDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Date;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TestDemandeExempRestService {
     @Mock private IDemandeExempDao myDao;

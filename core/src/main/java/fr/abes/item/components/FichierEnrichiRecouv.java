@@ -2,11 +2,11 @@ package fr.abes.item.components;
 
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.dao.item.IIndexRechercheDao;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.entities.item.IndexRecherche;
 import fr.abes.item.exception.FileCheckingException;
+import fr.abes.item.repository.item.IIndexRechercheDao;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.Setter;

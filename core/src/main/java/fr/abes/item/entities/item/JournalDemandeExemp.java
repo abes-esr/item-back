@@ -1,11 +1,11 @@
 package fr.abes.item.entities.item;
 
 import fr.abes.item.entities.GenericEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
