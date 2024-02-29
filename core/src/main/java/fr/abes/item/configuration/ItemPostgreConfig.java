@@ -35,7 +35,7 @@ public class ItemPostgreConfig extends AbstractConfig {
 	protected String dialect;
 	@Value("${spring.jpa.item.show-sql}")
 	private boolean showsql;
-	@Value("${spring.sql.basexml.init.mode}")
+	@Value("${spring.sql.item.init.mode}")
 	private String initMode;
 	@Value("${spring.hibernate.item.enable_lazy_load_no_trans}")
 	private boolean lazyload;
