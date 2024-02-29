@@ -1,13 +1,12 @@
 package fr.abes.item.constant;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
 
 
 public class Constant implements Serializable {
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	//Etat initial de la demandeModif, attend un fichierInitial
@@ -31,9 +30,6 @@ public class Constant implements Serializable {
 	//Demande supprimée mais conservée en base
 	public static final int ETATDEM_SUPPRIMEE = 10;
 
-	/**CBS ports range*/
-	public static final int PORT_CBS_MIN = 1040;
-	public static final int PORT_CBS_MAX = 1055;
 
 	/**Generic messages*/
 	public static final String FAILED = "FAILED";
@@ -48,11 +44,6 @@ public class Constant implements Serializable {
 	public static final String AUCUNE_DEMANDE = "AUCUNE DEMANDE";
 	public static final String DEFAULT = "default";
 	public static final String DEMANDE = "La demande ";
-	public static final String PAS_DE_LIGNES = " n'a pas de lignes.";
-
-	/**Generic addresses*/
-	public static final String LOCALHOST = "http://localhost:";
-	public static final String SIGNIN = "/signin";
 
 	/**Authentication failed*/
 	public static final String UTILISATEUR_ABSENT_BASE = "Cet utilisateur n'existe pas dans la base de données.";
@@ -69,7 +60,6 @@ public class Constant implements Serializable {
 
 	/**Application services errors*/
 	public static final String STORAGE_SERVICE_INITIALIZATION_ERROR = "Ne peut pas initialiser le stockage, erreur au moment de la creation du repertoire : ";
-	public static final String SPRING_BATCH_INITIALIZATION_FAILED = "Ne peut pas initialiser spring batch : ";
 	public static final String STORAGE_SERVICE_MALFORMED_URL_FILE_STORED = "Nom de fichier malformé : Echec de lecture du fichier stocké : ";
 	public static final String UNAVAILABLE_SERVICE = "Service non disponible pour ce type : ";
 	public static final String SERVICE_NOT_RECOGNIZE_DEMANDE_TYPE = "Le service n'a pas reconnu le type de demande (type inconnu ou manquant).";
@@ -89,39 +79,9 @@ public class Constant implements Serializable {
 	public static final int MAX_LIGNE_FICHIER_INIT_EXEMP = 5000;
 	public static final int MAX_LIGNE_APPELWS = 300;
 
-	/**Table de correspondance pour suppression des accents diacritiques**/
-
-	public static final Map<String, String> TABLE_ACCENTS_DIACRITIQUES = initMap();
-
-	/**Liste des accents diacritiques**/
-	private static Map<String, String> initMap() {
-		Map<String, String> map = new HashMap<>();
-		map.put("é", "e");
-		map.put("è", "e");
-		map.put("ê", "e");
-		map.put("ë", "e");
-		map.put("à", "a");
-		map.put("â", "a");
-		map.put("ä", "a");
-		map.put("î", "i");
-		map.put("ï", "i");
-		map.put("ô", "o");
-		map.put("ö", "o");
-		map.put("ù", "u");
-		map.put("û", "u");
-		map.put("ü", "u");
-		map.put("ÿ", "y");
-		map.put("æ", "ae");
-		map.put("œ", "oe");
-		map.put("ç", "c");
-		map.put("ñ", "n");
-		return Collections.unmodifiableMap(map);
-	}
 
 	/**Get specific format for dates*/
-	public static final DateFormat formatDate = DateFormat.getDateTimeInstance(
-			DateFormat.SHORT,
-			DateFormat.SHORT);
+	public static final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public static final String LIGNE_FICHIER_SERVICE_PATTERN = "^(?<ppn>\\d{1,9}X?);(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?);(?<valeur>.+)?";
 
@@ -161,7 +121,6 @@ public class Constant implements Serializable {
 	/**Specific errors on storage file*/
 	public static final String ERR_FILE_STORAGE_EMPTY_FILE = "Echec de stockage du fichier car fichier vide : ";
 	public static final String ERR_FILE_STORAGE_FILE = "Echec de stockage du fichier suivant : ";
-	public static final String ERR_FILE_STORAGE_FILE_READING = "Echec de lecture du fichier suivant stocké : ";
 	public static final String ERR_FILE_STORAGE_FILE_UNREADABLE = "Fichier illisible, verifier que le format du fichier est bien un fichier texte.";
 	public static final String ERR_FILE_READING = "Ne peut pas lire le fichier : ";
 
@@ -200,11 +159,6 @@ public class Constant implements Serializable {
 
 	//PATTERN_VALEUR ppn : 8 caractères alphabétiques + 1 chiffre ou X
 	public static final String PATTERN_INDEX_PPN = "^(?<index>\\d{8,9}X?)";
-	//PATTERN_VALEUR date / auteur / titre : 3 mots séparés par des points virgules
-	public static final String PATTERN_INDEX_DAT = "^(?<index>([\\W|\\d]*;){3})";
-	//PATTERN_VALEUR autre index : juste un mot
-	public static final String PATTERN_INDEX_AUTRE = "^(?<index>[\\W|\\d]+);";
-	public static final String PATTERN_VALEUR = "(?<valeur>.+)?";
 
 	public static final String REG_EXP_ZONES_SOUS_ZONES = "(?<zone>([(^A)|(E)|(L)]?)[\\d]{3})((?<espace>\\s)?)+(?<indicateurs>[#\\d]{2})?(((?<sousZone1>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone2>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone3>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone4>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone5>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone6>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone7>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone8>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone9>[$][a-z\\d]))[\\s]*[;]*)? *(((?<sousZone10>[$][a-z\\d]))[\\s]*[;]*)?";
 	public static final String REG_EXP_ZONE_SOUS_ZONE = "(?<zone>([(^A)|(E)|(^L)]?)[\\d]{3})+((?<espace>\\s)?)?(?<indicateurs>[#\\d]{2})?((?<espace2>\\s)*)?(?<sousZone>[$][a-z\\d])?";
@@ -234,30 +188,12 @@ public class Constant implements Serializable {
 	public static final String ERROR_GENERIC_TECHNICAL_PROBLEMS = "Nous rencontrons actuellement des problèmes techniques.";
 	public static final String ERROR_ACCOUNT_BLOCKED = "Le compte est bloqué. Veuillez patienter 15 minutes.";
 	public static final String ERROR_ACCESS_RESSOURCE_NOT_ALLOWED = "Vous ne pouvez pas accéder à cette ressource.";
-
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_MODIF = "debut du job jobTraiterLigneFichier pour demandes de modification...";
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_EXEMP = "debut du job jobTraiterLigneFichier pour demandes d'exemplarisation...";
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_RECOU = "debut du job jobTraiterLigneFichier pour demandes de recouvrement...";
 	public static final String JOB_EXPORT_STATISTIQUES_START = "debut du job jobExportStatistiques...";
-	public static final String JOB_RESTART_JOBS_UNKNOWN_STATE = "debut du job de redémarrage des Jobs statut inconnu";
-	public static final String JOB_CLEAN_CANCELLED_DEMANDES_DATABASE = "debut du job jobCleanCancelledDemandesInDatabase pour l'ensemble des demandes...";
-	public static final String SPRING_BATCH_JOB_MODIF_NAME = "traiterLigneFichierModif";
-	public static final String SPRING_BATCH_JOB_EXEMP_NAME = "traiterLigneFichierExemp";
-	public static final String SPRING_BATCH_JOB_RECOU_NAME = "traiterLigneFichierRecouv";
-	public static final String SPRING_BATCH_JOB_CLEAN_DATABASE = "supprimerToutesDemandesStatutSupprime";
-	public static final String SPRING_BATCH_JOB_EXPORT_STATISTIQUES_NAME = "exportStatistiques";
-	public static final String SPRING_BATCH_JOB_ARCHIVAGE_DEMANDES_EN_BASE = "archiverDemandesPlusDeTroisMois";
-	public static final String SPRING_BATCH_JOB_STATUT_SUPPRIME_DEMANDES_EN_BASE = "statutSupprimeDemandesPlusDeTroisMois";
-	public static final String SPRING_BATCH_JOB_SUPPRESSION_DEMANDES_EN_BASE = "suppressionDemandesPlusDeTroisMois";
-	public static final String SPRING_BATCH_JOB_RESTART_JOBS_UNKNOW = "redemarrageJobsUnknown";
-
-	public static final String SPRING_BATCH_FORCING_USAGE_JPA_TRANSACTION_MANAGER = "Forcing the use of a JPA transactionManager";
-	public static final String SPRING_BATCH_ENTITY_MANAGER_FACTORY_NULL = "Unable to initialize batch configurer : entityManagerFactory must not be null";
-	public static final String SPRING_BATCH_FORCING_USAGE_MAP_BASED_JOBREPOSITORY = "Forcing the use of a Map based JobRepository";
-
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MILLISECONDS = "temps total execution (ms) = ";
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MINUTES = "temps total execution (minutes) = ";
-
 	public static final String ERROR_SENDING_MAIL_END_OF_TREATMENT = "Erreur lors de l'envoi du mail de fin traitement : ";
 	public static final String POUR_LA_DEMANDE = "...pour la demande ";
 	public static final String ENTER_DOFILTERINTERNAL = "ENTREE DANS doFilterInternal.............................";
@@ -277,10 +213,6 @@ public class Constant implements Serializable {
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTASKLET = "entrée dans execute de GetNextDemandeExempTasklets...";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTOARCHIVETASKLET = "entrée dans execute de ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet...";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTODELETEDSTATUSTASKLET = "entrée dans execute de ChangeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet...";
-
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTOCLEANTASKLET = "entree dans execute de GetNextDemandeModifStatutSupprimeTasklet...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTOCLEANTASKLET = "entree dans execute de GetNextDemandeExempStatutSupprimeTasklet...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTOCLEANTASKLET = "entree dans execute de GetNextDemandeRecouvStatutSupprimeTasklet...";
 	public static final String ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET = "entrée dans execute de LireLigneFichierTasklet...";
 	public static final String ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE = "erreur lors de la requête au Sudoc ou du saveExemplaire";
 	public static final String ERROR_FROM_RECUP_NOTICETRAITEE =	"erreur lors de la recup de la noticetraitee : ";
@@ -304,7 +236,6 @@ public class Constant implements Serializable {
 	public static final String ENTER_AUTHENTICATE = "entree dans authenticate...";
 	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc = ";
 	public static final String ERROR_AUTHENTICATION_IN_SECURITY_CONTEXT = "Could not set user authentication in security context";
-	public static final String ENTER_METHODE = "entree methode";
 	public static final String ERROR_BLOCKED_IP = "dans isblocked IP, attemptsCache.get(key) = ";
 	public static final String NUMBER_IP_TENTATIVES = "NB de tentatives pour ip =";
 	public static final String ENTER_LOGIN_FAILED = "entree dans loginFailed...";

@@ -4,11 +4,9 @@ import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.ForbiddenException;
 import fr.abes.item.security.CheckAccessToServices;
 import fr.abes.item.service.UtilisateurService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 @RequestMapping("/api/v1")
 public class UtilisateurRestService {
@@ -27,7 +25,7 @@ public class UtilisateurRestService {
 	 * @return l'utilisateur sauvegardé
 	 */
 	@PutMapping(value="/utilisateurs/{id}")
-	@ApiOperation(value = "permet de mettre à jour les données de l'utilisateur (adresse mail)")
+	@Operation(summary = "permet de mettre à jour les données de l'utilisateur (adresse mail)")
     public Utilisateur save(@PathVariable Integer id, @RequestBody Utilisateur util, HttpServletRequest request) throws ForbiddenException {
 		checkAccessToServices.autoriserMajUtilisateurParUserNum(id, request.getAttribute("userNum").toString());
 		util.setNumUser(id);

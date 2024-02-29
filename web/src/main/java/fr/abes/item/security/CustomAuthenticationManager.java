@@ -3,15 +3,12 @@ package fr.abes.item.security;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.service.UtilisateurService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,9 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.sql.DataSource;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -35,21 +32,19 @@ import java.util.List;
 @Component
 public class CustomAuthenticationManager implements AuthenticationManager {
 
-    @Autowired
-    AuthenticationEventPublisher authenticationEventPublisher;
+    private final AuthenticationEventPublisher authenticationEventPublisher;
 
-    @Autowired
-    UtilisateurService utilisateurService;
-
-    private JdbcTemplate jdbcTemplateBaseKopya;
+    private final UtilisateurService utilisateurService;
 
     @Value("${wsAuthSudoc.url}")
     String urlWsAuthSudoc;
 
-    public CustomAuthenticationManager(@Qualifier("itemDataSource") DataSource dataSourceKopya) {
-
-        this.jdbcTemplateBaseKopya = new JdbcTemplate(dataSourceKopya);
+    public CustomAuthenticationManager(AuthenticationEventPublisher authenticationEventPublisher, UtilisateurService utilisateurService) {
+        this.authenticationEventPublisher = authenticationEventPublisher;
+        this.utilisateurService = utilisateurService;
     }
+
+
     @Override
     public Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
@@ -63,9 +58,13 @@ public class CustomAuthenticationManager implements AuthenticationManager {
         if (u != null) {
 
             u.setMail(this.getEmail(Integer.parseInt(u.getUserNum())));
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(u.getRole()));
-
+            List<GrantedAuthority> authorities;
+            if (u.getRole() != null) {
+                authorities = new ArrayList<>();
+                authorities.add(new SimpleGrantedAuthority(u.getRole()));
+            } else {
+                authorities = Collections.emptyList();
+            }
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(u, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
             authenticationEventPublisher.publishAuthenticationSuccess(auth);
@@ -90,10 +89,9 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             restTemplate.getMessageConverters()
-                    .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+                    .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
             HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
-            User u = restTemplate.postForObject(this.urlWsAuthSudoc, entity, User.class);
-            return u;
+            return restTemplate.postForObject(this.urlWsAuthSudoc, entity, User.class);
         }
         catch (HttpClientErrorException e) {
             log.info(Constant.ERROR_SUDOC_WS_AUTHENTICATION + e);

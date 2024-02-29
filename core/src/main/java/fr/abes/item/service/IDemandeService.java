@@ -1,14 +1,11 @@
 package fr.abes.item.service;
 
 import fr.abes.item.entities.item.Demande;
-import fr.abes.item.entities.item.DemandeExemp;
-import fr.abes.item.entities.item.LigneFichierExemp;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileTypeException;
-import fr.abes.item.exception.QueryToSudocException;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IDemandeService {
@@ -32,10 +29,7 @@ public interface IDemandeService {
 
     Demande getIdNextDemandeToProceed(int minHour, int maxHour);
 
-    String getInfoHeaderFichierResultat(Demande demande, Date dateDebut);
-
-
-    String getSeparationBetweenBlocks(String demandeBrute);
+    String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut);
 
     Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 

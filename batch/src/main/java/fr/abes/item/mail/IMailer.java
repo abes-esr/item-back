@@ -3,18 +3,14 @@ package fr.abes.item.mail;
 import fr.abes.item.entities.item.Demande;
 
 import java.io.File;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 public interface IMailer {
     void mailDebutTraitement(String mailDestinataire, Demande demande);
 
-    void mailFinTraitement(String mailDestinataire, Demande demande, File f, Date dateDebut, Date dateFin);
+    void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin);
 
-    void mailEchecTraitement(String mailDestinataire, Demande demande, Date dateDebut);
+    void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut);
 
     void mailAlertAdmin(String mailDestinataire, Demande demande);
-
-    void mailRestartJob(List<Integer> listeDemandes);
-
 }

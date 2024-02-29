@@ -10,11 +10,10 @@ import org.springframework.core.Ordered;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Collections;
 
-@EnableSwagger2
+
 @SpringBootApplication
 public class ModifDeMasseApplication extends SpringBootServletInitializer {
 
@@ -24,13 +23,11 @@ public class ModifDeMasseApplication extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
-
 	    SpringApplication.run(ModifDeMasseApplication.class, args);
-
     }
 
     @Bean
-    public FilterRegistrationBean simpleCorsFilter() {
+    public FilterRegistrationBean<CorsFilter> simpleCorsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);

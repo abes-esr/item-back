@@ -10,21 +10,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 
 import java.io.File;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Strategy(type = IMailer.class, typeDemande = TYPE_DEMANDE.RECOUV)
 public class MailerRecouv extends Mailer implements IMailer {
 
     private final Environment env;
-    private final LigneFichierRecouvService ligneFichierRecouvService;
+    private final LigneFichierRecouvService service;
 
-    public MailerRecouv(Environment env, LigneFichierRecouvService ligneFichierRecouvService) {
+    public MailerRecouv(Environment env, LigneFichierRecouvService service) {
         this.env = env;
-        this.ligneFichierRecouvService = ligneFichierRecouvService;
+        this.service = service;
     }
 
     /**
@@ -42,14 +40,13 @@ public class MailerRecouv extends Mailer implements IMailer {
     }
 
     @Override
-    public void mailFinTraitement(String mailDestinataire, Demande demande, File f, Date dateDebut, Date dateFin) {
-        DateFormat formatDate = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+    public void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin) {
         int numDemande = demande.getId();
-        int nbRechercheTotal = ligneFichierRecouvService.getNbLigneFichierTotalByDemande(demande);
-        int nbNoticesTrouvees = ligneFichierRecouvService.getNbReponseTrouveesByDemande(demande);
-        int nbZeroReponse = ligneFichierRecouvService.getNbZeroReponseByDemande(demande);
-        int nbUneReponse = ligneFichierRecouvService.getNbUneReponseByDemande(demande);
-        int nbReponseMultiple = ligneFichierRecouvService.getNbReponseMultipleByDemande(demande);
+        int nbRechercheTotal = service.getNbLigneFichierTotalByDemande(demande);
+        int nbNoticesTrouvees = service.getNbReponseTrouveesByDemande(demande);
+        int nbZeroReponse = service.getNbZeroReponseByDemande(demande);
+        int nbUneReponse = service.getNbUneReponseByDemande(demande);
+        int nbReponseMultiple = service.getNbReponseMultipleByDemande(demande);
         double tauxRecouv = ((double)nbNoticesTrouvees / (double)nbRechercheTotal) * 100;
         double tauxExemp = ((double)nbUneReponse / (double)nbRechercheTotal) * 100;
         DecimalFormat df = new DecimalFormat("0.00");
@@ -57,7 +54,7 @@ public class MailerRecouv extends Mailer implements IMailer {
                 "Bonjour," + Constant.HTML_BALISE_BR +
                         "Votre taux de recouvrement N°" + numDemande + " est terminé." + Constant.HTML_BALISE_BR +
                         "Bilan : " + Constant.HTML_BALISE_BR +
-                        "Taux de recouvrement démarré le : " + formatDate.format(dateDebut) + Constant.HTML_BALISE_BR +
+                        "Taux de recouvrement démarré le : " + Constant.formatDate.format(dateDebut) + Constant.HTML_BALISE_BR +
                         "Nb de requêtes : " + nbRechercheTotal + Constant.HTML_BALISE_BR +
                         "Taux de recouvrement : " + df.format(tauxRecouv) + "%" + Constant.HTML_BALISE_BR +
                         "Taux de création possible d'exemplaires : " + df.format(tauxExemp) + "%" + Constant.HTML_BALISE_BR +
@@ -65,7 +62,7 @@ public class MailerRecouv extends Mailer implements IMailer {
                         "Nombre 1 réponse : " + nbUneReponse + Constant.HTML_BALISE_BR +
                         "Nombre sans réponse : " + nbZeroReponse + Constant.HTML_BALISE_BR +
                         "Nombre de plusieurs réponses : " + nbReponseMultiple + Constant.HTML_BALISE_BR +
-                        "Taux de recouvrement terminé le : " + formatDate.format(dateFin) + Constant.HTML_BALISE_BR +
+                        "Taux de recouvrement terminé le : " + Constant.formatDate.format(dateFin) + Constant.HTML_BALISE_BR +
                         "Le fichier de résultat est à votre disposition en pièce jointe et sur votre interface ITEM. " +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro\" target=\"_blank\">https://stp.abes.fr</a>" + Constant.HTML_BALISE_BR +
                         "Cordialement," + Constant.HTML_BALISE_BR +
@@ -74,7 +71,7 @@ public class MailerRecouv extends Mailer implements IMailer {
     }
 
     @Override
-    public void mailEchecTraitement(String mailDestinataire, Demande demande, Date dateDebut) {
+    public void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut) {
         String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_START + demande.getId() + " - " + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
                 "Votre taux de recouvrement - N°" + demande.getId() + " - n'a pas pu être exécuté. Une erreur vient de se produire sur ITEM. Dès que l'incident sera résolu vous recevrez un message vous indiquant la reprise du traitement. Cela ne nécessite aucune intervention de votre part.<br />" +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro/\" target=\"_blank\"> https://stp.abes.fr</a><br />" +
@@ -88,14 +85,4 @@ public class MailerRecouv extends Mailer implements IMailer {
         sendMail(requestJson);
     }
 
-    @Override
-    public void mailRestartJob(List<Integer> listDemandes) {
-        StringBuilder message = new StringBuilder("Les demandes de recouvrement suivantes ont été repassées automatiquement en attente : \n");
-        listDemandes.forEach(d -> {
-            message.append(d);
-            message.append("\n");
-        });
-        String requestJson = mailToJSON(mailAdmin, "[ITEM] Redémarrage automatique des demandes de recouvrement", message.toString());
-        sendMail(requestJson);
-    }
 }

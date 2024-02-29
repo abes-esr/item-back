@@ -16,6 +16,7 @@ import fr.abes.item.service.impl.DemandeModifService;
 import fr.abes.item.service.impl.DemandeRecouvService;
 import fr.abes.item.traitement.ProxyRetry;
 import fr.abes.item.traitement.model.*;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -65,12 +66,12 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     }
 
     @Override
-    public ExitStatus afterStep(StepExecution stepExecution) {
+    public ExitStatus afterStep(@NonNull StepExecution stepExecution) {
         return null;
     }
 
     @Override
-    public LigneFichierDto process(LigneFichierDto ligneFichierDto) {
+    public LigneFichierDto process(@NonNull LigneFichierDto ligneFichierDto) {
         try {
             return switch (ligneFichierDto.getTypeDemande()) {
                 case MODIF -> processDemandeModif(ligneFichierDto);
@@ -78,7 +79,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 default -> processDemandeRecouv(ligneFichierDto);
             };
         } catch (CBSException e) {
-            log.error(Constant.ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE + e.toString());
+            log.error(Constant.ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE + e);
             ligneFichierDto.setRetourSudoc(e.getMessage());
         } catch (JDBCConnectionException | ConstraintViolationException j) {
             log.error("Erreur hibernate JDBC");
@@ -89,7 +90,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
         } catch (Exception e) {
-            log.error(Constant.ERROR_FROM_RECUP_NOTICETRAITEE + e.toString());
+            log.error(Constant.ERROR_FROM_RECUP_NOTICETRAITEE + e);
             ligneFichierDto.setRetourSudoc(e.getMessage());
         }
         return ligneFichierDto;
@@ -111,7 +112,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //modification de la notice d'exemplaire
         String noticetraitee = demandeModifService.getNoticeTraitee(demandeModif, notice, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
         //sauvegarde la notice modifiée
-        this.proxyRetry.saveExemplaire(noticetraitee, ligneFichierDtoModif.getEpn());
+        this.proxyRetry.saveExemplaire(noticetraitee);
         ligneFichierDtoModif.setRetourSudoc(Constant.EXEMPLAIRE_MODIFIE);
         return ligneFichierDtoModif;
     }

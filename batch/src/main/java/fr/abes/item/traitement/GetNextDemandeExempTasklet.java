@@ -4,6 +4,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeExemp;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.service.impl.DemandeExempService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -35,7 +36,7 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
     }
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {
+    public void beforeStep(@NonNull StepExecution stepExecution) {
         log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_EXEMP);
     }
 
@@ -49,7 +50,7 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
     }
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTASKLET);
         try {
             this.demande = demandeExempService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
@@ -65,13 +66,12 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
             log.error(j.toString());
         } catch (DemandeCheckingException e) {
             log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEEXEMPTASKLET
-                    + e.toString());
+                    + e);
             stepContribution.setExitStatus(ExitStatus.FAILED);
             return RepeatStatus.FINISHED;
         } catch (DataAccessException d){
             log.error("GetNextDemandeExempTasklet : Erreur d'accès à la base de donnée");
-            if(d.getRootCause() instanceof SQLException){
-                SQLException sqlEx = (SQLException) d.getRootCause();
+            if(d.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }

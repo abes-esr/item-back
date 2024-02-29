@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -167,28 +168,18 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @return : l'état précédent dans le processus
      */
     private int getPreviousState(int etatDemande) {
-        switch (etatDemande) {
-            case Constant.ETATDEM_PREPAREE:
-                return Constant.ETATDEM_PREPARATION;
-            case Constant.ETATDEM_ACOMPLETER:
-                return Constant.ETATDEM_PREPAREE;
-            case Constant.ETATDEM_SIMULATION:
-                return Constant.ETATDEM_ACOMPLETER;
-            case Constant.ETATDEM_ATTENTE:
-                return Constant.ETATDEM_SIMULATION;
-            case Constant.ETATDEM_ENCOURS:
-                return Constant.ETATDEM_ATTENTE;
-            case Constant.ETATDEM_TERMINEE:
-                return Constant.ETATDEM_ENCOURS;
-            case Constant.ETATDEM_ERREUR:
-                return Constant.ETATDEM_ERREUR;
-            case Constant.ETATDEM_ARCHIVEE:
-                return Constant.ETATDEM_TERMINEE;
-            case Constant.ETATDEM_SUPPRIMEE:
-                return Constant.ETATDEM_ARCHIVEE;
-            default:
-                return 0;
-        }
+        return switch (etatDemande) {
+            case Constant.ETATDEM_PREPAREE -> Constant.ETATDEM_PREPARATION;
+            case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPAREE;
+            case Constant.ETATDEM_SIMULATION -> Constant.ETATDEM_ACOMPLETER;
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_SIMULATION;
+            case Constant.ETATDEM_ENCOURS -> Constant.ETATDEM_ATTENTE;
+            case Constant.ETATDEM_TERMINEE -> Constant.ETATDEM_ENCOURS;
+            case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
+            case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
+            case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            default -> 0;
+        };
     }
 
     /**
@@ -202,7 +193,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     public String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
         Integer numDemande = demande.getNumDemande();
         try {
-            Utilitaires.checkExtension(file.getOriginalFilename());
+            Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
             fichier.generateFileName(numDemande);
             return stockerFichierOnDisk(file, fichier, (DemandeModif)demande);
@@ -517,7 +508,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
     @Override
-    public String getInfoHeaderFichierResultat(Demande demande, Date dateDebut) {
+    public String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut) {
         DemandeModif demandeModif = (DemandeModif) demande;
         String zone = demandeModif.getZone();
         if (demandeModif.getSousZone() != null) zone += demandeModif.getSousZone();

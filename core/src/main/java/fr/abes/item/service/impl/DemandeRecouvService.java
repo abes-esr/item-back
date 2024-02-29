@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -75,7 +76,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public Demande findById(Integer id) {
+    public DemandeRecouv findById(Integer id) {
         Optional<DemandeRecouv> demandeRecouv = demandeRecouvDao.findById(id);
         /*On contrôle si la demande est présente*/
         demandeRecouv.ifPresent(this::setIlnShortNameOnDemande);
@@ -193,7 +194,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public String getInfoHeaderFichierResultat(Demande demande, Date dateDebut) {
+    public String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut) {
         return "Calcul du taux de recouvrement démarré le : " + Constant.formatDate.format(dateDebut) + "\n"
                 + "requête;nb réponses;liste PPN;";
     }
@@ -238,7 +239,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
         Integer numDemande = demande.getId();
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         try {
-            Utilitaires.checkExtension(file.getOriginalFilename());
+            Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.RECOUV);
             fichier.generateFileName(numDemande);
             String message = stockerFichierOnDisk(file, fichier, demandeRecouv);
@@ -283,22 +284,15 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     private int getPreviousState(int etatDemande) {
-        switch (etatDemande) {
-            case Constant.ETATDEM_ATTENTE:
-                return Constant.ETATDEM_PREPARATION;
-            case Constant.ETATDEM_ENCOURS:
-                return Constant.ETATDEM_ATTENTE;
-            case Constant.ETATDEM_TERMINEE:
-                return Constant.ETATDEM_ENCOURS;
-            case Constant.ETATDEM_ERREUR:
-                return Constant.ETATDEM_ERREUR;
-            case Constant.ETATDEM_ARCHIVEE:
-                return Constant.ETATDEM_TERMINEE;
-            case Constant.ETATDEM_SUPPRIMEE:
-                return Constant.ETATDEM_ARCHIVEE;
-            default:
-                return 0;
-        }
+        return switch (etatDemande) {
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_PREPARATION;
+            case Constant.ETATDEM_ENCOURS -> Constant.ETATDEM_ATTENTE;
+            case Constant.ETATDEM_TERMINEE -> Constant.ETATDEM_ENCOURS;
+            case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
+            case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
+            case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            default -> 0;
+        };
     }
 
     @Override
@@ -349,23 +343,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      */
     @Override
     public String getQueryToSudoc(String codeIndex, String[] valeur) throws QueryToSudocException {
-        switch(codeIndex) {
-            case "ISBN":
-                return "che isb " + valeur[0];
-            case "ISSN":
-                return "tno t; tdo t; che isn " + valeur[0];
-            case "PPN":
-                return "che ppn " + valeur[0];
-            case "SOU":
-                return "tno t; tdo b; che sou "+ valeur[0];
-            case "DAT":
-                if(valeur[1].isEmpty()){
-                    return "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
+        return switch (codeIndex) {
+            case "ISBN" -> "che isb " + valeur[0];
+            case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];
+            case "PPN" -> "che ppn " + valeur[0];
+            case "SOU" -> "tno t; tdo b; che sou " + valeur[0];
+            case "DAT" -> {
+                if (valeur[1].isEmpty()) {
+                    yield "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
                 }
-                return "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
-            default :
-                throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
-        }
+                yield "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
+            }
+            default -> throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
+        };
     }
 
     /** méthode d'archivage d'une demande

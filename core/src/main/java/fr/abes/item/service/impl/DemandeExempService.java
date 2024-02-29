@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -178,7 +179,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param file fichier issu du front
      * @param demande demande concernée
      * @return message indiquant le bon déroulement de l'opération renvoyé au front
-     * @throws IOException
+     * @throws IOException : erreur lecture fichier
      * @throws FileTypeException : erreur de type de fichier en entrée
      * @throws FileCheckingException : erreur dans la vérification de l'extension du fichier
      * @throws DemandeCheckingException  : erreur dans l'état de la demande
@@ -188,7 +189,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         Integer numDemande = demande.getNumDemande();
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         try {
-            Utilitaires.checkExtension(file.getOriginalFilename());
+            Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.EXEMP); //Retourne un FichierEnrichiExemp
             fichier.generateFileName(numDemande); //génération nom du fichier
             String message = stockerFichierOnDisk(file, fichier, demandeExemp); //stockage du fichier sur disque, le controle de l'entête du fichier s'effectue ici
@@ -206,8 +207,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param fichier      objet correspondant au fichier
      * @param demandeExemp demande rattachée au fichier
      * @return message indiquant le bon déroulement du processus renvoyé au front
-     * @throws IOException
-     * @throws FileCheckingException
+     * @throws IOException : erreur lecture fichier
+     * @throws FileCheckingException : erreur vérification fichier
      */
     private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeExemp demandeExemp) throws IOException, FileCheckingException {
         Integer numDemande = demandeExemp.getId();
@@ -232,8 +233,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * mise à jour de la demande avec les paramètres du fichier enrichi : index de recherche, liste des zones, ajout des lignes du fichier dans la BDD
      *
      * @param demandeExemp demande concernée
-     * @throws IOException
-     * @throws DemandeCheckingException
+     * @throws IOException : erreur lecture fichier
+     * @throws DemandeCheckingException : erreur dans la demande
      */
     private void majDemandeWithFichierEnrichi(DemandeExemp demandeExemp) throws IOException, DemandeCheckingException {
         demandeExemp.setIndexRecherche(fichierEnrichiExemp.getIndexRecherche()); //Index de recherche
@@ -292,26 +293,17 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @return : l'état précédent dans le processus
      */
     private int getPreviousState(int etatDemande) {
-        switch (etatDemande) {
-            case Constant.ETATDEM_SIMULATION:
-                return Constant.ETATDEM_ACOMPLETER;
-            case Constant.ETATDEM_ACOMPLETER:
-                return Constant.ETATDEM_PREPARATION;
-            case Constant.ETATDEM_ATTENTE:
-                return Constant.ETATDEM_SIMULATION;
-            case Constant.ETATDEM_ENCOURS:
-                return Constant.ETATDEM_ATTENTE;
-            case Constant.ETATDEM_TERMINEE:
-                return Constant.ETATDEM_ENCOURS;
-            case Constant.ETATDEM_ERREUR:
-                return Constant.ETATDEM_ERREUR;
-            case Constant.ETATDEM_ARCHIVEE:
-                return Constant.ETATDEM_TERMINEE;
-            case Constant.ETATDEM_SUPPRIMEE:
-                return Constant.ETATDEM_ARCHIVEE;
-            default:
-                return 0;
-        }
+        return switch (etatDemande) {
+            case Constant.ETATDEM_SIMULATION -> Constant.ETATDEM_ACOMPLETER;
+            case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPARATION;
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_SIMULATION;
+            case Constant.ETATDEM_ENCOURS -> Constant.ETATDEM_ATTENTE;
+            case Constant.ETATDEM_TERMINEE -> Constant.ETATDEM_ENCOURS;
+            case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
+            case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
+            case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            default -> 0;
+        };
     }
 
     /**
@@ -336,15 +328,13 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     }
 
     /**
+     * Méthode permettant de changer l'état d'une demande vers l'état ciblé dans le processus global de l'application
      * @param etape   etape à laquelle on souhaite retourner
      * @param demande demande que l'on souhaite modifier
      * @return demande modifiée
      * @throws DemandeCheckingException : demande dans un etat incorrect
      */
     @Override
-    /**
-     * Méthode permettant de changer l'état d'une demande vers l'état ciblé dans le processus global de l'application
-     */
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         switch (etape) {
@@ -421,7 +411,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
         //TODO insérer la requête pour sauver la requête en base
 
-        if (query != "") {
+        if (!Objects.equals(query, "")) {
             try {
                 traitementService.getCbs().search(query);
                 nbReponses = traitementService.getCbs().getNbNotices();
@@ -439,9 +429,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     //On controle ici pour la notice trouvée dans le sudoc le nombre d'exemplaires déjà présents sur ce RCR
                     donneeLocaleExistante = Utilitaires.getDonneeLocaleExistante(notice);
                     exemplairesExistants = Utilitaires.getExemplairesExistants(notice);
-                    Integer numEx = Integer.parseInt(numExStr);
+                    int numEx = Integer.parseInt(numExStr);
                     numEx++;
-                    return (numEx < 10) ? "0" + numEx : numEx.toString(); //On retourne le numero d'exemplaire ou sera enregistré le nouvel exemplaire
+                    return (numEx < 10) ? "0" + numEx : Integer.toString(numEx); //On retourne le numero d'exemplaire ou sera enregistré le nouvel exemplaire
                 default:
                     throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
             }
@@ -651,9 +641,9 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     /**
      * Méthode de création des données locales à partir de l'en tête du fichier et des valeurs associées
      *
-     * @param header
-     * @param valeurZones
-     * @return
+     * @param header : header du fichier
+     * @param valeurZones : valeurs des zones à ajouter dans les données locales
+     * @return les données locales de la notice
      */
     @Override
     public String creerDonneesLocalesFromHeaderEtValeur(String header, String valeurZones) throws ZoneException {
@@ -689,7 +679,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @return la chaine correspondant à l'en tête du fichier de résultat
      */
     @Override
-    public String getInfoHeaderFichierResultat(Demande demande, Date dateDebut) {
+    public String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut) {
         return "Exemplarisation démarrée le;" + Constant.formatDate.format(dateDebut) + "\n"
                 + "requête;nb réponses;liste PPN;Correspondance L035;résultat;";
     }
@@ -763,7 +753,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      *
      * @param demande demande à archiver
      * @return la demande dans l'état archivé
-     * @throws DemandeCheckingException
+     * @throws DemandeCheckingException : erreur de vérification de la demande
      */
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {

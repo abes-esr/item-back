@@ -1,7 +1,7 @@
 package fr.abes.item.web;
 
 import fr.abes.item.service.StatusService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +23,7 @@ public class InformationApplicationService {
         this.statusService = statusService;
     }
 
-    @ApiOperation("Connaître : Version du front, back, quel application-localhost.properties est actuellement utilisé, url des serveurs sudoc, item, base xml branchés")
+    @Operation(description = "Connaître : Version du front, back, quel application-localhost.properties est actuellement utilisé, url des serveurs sudoc, item, base xml branchés")
     @GetMapping(value = "/applicationDetails")
     public Map<String, String> getApplicationDetails() {
         Map<String, String> map = new HashMap<>();
@@ -32,7 +32,7 @@ public class InformationApplicationService {
         return map;
     }
 
-    @ApiOperation("Connaitre : Statut base xml, Statut base item, Statut CBS")
+    @Operation(summary = "Connaitre : Statut base xml, Statut base item, Statut CBS")
     @GetMapping(value = "/applicationStatutServices")
     public Map<String, Boolean> getStatutServices() {
         Map<String, Boolean> map = new HashMap<>();

@@ -4,6 +4,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.service.impl.DemandeRecouvService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -14,7 +15,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
@@ -25,10 +25,10 @@ public class DeleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet
     List<DemandeRecouv> demandes;
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {}
+    public void beforeStep(@NonNull StepExecution stepExecution) {}
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.warn("entrée dans execute de DeleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet...");
         this.demandes = demandeRecouvService.getIdNextDemandeToDelete();
         if (this.demandes == null) {
@@ -37,9 +37,7 @@ public class DeleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet
             return RepeatStatus.FINISHED;
         }
         //Iteration sur chaque demande pour en modifier le statut
-        Iterator<DemandeRecouv> it = this.demandes.iterator();
-        while (it.hasNext()) {
-            Demande demande = it.next();
+        for (Demande demande : this.demandes) {
             log.info("Suppression définitive de la demande de recouvrement " + demande.getNumDemande());
             demandeRecouvService.deleteById(demande.getId());
         }

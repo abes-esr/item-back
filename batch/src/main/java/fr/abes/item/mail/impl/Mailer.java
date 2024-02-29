@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.mail.MailDto;
-import fr.abes.item.service.factory.StrategyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -12,7 +11,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,11 +28,10 @@ public class Mailer {
     @Value("${mail.ws.url}")
     protected String url;
 
-    @Autowired
-    protected StrategyFactory factory;
 
     @Value("${mail.admin}")
     protected String mailAdmin;
+
 
     public void sendMail(String requestJson) {
         RestTemplate restTemplate = new RestTemplate(); //appel ws qui envoie le mail
@@ -49,7 +46,7 @@ public class Mailer {
         try {
             restTemplate.postForObject(url + "htmlMail/", entity, String.class); //appel du ws avec
         } catch (Exception e) {
-            log.error(Constant.ERROR_SENDING_MAIL_END_OF_TREATMENT + e.toString());
+            log.error(Constant.ERROR_SENDING_MAIL_END_OF_TREATMENT + e);
         }
     }
 
@@ -66,7 +63,7 @@ public class Mailer {
                     f.getName()
             );
         } catch (FileNotFoundException e) {
-            log.error(Constant.ERROR_ATTACHMENT_NOT_FOUND + e.toString());
+            log.error(Constant.ERROR_ATTACHMENT_NOT_FOUND + e);
         }
 
         HttpEntity multipart = builder.build();
@@ -75,7 +72,7 @@ public class Mailer {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             httpClient.execute(uploadFile);
         } catch (IOException e) {
-            log.error(Constant.ERROR_ATTACHMENT_UNATTACHABLE + e.toString());
+            log.error(Constant.ERROR_ATTACHMENT_UNATTACHABLE + e);
         }
     }
 
@@ -92,7 +89,7 @@ public class Mailer {
         try {
             json = mapper.writeValueAsString(mail);
         } catch (JsonProcessingException e) {
-            log.error(Constant.ERROR_CONVERSION_MAIL_TO_JSON + e.toString());
+            log.error(Constant.ERROR_CONVERSION_MAIL_TO_JSON + e);
         }
         return json;
     }

@@ -4,6 +4,7 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.entities.item.DemandeModif;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.service.impl.DemandeModifService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -36,7 +37,7 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
     }
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {
+    public void beforeStep(@NonNull StepExecution stepExecution) {
         log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_MODIF);
     }
 
@@ -50,7 +51,7 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
     }
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTASKLET);
         try {
             this.demande = (DemandeModif) demandeModifService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
@@ -62,7 +63,7 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
             demandeModifService.changeState(this.demande, Constant.ETATDEM_ENCOURS);
         } catch (DemandeCheckingException e) {
             log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEMODIFTASKLET
-                    + e.toString());
+                    + e);
             stepContribution.setExitStatus(ExitStatus.FAILED);
             return RepeatStatus.FINISHED;
         } catch (JDBCConnectionException | ConstraintViolationException j){
@@ -70,8 +71,7 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
             log.error(j.toString());
         } catch (DataAccessException d){
             log.error("GetNextDemandeModifTasklet : Erreur d'accès à la base de donnée");
-            if(d.getRootCause() instanceof SQLException){
-                SQLException sqlEx = (SQLException) d.getRootCause();
+            if(d.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }

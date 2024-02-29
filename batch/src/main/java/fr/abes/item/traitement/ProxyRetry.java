@@ -20,8 +20,8 @@ public class ProxyRetry {
     /**
      * permet de retenter plusieurs fois la connexion à CBS
      *
-     * @param login
-     * @throws CBSException
+     * @param login login d'authentification au CBS
+     * @throws CBSException : erreur d'authentification CBS
      */
     @Retryable
     public void authenticate(String login) throws CBSException {
@@ -32,12 +32,11 @@ public class ProxyRetry {
     /**
      * Méthode de modification d'un exemplaire existant dans le CBS (4 tentatives max)
      * @param noticeTraitee notice modifiée
-     * @param epn epn de la notice à modifier
      * @throws CBSException : erreur CBS
      */
-    @Retryable(maxAttempts = 4, include = Exception.class,
-            exclude = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2) )
-    public void saveExemplaire(String noticeTraitee, String epn) throws CBSException {
+    @Retryable(maxAttempts = 4, retryFor = Exception.class,
+            noRetryFor = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2) )
+    public void saveExemplaire(String noticeTraitee) throws CBSException {
         traitementService.saveExemplaire(noticeTraitee);
     }
 
@@ -49,8 +48,8 @@ public class ProxyRetry {
      * @param modDonneeLocale indicateur de modification du bloc de donnée locale
      * @throws CBSException : erreur CBS
      */
-    @Retryable(maxAttempts = 4, include = Exception.class,
-            exclude = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2) )
+    @Retryable(maxAttempts = 4, retryFor = Exception.class,
+            noRetryFor = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void newExemplaire(String numEx, String noticeACreer, String donneeLocale, boolean modDonneeLocale) throws CBSException {
         //si on a des données locales à créer
         String donneesLocalesToCreate = donneeLocale.substring(1, donneeLocale.length()-1);

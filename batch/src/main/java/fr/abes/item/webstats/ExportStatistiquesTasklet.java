@@ -3,6 +3,7 @@ package fr.abes.item.webstats;
 import com.opencsv.CSVWriter;
 import fr.abes.item.LogTime;
 import fr.abes.item.constant.Constant;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -49,7 +50,7 @@ public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener
            }
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
         try (CSVWriter writer = new CSVWriter(new FileWriter(getFilename(Constant.STAT_NBDEMANDESTRAITEES_FILENAME)), ';', CSVWriter.NO_QUOTE_CHARACTER)){
             for (NbDemandesTraiteesDto demande : listeDemandesTraitees) {
                 writer.writeNext(new String[]{demande.getRcr(), demande.getNbDemandesTraitees().toString()});
@@ -86,7 +87,7 @@ public class ExportStatistiquesTasklet implements Tasklet, StepExecutionListener
     }
 
     @Override
-    public ExitStatus afterStep(StepExecution stepExecution) {
+    public ExitStatus afterStep(@NonNull StepExecution stepExecution) {
         LogTime.logFinTraitement(stepExecution);
         return null;
     }

@@ -145,15 +145,6 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
      * @param ligne ligne du fichier à analyser
      */
     public void checkBodyLine(String ligne) throws FileCheckingException {
-        String[] tabLigne = getLigne(ligne);
-
-        //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
-        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.REG_EXP_DATE_A_4_DECIMALES))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATENOK);
-        }
-    }
-
-    private String[] getLigne(String ligne) throws FileCheckingException {
         String[] tabLigne = ligne.split(";");
 
         /*controle que la taille du tableau correspondant à une ligne de données splitée correspond au nombre exact
@@ -164,7 +155,11 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             }
             throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_WRONGNBCOLUMNS);
         }
-        return tabLigne;
+
+        //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
+        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.REG_EXP_DATE_A_4_DECIMALES))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
+            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATENOK);
+        }
     }
 
     /**Methode de vérification d'une ligne qui pourrait être anormale : si l'utilisateur à rentré des espaces

@@ -6,17 +6,14 @@ import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeExemp;
 import fr.abes.item.mail.IMailer;
-import fr.abes.item.service.ILigneFichierService;
 import fr.abes.item.service.factory.Strategy;
 import fr.abes.item.service.impl.LigneFichierExempService;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @Strategy(type = IMailer.class, typeDemande = TYPE_DEMANDE.EXEMP)
@@ -24,11 +21,11 @@ public class MailerExemp extends Mailer implements IMailer {
 
     private final Environment env;
 
-    private final LigneFichierExempService ligneFichierExempService;
+    private final LigneFichierExempService service;
 
     public MailerExemp(Environment env, LigneFichierExempService ligneFichierExempService) {
         this.env = env;
-        this.ligneFichierExempService = ligneFichierExempService;
+        this.service = ligneFichierExempService;
     }
 
     /**
@@ -47,25 +44,23 @@ public class MailerExemp extends Mailer implements IMailer {
     }
 
     @Override
-    public void mailFinTraitement(String mailDestinataire, Demande demande, File f, Date dateDebut, Date dateFin) {
-        DateFormat formatDate = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+    public void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin) {
         DecimalFormat df = new DecimalFormat("0.00");
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        ILigneFichierService ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
-        int nbExempCree = ligneFichierService.getNbLigneFichierSuccessByDemande(demandeExemp);
-        int nbRechercheTotal = ligneFichierExempService.getNbLigneFichierTotalByDemande(demandeExemp);
+        int nbExempCree = service.getNbLigneFichierSuccessByDemande(demandeExemp);
+        int nbRechercheTotal = service.getNbLigneFichierTotalByDemande(demandeExemp);
         String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_END + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + " - ILN " + demande.getIln(),
                 "Bonjour,<br/>Votre exemplarisation - " + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + " - est terminée." + Constant.HTML_BALISE_BR +
                         "Bilan :" + Constant.HTML_BALISE_BR +
-                        "Exemplarisation démarrée le : " + formatDate.format(dateDebut) + Constant.HTML_BALISE_BR +
-                        "Exemplarisation terminée le : " + formatDate.format(dateFin) + Constant.HTML_BALISE_BR +
+                        "Exemplarisation démarrée le : " + Constant.formatDate.format(dateDebut) + Constant.HTML_BALISE_BR +
+                        "Exemplarisation terminée le : " + Constant.formatDate.format(dateFin) + Constant.HTML_BALISE_BR +
                         "Nb de requêtes : " + nbRechercheTotal + Constant.HTML_BALISE_BR +
                         "Nb exemplaires créés : " + nbExempCree + " soit " + df.format(((double)nbExempCree / (double)nbRechercheTotal) * 100) + "%" + Constant.HTML_BALISE_BR +
-                        "Nb erreurs validation : " + ligneFichierService.getNbLigneFichierErrorByDemande(demandeExemp) + Constant.HTML_BALISE_BR  +
-                        ligneFichierExempService.getNbReponseTrouveesByDemande(demandeExemp) + " notices trouvées" + Constant.HTML_BALISE_BR +
-                        "Nb de 1 réponse : " + ligneFichierExempService.getNbUneReponseByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
-                        "Nb sans réponse : " + ligneFichierExempService.getNbZeroReponseByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
-                        "Nb plusieurs réponses : " + ligneFichierExempService.getNbReponseMultipleByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
+                        "Nb erreurs validation : " + service.getNbLigneFichierErrorByDemande(demandeExemp) + Constant.HTML_BALISE_BR  +
+                        service.getNbReponseTrouveesByDemande(demandeExemp) + " notices trouvées" + Constant.HTML_BALISE_BR +
+                        "Nb de 1 réponse : " + service.getNbUneReponseByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
+                        "Nb sans réponse : " + service.getNbZeroReponseByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
+                        "Nb plusieurs réponses : " + service.getNbReponseMultipleByDemande(demandeExemp) + Constant.HTML_BALISE_BR +
                         "Le fichier de résultat est à votre disposition en pièce jointe et sur votre interface ITEM. " + Constant.HTML_BALISE_BR +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro\" target=\"_blank\">https://stp.abes.fr</a>" + Constant.HTML_BALISE_BR +
                         "Cordialement," + Constant.HTML_BALISE_BR +
@@ -80,7 +75,7 @@ public class MailerExemp extends Mailer implements IMailer {
      * @param dateDebut date de début du traitement
      */
     @Override
-    public void mailEchecTraitement(String mailDestinataire, Demande demande, Date dateDebut){
+    public void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut){
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_START + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + "-" + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
                 "Bonjour,<br/><br/>" +
@@ -95,17 +90,6 @@ public class MailerExemp extends Mailer implements IMailer {
     @Override
     public void mailAlertAdmin(String mailDestinataire, Demande demande) {
         String requestJson = mailToJSON(mailDestinataire+";"+mailAdmin, "Erreur dans Item / Exemplarisation" + " - ILN " + demande.getIln() + " / " + ((env.getActiveProfiles().length>0)?env.getActiveProfiles()[0]:"Local"), "Une erreur vient de se produire sur Item sur la demande" + demande.getId());
-        sendMail(requestJson);
-    }
-
-    @Override
-    public void mailRestartJob(List<Integer> listDemandes) {
-        StringBuilder message = new StringBuilder("Les demandes d'exemplarisation suivantes ont été repassées automatiquement en attente : \n");
-        listDemandes.forEach(d -> {
-            message.append(d);
-            message.append("\n");
-        });
-        String requestJson = mailToJSON(mailAdmin, "[ITEM] Redémarrage automatique des demandes d'exemplarisation", message.toString());
         sendMail(requestJson);
     }
 }

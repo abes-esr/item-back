@@ -1,7 +1,6 @@
 package fr.abes.item;
 
 import fr.abes.item.configuration.BaseXMLConfiguration;
-import fr.abes.item.configuration.ItemConfiguration;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.traitement.*;
 import fr.abes.item.traitement.model.LigneFichierDto;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersIncrementer;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
@@ -37,15 +35,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Slf4j
 @Configuration
 @EnableRetry
-@EnableBatchProcessing
 @ComponentScans(value = {
-        @ComponentScan(basePackages = {"fr.abes.item.repository"},
-                excludeFilters = {
-                        @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = BaseXMLConfiguration.class)
-                },
-                includeFilters = {
-                        @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = ItemConfiguration.class)}
-        ),
+        @ComponentScan(basePackages = {"fr.abes.item.repository.item"}),
         @ComponentScan(basePackages = {"fr.abes.item.configuration"},
                 excludeFilters = {
                         @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = BaseXMLConfiguration.class)
@@ -58,6 +49,7 @@ public class JobConfiguration {
 
     @Value("${batch.max.hour}")
     int maxHour;
+
 
     @Bean
     public ExecutionContextSerializer configureSerializer() {
@@ -271,7 +263,7 @@ public class JobConfiguration {
     // Job de lancement d'un traitement de modification
     @Bean
     public Job jobTraiterLigneFichier(JobRepository jobRepository, Step stepRecupererNextDemandeModif, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepGenererFichier, Step stepTraiterLigneFichier) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_MODIF_NAME, jobRepository ).incrementer(incrementer())
+        return new JobBuilder("traiterLigneFichierModif", jobRepository ).incrementer(incrementer())
                 .start(stepRecupererNextDemandeModif).on(Constant.FAILED).end()
                 .from(stepRecupererNextDemandeModif).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepRecupererNextDemandeModif).on(Constant.COMPLETED).to(stepLireLigneFichier)
@@ -287,7 +279,7 @@ public class JobConfiguration {
     //job de lancement d'un traitement d'exemplarisation
     @Bean
     public Job jobTraiterLigneFichierExemp(JobRepository jobRepository, Step stepRecupererNextDemandeExemp, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepTraiterLigneFichier, Step stepGenererFichier) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_EXEMP_NAME, jobRepository).incrementer(incrementer())
+        return new JobBuilder("traiterLigneFichierExemp", jobRepository).incrementer(incrementer())
                 .start(stepRecupererNextDemandeExemp).on(Constant.FAILED).end()
                 .from(stepRecupererNextDemandeExemp).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepRecupererNextDemandeExemp).on(Constant.COMPLETED).to(stepLireLigneFichier)
@@ -303,7 +295,7 @@ public class JobConfiguration {
     //job de lancement d'un test de recouvrement
     @Bean
     public Job jobTraiterLigneFichierRecouv(JobRepository jobRepository, Step stepRecupererNextDemandeRecouv, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepTraiterLigneFichier, Step stepGenererFichier) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_RECOU_NAME, jobRepository).incrementer(incrementer())
+        return new JobBuilder("traiterLigneFichierRecouv", jobRepository).incrementer(incrementer())
                 .start(stepRecupererNextDemandeRecouv).on(Constant.FAILED).end()
                 .from(stepRecupererNextDemandeRecouv).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepRecupererNextDemandeRecouv).on(Constant.COMPLETED).to(stepLireLigneFichier)
@@ -320,7 +312,7 @@ public class JobConfiguration {
     // Job d'export des statistiques mensuelles
     @Bean
     public Job jobExportStatistiques(JobRepository jobRepository, Step stepVerifierParams, Step stepExportStatistiques) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_EXPORT_STATISTIQUES_NAME, jobRepository).incrementer(incrementer())
+        return new JobBuilder("exportStatistiques", jobRepository).incrementer(incrementer())
                 .start(stepVerifierParams).on(Constant.FAILED).end()
                 .from(stepVerifierParams).on(Constant.COMPLETED).to(stepExportStatistiques)
                 .build().build();
@@ -329,7 +321,7 @@ public class JobConfiguration {
     //Job d'archivage automatique de toutes les demandes en statut terminé dont la dernière modification à plus de trois mois
     @Bean
     public Job jobArchivageDemandes(JobRepository jobRepository, Step stepArchivageAutomatiqueDemandesExemp, Step stepArchivageAutomatiqueDemandesModif, Step stepArchivageAutomatiqueDemandesRecouv) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_ARCHIVAGE_DEMANDES_EN_BASE, jobRepository).incrementer(incrementer())
+        return new JobBuilder("archiverDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
                 .start(stepArchivageAutomatiqueDemandesExemp).on(Constant.FAILED).end()
                 .from(stepArchivageAutomatiqueDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepArchivageAutomatiqueDemandesExemp).on(Constant.COMPLETED).end()
@@ -343,8 +335,9 @@ public class JobConfiguration {
     }
 
     //Job de placement en statut supprimé de toutes les demandes en statut archivé dont ce statut à plus de trois mois
-    @Bean Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, Step stepChangementStatutSupprimeDemandesExemp, Step stepChangementStatutSupprimeDemandesModif, Step stepChangementStatutSupprimeDemandesRecouv) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_STATUT_SUPPRIME_DEMANDES_EN_BASE, jobRepository).incrementer(incrementer())
+    @Bean
+    public Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, Step stepChangementStatutSupprimeDemandesExemp, Step stepChangementStatutSupprimeDemandesModif, Step stepChangementStatutSupprimeDemandesRecouv) {
+        return new JobBuilder("statutSupprimeDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
                 .start(stepChangementStatutSupprimeDemandesExemp).on(Constant.FAILED).end()
                 .from(stepChangementStatutSupprimeDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepChangementStatutSupprimeDemandesExemp).on(Constant.COMPLETED).end()
@@ -358,8 +351,9 @@ public class JobConfiguration {
     }
 
     //Job de suppression définitive en base de donnée de toutes les demandes en statut supprimé, dont ce statut à plus de trois mois
-    @Bean Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, Step stepSuppresionDemandesExemp, Step stepSuppresionDemandesModif, Step stepSuppresionDemandesRecouv) {
-        return new JobBuilder(Constant.SPRING_BATCH_JOB_SUPPRESSION_DEMANDES_EN_BASE, jobRepository).incrementer(incrementer())
+    @Bean
+    public Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, Step stepSuppresionDemandesExemp, Step stepSuppresionDemandesModif, Step stepSuppresionDemandesRecouv) {
+        return new JobBuilder("suppressionDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
                 .start(stepSuppresionDemandesExemp).on(Constant.FAILED).end()
                 .from(stepSuppresionDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
                 .from(stepSuppresionDemandesExemp).on(Constant.COMPLETED).end()
@@ -371,8 +365,6 @@ public class JobConfiguration {
                 .from(stepSuppresionDemandesRecouv).on(Constant.COMPLETED).end()
                 .build().build();
     }
-
-
 
 
     // ------------------ INCREMENTER ------------------

@@ -12,8 +12,8 @@ import fr.abes.item.traitement.model.LigneFichierDto;
 import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.EnumUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.batch.core.ExitStatus;
@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -38,7 +38,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     @Autowired
     private StrategyFactory factory;
 
-    private List<LigneFichierDto> lignesFichier;
+    private final List<LigneFichierDto> lignesFichier;
     private Integer demandeId;
     private TYPE_DEMANDE typeDemande;
 
@@ -49,7 +49,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
 
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
-    private Date dateDebut;
+    private LocalDateTime dateDebut;
 
     IMailer mailer;
 
@@ -58,7 +58,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     }
 
     @Override
-    public void beforeStep(StepExecution stepExecution) {
+    public void beforeStep(@NonNull StepExecution stepExecution) {
         LogTime.logDebutTraitement(stepExecution);
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
@@ -74,7 +74,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     }
 
     @Override
-    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception{
+    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception{
         log.warn(Constant.ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET);
         try {
             for (LigneFichier localLigne : ligneFichierService.getLigneFichierbyDemande(demande)) {
@@ -97,13 +97,12 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
             log.error("Erreur hibernate JDBC");
             log.error(j.toString());
         } catch (DataAccessException e) {
-            if(e.getRootCause() instanceof SQLException){
-                SQLException sqlEx = (SQLException) e.getRootCause();
+            if(e.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
 
-            log.error(Constant.ERROR_ACCESS_DATABASE + e.toString());
+            log.error(Constant.ERROR_ACCESS_DATABASE + e);
             mailer.mailEchecTraitement(
                     this.email,
                     this.demande,

@@ -4,14 +4,14 @@ import fr.abes.item.exception.ForbiddenException;
 import fr.abes.item.exception.UserExistException;
 import fr.abes.item.security.CheckAccessToServices;
 import fr.abes.item.service.FileSystemStorageService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Paths;
 
 @RestController
@@ -35,7 +35,7 @@ public class DownloadFichierRestService {
 	 * @return : Resource correspondant au fichier à télécharger
 	 */
 	@GetMapping(value="/files/{filename:.+}")
-	@ApiOperation(value = "permet de récupérer les fichiers relatifs à une demandeModif")
+	@Operation(summary = "permet de récupérer les fichiers relatifs à une demandeModif")
 	public ResponseEntity<Resource> downloadFile(
 			@PathVariable String filename, @RequestParam("id") Integer numDemande, HttpServletRequest request
 	) throws UserExistException, ForbiddenException {

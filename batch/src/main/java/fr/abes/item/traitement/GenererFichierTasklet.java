@@ -14,10 +14,10 @@ import fr.abes.item.service.factory.FichierFactory;
 import fr.abes.item.service.factory.StrategyFactory;
 import fr.abes.item.service.impl.DemandeExempService;
 import fr.abes.item.service.impl.DemandeRecouvService;
-import fr.abes.item.traitement.model.LigneFichierDto;
 import fr.abes.item.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -36,8 +36,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Slf4j
 public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
@@ -63,11 +62,8 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     @Value("${batch.nbPpnInFileResult}")
     private Integer nbPpnInFileResult;
 
-    private List<LigneFichierDto> lignesFichier;
-    private Date dateDebut;
+    private LocalDateTime dateDebut;
     private String email;
-    private Integer demandeId;
-    private TYPE_DEMANDE typeDemande;
     private Demande demande;
 
 
@@ -76,9 +72,8 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
                 .getExecutionContext();
-        this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
-        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
-        this.demandeId = (Integer) executionContext.get("demandeId");
+        TYPE_DEMANDE typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        Integer demandeId = (Integer) executionContext.get("demandeId");
         this.demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
         this.demande = demandeService.findById(demandeId);
         this.email = this.demande.getUtilisateur().getEmail() + ";" + mailAdmin;
@@ -93,10 +88,10 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      * @param contribution : contexte des steps exécutés pour récupérer la demande
      * @param chunkContext : contexte du chunk traité
      * @return : statut d'exécution du step (FINISHED, FAILED)
-     * @throws Exception
+     * @throws Exception : erreur lambda
      */
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.warn(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
 
         try {
@@ -105,10 +100,9 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     this.email, //EMAIL UTULISATEUR
                     demande,
                     Paths.get(uploadPath + demande.getId() //uploadPath = applis kopya retourne FILE de la demandeModif
-                            + "/" + nomFichier).toFile(), dateDebut, new Date());
+                            + "/" + nomFichier).toFile(), dateDebut, LocalDateTime.now());
         } catch (Exception e) {
-            log.error(Constant.ERROR_WHILE_GENERATING_THE_FILE_OR_WHILE_SENDING_MAIL + e.toString());
-            e.printStackTrace();
+            log.error(Constant.ERROR_WHILE_GENERATING_THE_FILE_OR_WHILE_SENDING_MAIL + e);
             mailer.mailEchecTraitement(
                     this.email,
                     this.demande,
@@ -125,8 +119,8 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      * Méthode de génération du fichier de résultat
      *
      * @return nom du fichier
-     * @throws IOException
-     * @throws FileTypeException
+     * @throws IOException : erreur accès fichier
+     * @throws FileTypeException : erreur de type de fichier
      */
     private String genererFichier() throws IOException, FileTypeException, QueryToSudocException {
         FichierResultat fichierResultat;
@@ -165,14 +159,14 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
             }
             return fichierResultat.getFilename();
         } catch (IOException | QueryToSudocException | DataAccessException ex) {
-            log.error(Constant.ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE + ex.toString());
+            log.error(Constant.ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE + ex);
             throw ex;
         }
     }
 
 
     @Override
-    public ExitStatus afterStep(StepExecution stepExecution) {
+    public ExitStatus afterStep(@NonNull StepExecution stepExecution) {
         LogTime.logFinTraitement(stepExecution);
         return null;
     }
