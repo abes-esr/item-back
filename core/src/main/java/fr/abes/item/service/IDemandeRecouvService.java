@@ -1,7 +1,10 @@
 package fr.abes.item.service;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.item.entities.item.*;
+import fr.abes.cbs.exception.CommException;
+import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeRecouv;
+import fr.abes.item.entities.item.EtatDemande;
+import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.exception.FileTypeException;
@@ -15,7 +18,7 @@ import java.util.List;
 public interface IDemandeRecouvService extends IDemandeService {
     String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 
-    int launchQueryToSudoc(String codeIndex, String valeurs) throws CBSException, QueryToSudocException;
+    int launchQueryToSudoc(String codeIndex, String valeurs) throws QueryToSudocException, CommException;
 
     String getQueryToSudoc(String codeIndex, String[] tabValeurs) throws QueryToSudocException;
 

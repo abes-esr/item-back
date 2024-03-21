@@ -1,11 +1,14 @@
 package fr.abes.item.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiRecouv;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.entities.item.*;
+import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeRecouv;
+import fr.abes.item.entities.item.EtatDemande;
+import fr.abes.item.entities.item.Utilisateur;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
 import fr.abes.item.exception.FileTypeException;
@@ -289,7 +292,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public int launchQueryToSudoc(String codeIndex, String valeurs) throws CBSException, QueryToSudocException {
+    public int launchQueryToSudoc(String codeIndex, String valeurs) throws CommException, QueryToSudocException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(codeIndex, tabvaleurs);
         getService().getTraitement().getCbs().search(query);

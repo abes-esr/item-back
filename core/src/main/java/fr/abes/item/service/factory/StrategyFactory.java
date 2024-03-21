@@ -126,7 +126,7 @@ public class StrategyFactory {
                 //Only iterate the profiles if a profile has been selected
                 for (TYPE_DEMANDE type_demande : strategyAnnotation.typeDemande()) {
                     if (type_demande == currentTypeDemande) {
-                        log.debug(Constant.STRATEGY_OF_TYPE_FOUND + strategyAnnotation.type() + Constant.STRATEGY_MATCHING_PROFILE + currentTypeDemande);
+                        //log.debug(Constant.STRATEGY_OF_TYPE_FOUND + strategyAnnotation.type() + Constant.STRATEGY_MATCHING_PROFILE + currentTypeDemande);
                         return bean;
                     }
                 }

@@ -1,6 +1,7 @@
 package fr.abes.item.exception;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.constant.Constant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.rest.webmvc.support.ExceptionMessage;
@@ -30,7 +31,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 	@ExceptionHandler({ DemandeCheckingException.class })
 	public ResponseEntity<?> handleBadConditionsFailures(Throwable t) { return errorResponse(t, HttpStatus.PRECONDITION_FAILED);}
 
-	@ExceptionHandler({ CBSException.class, QueryToSudocException.class })
+	@ExceptionHandler({ CBSException.class, ZoneException.class, QueryToSudocException.class })
 	public ResponseEntity<?> handleBadRequestFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
 
 	@ExceptionHandler({ ConstraintViolationException.class })

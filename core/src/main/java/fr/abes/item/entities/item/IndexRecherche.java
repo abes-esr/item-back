@@ -33,7 +33,7 @@ public class IndexRecherche implements Serializable, GenericEntity<Integer> {
     @Column(name = "INDEX_ZONES")
     private Integer indexZones;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "INDEX_RECHERCHE_TYPE_EXEMP",
     joinColumns = @JoinColumn(name = "NUM_INDEX_RECHERCHE"),
     inverseJoinColumns = @JoinColumn(name = "NUM_TYPE_EXEMP"))

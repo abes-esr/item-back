@@ -1,7 +1,9 @@
 package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.item.entities.item.Traitement;
 
@@ -26,21 +28,21 @@ public interface ITraitementService {
 
     ProcessCBS getCbs();
 
-    void authenticate(String login) throws CBSException;
+    void authenticate(String login) throws CBSException, CommException;
 
-    String getNoticeFromEPN(String epn) throws CBSException;
+    Exemplaire getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException;
 
-    String creerNouvelleZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire creerNouvelleZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    String supprimerZone(String notice, String tag) throws ZoneException;
+    Exemplaire supprimerZone(Exemplaire notice, String tag) throws ZoneException;
 
-    String supprimerSousZone(String notice, String tag, String subTag) throws ZoneException;
+    Exemplaire supprimerSousZone(Exemplaire notice, String tag, String subTag) throws ZoneException;
 
-    String creerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire creerSousZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    String remplacerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire remplacerSousZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    String saveExemplaire(String noticeModifiee, String epn) throws CBSException;
+    String saveExemplaire(String noticeModifiee, String epn) throws CBSException, CommException;
 
     void disconnect() throws CBSException;
 

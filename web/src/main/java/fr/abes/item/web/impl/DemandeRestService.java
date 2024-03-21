@@ -1,16 +1,15 @@
 package fr.abes.item.web.impl;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.utilitaire.Constants;
-import fr.abes.cbs.utilitaire.Utilitaire;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.*;
 import fr.abes.item.security.CheckAccessToServices;
 import fr.abes.item.security.JwtTokenProvider;
-import fr.abes.item.utilitaire.Utilitaires;
 import fr.abes.item.web.AbstractRestService;
 import fr.abes.item.web.IDemandeRestService;
 import lombok.extern.slf4j.Slf4j;
@@ -306,25 +305,22 @@ public class DemandeRestService extends AbstractRestService implements IDemandeR
     @Override
     @GetMapping("/simulerLigne")
     public String[] simulerLigne(TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request)
-            throws CBSException, UserExistException, ForbiddenException, ZoneException {
+            throws CBSException, UserExistException, ForbiddenException, ZoneException, CommException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
             case MODIF:
                 try {
                     LigneFichierModif ligneFichierModif = getService().getDemandeModif().getLigneFichier((DemandeModif) getService().getDemandeModif().findById(numDemande), numLigne);
                     /*Notice init := notice avant traitement*/
-                    String noticeInit = getService().getDemandeModif().getNoticeInitiale((DemandeModif) getService().getDemandeModif().findById(numDemande), ligneFichierModif.getEpn());
-                    noticeInit = getService().getDemandeModif().getSeparationBetweenBlocks(noticeInit); /*Gestion des espaces zones locales zones système*/
-
+                    Exemplaire noticeInit = getService().getDemandeModif().getNoticeInitiale((DemandeModif) getService().getDemandeModif().findById(numDemande), ligneFichierModif.getEpn());
+                    String noticeInitStr = noticeInit.toString().replace("\r", "\r\n");
                     /*Notice traitée := notice après traitement*/
-                    String noticeTraitee = getService().getDemandeModif().getNoticeTraitee((DemandeModif) getService().getDemandeModif().findById(numDemande), noticeInit, ligneFichierModif);
-                    noticeTraitee = getService().getDemandeModif().getSeparationBetweenBlocks((noticeTraitee));
+                    Exemplaire noticeTraitee = getService().getDemandeModif().getNoticeTraitee((DemandeModif) getService().getDemandeModif().findById(numDemande), noticeInit, ligneFichierModif);
 
-                    String numEx = Utilitaires.getNumExFromExemp(noticeInit);
                     return new String[]{
                             getService().getTraitement().getCbs().getPpnEncours(),
-                            Utilitaire.recupEntre(Utilitaire.recupEntre(noticeInit, Constants.STR_1F, Constants.STR_0D + Constants.STR_1E), 'e' + numEx, "").replace("\r", "\r\n"),
-                            Utilitaire.recupEntre(Utilitaire.recupEntre(noticeTraitee, Constants.STR_1F, Constants.STR_0D + Constants.STR_1E), 'e' + numEx, "").replace("\r", "\r\n")
+                            noticeInitStr,
+                            noticeTraitee.toString().replace("\r", "\r\n")
                     };
                 } catch (NullPointerException ex) {
                     throw new NullPointerException(Constant.FILE_END);

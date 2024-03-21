@@ -1,8 +1,10 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
+import fr.abes.cbs.notices.NoticeConcrete;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.cbs.utilitaire.Constants;
@@ -14,6 +16,7 @@ import fr.abes.item.service.ITraitementService;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,8 +35,6 @@ public class TraitementService implements ITraitementService {
 
 	@Value("${sudoc.port}")
 	private String portSudoc;
-	
-	private String datePattern = "dd-MM-yyyy HH:mm";
 
 	@Getter
 	private ProcessCBS cbs;
@@ -45,108 +47,111 @@ public class TraitementService implements ITraitementService {
     }
 
 	@Override
-	public void authenticate(String login) throws CBSException {
+	public void authenticate(String login) throws CBSException, CommException {
 		this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
+		log.debug("je suis authentifié");
 	}
 
 	/**
 	 * Méthode de recherche d'un EPN et de récupération du premier exemplaire d'une notice
+	 *
 	 * @param epn : epn à rechercher
 	 * @return notice d'exemplaire trouvée
 	 * @throws CBSException : Erreur CBS
 	 */
 	@Override
-	public String getNoticeFromEPN(String epn) throws CBSException {
+	public Exemplaire getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException {
 		cbs.search("che EPN " + epn);
 		if (cbs.getNbNotices() == 1) {
-			String noticeEpn = cbs.getClientCBS().mod("1", String.valueOf(cbs.getLotEncours()));
-			String numEx = Utilitaires.getNumExFromExemp(Utilitaires.getExempFromNotice(noticeEpn, epn));
-			String resu = cbs.getClientCBS().modE(numEx, String.valueOf(cbs.getLotEncours()));
-			cbs.back();
-			String resu2 = Utilitaire.recupEntre(resu, Constants.VTXTE, Constants.STR_0D + Constants.STR_0D + Constants.STR_1E);
-			return Constants.STR_1F + resu2.substring(resu2.indexOf("e" + numEx)) + Constants.STR_0D + Constants.STR_1E;
+			NoticeConcrete noticeEpn = cbs.editerNoticeConcrete("1");
+			Optional<Exemplaire> exempOpt = noticeEpn.getExemplaires().stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(epn)).findFirst();
+			if (exempOpt.isPresent())
+				return exempOpt.get();
+			else {
+				log.error(epn + " pas trouvé");
+				throw new CBSException(Level.ERROR, Constant.ERR_FILE_NOTICE_EPN_NUMBER);
+			}
 		}
-		else
-			throw new CBSException(Constant.CBS_PREFIX + Constants.VERROR, Constant.ERR_FILE_NOTICE_EPN_NUMBER);
+		return null;
 	}
 
 	/**
 	 * Méthode permettant d'ajouter une zone / sous zone dans une notice d'exemplaire
-	 * @param notice notice à modifier
+	 *
+	 * @param exemp notice à modifier
 	 * @return notice avec nouvelle zone / sous zone préfixée de STR_1F
 	 */
 	@Override
-	public String creerNouvelleZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
-		Exemplaire exemp = new Exemplaire(notice);
+	public Exemplaire creerNouvelleZone(Exemplaire exemp, String tag, String subTag, String valeur) throws ZoneException {
 		exemp.addZone(tag, subTag, valeur);
 		exemp = ajout991(exemp);
-		return exemp.toString();
+		return exemp;
 	}
 
 	/**
 	 * Méthode permettant la suppression d'une zone dans une notice d'exemplaire
-	 * @param notice notice biblio + exemplaires
-	 * @param tag zone à supprimer
+	 *
+	 * @param exemp notice biblio + exemplaires
+	 * @param tag    zone à supprimer
 	 * @return chaine de l'exemplaire modifié préfixé par STR_1F
 	 */
 	@Override
-	public String supprimerZone(String notice, String tag) throws ZoneException {
-		Exemplaire exemp = new Exemplaire(notice);
+	public Exemplaire supprimerZone(Exemplaire exemp, String tag) throws ZoneException {
 		exemp.deleteZone(tag);
 		exemp = ajout991(exemp);
-		return exemp.toString();
+		return exemp;
 	}
 
 	/**
 	 * Méthode permettant la suppression d'une sous-zone dans une notice d'exemplaire
-	 * @param notice notice biblio + exemplaires
-	 * @param tag zone qui contient la sous-zone
+	 *
+	 * @param exemp  notice biblio + exemplaires
+	 * @param tag    zone qui contient la sous-zone
 	 * @param subTag zone à supprimer
 	 * @return chaine de l'exemplaire modifié préfixé par STR_1F
 	 */
 	@Override
-	public String supprimerSousZone(String notice, String tag, String subTag) throws ZoneException {
-		Exemplaire exemp = new Exemplaire(notice);
+	public Exemplaire supprimerSousZone(Exemplaire exemp, String tag, String subTag) throws ZoneException {
 		exemp.deleteSousZone(tag, subTag);
 		exemp = ajout991(exemp);
-		return exemp.toString();
+		return exemp;
 	}
 
 
 	/**
 	 * Méthode permettant la création d'une sous-zone dans une notice d'exemplaire
-	 * @param notice notice biblio + exemplaires
-	 * @param tag zone qui contient la sous-zone
+	 *
+	 * @param exemp  notice biblio + exemplaires
+	 * @param tag    zone qui contient la sous-zone
 	 * @param subTag sous-zone à créer
 	 * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
-	 * @return
+	 * @return l'exemplaire modifié
 	 */
 	@Override
-	public String creerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
-		Exemplaire exemp = new Exemplaire(notice);
+	public Exemplaire creerSousZone(Exemplaire exemp, String tag, String subTag, String valeur) throws ZoneException {
 		exemp.addSousZone(tag, subTag, valeur);
 		exemp = ajout991(exemp);
-		return exemp.toString();
+		return exemp;
 	}
 
 	/**
 	 * Méthode permettant le remplacement d'une sous-zone dans une notice d'exemplaire
-	 * @param notice notice biblio + exemplaires
-	 * @param tag zone qui contient la sous-zone
+	 *
+	 * @param exemp  notice biblio + exemplaires
+	 * @param tag    zone qui contient la sous-zone
 	 * @param subTag sous-zone à remplacer
 	 * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
-	 * @return
+	 * @return l'exemplaire modifié
 	 */
 	@Override
-	public String remplacerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException {
-		Exemplaire exemp = new Exemplaire(notice);
+	public Exemplaire remplacerSousZone(Exemplaire exemp, String tag, String subTag, String valeur) throws ZoneException {
 		try {
 			exemp.replaceSousZone(tag, subTag, valeur);
 			exemp = ajout991(exemp);
 		} catch (NullPointerException ex) {
 			log.debug("Zone / sous zone absente de la notice à modifier");
 		}
-		return exemp.toString();
+		return exemp;
 	}
 
 	/**
@@ -155,6 +160,7 @@ public class TraitementService implements ITraitementService {
 	 * @return exemplaire modifié
 	 */
 	public Exemplaire ajout991(Exemplaire exemp) throws ZoneException {
+		String datePattern = "dd-MM-yyyy HH:mm";
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
 		String date = simpleDateFormat.format(new Date());
 		char[] indicateurs = new char[2];
@@ -177,9 +183,10 @@ public class TraitementService implements ITraitementService {
 	 * @throws CBSException : erreur CBS
 	 */
 	@Override
-	public String saveExemplaire(String noticeModifiee, String epn) throws CBSException {
+	public String saveExemplaire(String noticeModifiee, String epn) throws CBSException, CommException {
 		String numEx = Utilitaires.getNumExFromExemp(noticeModifiee);
 		String noticeModifieeClean = "e" + numEx + Utilitaire.recupEntre(noticeModifiee, 'e' + numEx, Constants.STR_1E);
+		log.debug(epn + " sauvegarde exemplaire");
 		return cbs.modifierExemp(noticeModifieeClean, numEx);
 	}
 
@@ -195,7 +202,7 @@ public class TraitementService implements ITraitementService {
 
 	/**
 	 * Retourner l'ensemble de la liste des traitements disponibles
-	 * @return
+	 * @return liste de tous les traitements
 	 */
 	@Override
 	public List<Traitement> findAll() {

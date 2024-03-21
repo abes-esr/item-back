@@ -10,8 +10,6 @@ import fr.abes.item.constant.Constant;
 import fr.abes.item.exception.FileCheckingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.buf.Utf8Decoder;
-import org.apache.tomcat.util.buf.Utf8Encoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,7 +85,7 @@ public class Utilitaires {
      * @return numéro d'exemplaire dans la notice correspondant à l'epn (format xx sans le e)
      */
     public static String getNumExFromExemp(String exemp) {
-        return exemp.substring(2, 4);
+        return exemp.substring(1, 3);
     }
 
     /**
