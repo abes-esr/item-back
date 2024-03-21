@@ -95,7 +95,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      */
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.warn(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
+        log.info(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
 
         try {
             String nomFichier = this.genererFichier(); //NOM FICHIER DEMANDE GENERE
@@ -144,7 +144,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     case EXEMP:
                         DemandeExemp demandeExemp = (DemandeExemp) demande;
                         LigneFichierDtoExemp ligneFichierDtoExemp = new LigneFichierDtoExemp((LigneFichierExemp) ligne);
-                        log.warn(ligneFichierDtoExemp.getIndexRecherche());
                         ligneFichierDtoExemp.setRequete(getServiceProvider().getDemandeExemp().getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoExemp.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                         break;

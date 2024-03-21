@@ -1,7 +1,9 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiModif;
 import fr.abes.item.components.FichierInitial;
@@ -304,12 +306,12 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * Méthode de récupération d'une notice par son EPN
      *
      * @param demandeModif utilisée pour récupérer le RCR qui servira pour la construction du login Manager CBS
-     * @param epn     epn de la notice à chercher
+     * @param epn          epn de la notice à chercher
      * @return La notice trouvée dans le CBS
      * @throws CBSException : erreur CBS
      */
     @Override
-    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException {
+    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException {
         try {
             getService().getTraitement().authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
@@ -324,13 +326,13 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * Méthode de modification d'une notice en fonction du traitement
      *
      * @param demandeModif      permet de récupérer le traitement à lancer sur la notice
-     * @param noticeInit   notice récupérée du Sudoc sur laquelle on effectue le traitement
+     * @param exemplaire        notice récupérée du Sudoc sur laquelle on effectue le traitement
      * @param ligneFichierModif informations à intégrer à la notice à traiter
      * @return la notice modifiée
      */
     @Override
-    public String getNoticeTraitee(DemandeModif demandeModif, String noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException {
-        String exempStr = Utilitaires.getExempFromNotice(noticeInit, ligneFichierModif.getEpn());
+    public Exemplaire getNoticeTraitee(DemandeModif demandeModif, String exemplaire, LigneFichierModif ligneFichierModif) throws ZoneException {
+        String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
         switch (demandeModif.getTraitement().getNomMethode()) {
             case "creerNouvelleZone":
                 return getService().getTraitement().creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
@@ -344,7 +346,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 return getService().getTraitement().remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             default:
         }
-        return "";
+        return null;
     }
 
     /**

@@ -10,13 +10,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class testUtilitaires {
     @DisplayName("checkExtensionExe")
@@ -54,12 +51,12 @@ class testUtilitaires {
     @DisplayName("getNumExFromExempOneEx")
     @Test
     void getNumExFromExempOneEx() {
-        String noticeInit = Constants.STR_1F + "e01 $a17-09-18$bx\r" +
+        String noticeInit =  "e01 $a17-09-18$bx\r" +
                 "930 ##$b341720001\r" +
                 "A97 17-09-18 10:51:56.000\r" +
                 "A98 341720001:17-09-18\r" +
                 "A99 618828249\r" +
-                Constants.STR_0D + Constants.STR_0D + Constants.STR_1E;
+                Constants.STR_0D + Constants.STR_0D;
         assertThat(Utilitaires.getNumExFromExemp(noticeInit)).isEqualTo("01");
     }
 
@@ -88,7 +85,7 @@ class testUtilitaires {
                 "A98 301892102:02-12-05" +
                 "A99 248398830" +
                 Constants.STR_1E + Constants.VMC;
-        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp, epn)).isEqualTo(Constants.STR_1F +
+        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp, epn)).isEqualTo(
                 "e03 $a02-12-05$bx" +
                 "930 ##$b301892102$a306.485 ETH$ju" +
                 "A97 02-12-05 16:22:37.000 " +

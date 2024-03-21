@@ -1,13 +1,13 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.cbs.notices.ZoneEtatColl;
 import fr.abes.cbs.utilitaire.Constants;
-import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiExemp;
 import fr.abes.item.constant.Constant;
@@ -360,7 +360,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param ligneFichier ligneFichier à traiter
      * @return la chaine de l'exemplaire construit, ou message d'erreur
      */
-    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException {
+    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, CommException {
         try {
             getService().getTraitement().authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
@@ -372,7 +372,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     Utilitaires.removeNonPrintableCharacters(donneeLocaleExistante).replace("\r", "\r\n") + "\r\n" + exemplairesExistants.replace("\r", "\r\n"), //2*r\n\ comptent pour un saut de ligne
                     //L'indice 2 retourne le bloc de données locales et l'exemplaire à créer
                     creerDonneesLocalesFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone()).replace("\r", "\r\n") + "\r\n" +
-                            Utilitaire.recupEntre(creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone(), demande.getRcr(), numEx), Constants.STR_1F, Constants.STR_0D + Constants.STR_1E).replace("\r", "\r\n"),
+                            creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone(), demande.getRcr(), numEx).replace("\r", "\r\n"),
             };
             //Si l'utilisateur n'a pas autorisé la création d'exemplaires multiples sur les notices de cette demande associée à ce RCR en cas d'exemplaires déjà présents
 
@@ -394,11 +394,11 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
         //TODO insérer la requête pour sauver la requête en base
 
-        if (query != "") {
+        if (!query.isEmpty()) {
             try {
                 getService().getTraitement().getCbs().search(query);
                 nbReponses = getService().getTraitement().getCbs().getNbNotices();
-            } catch (CBSException e) {
+            } catch (CommException e) {
                 nbReponses = 0;
             }
             switch (nbReponses) {
@@ -576,7 +576,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                         } else {
                             if (!((("").equals(valeurEnCours)) || (valeurEnCours.charAt(0) == (char) 0))) {
                                 //cas ou le header en cours est une sous zone seule
-                                if (exemp.findZones(zonePrecedente).size() != 0) {
+                                if (!exemp.findZones(zonePrecedente).isEmpty()) {
                                     exemp.addSousZone(zonePrecedente, headerEnCours, valeurEnCours);
                                 } else {
                                     exemp.addZone(zonePrecedente, headerEnCours, valeurEnCours, getDao().getZonesAutorisees().getIndicateursByTypeExempAndLabelZone(zonePrecedente).toCharArray());

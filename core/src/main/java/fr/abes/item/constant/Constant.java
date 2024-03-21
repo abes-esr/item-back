@@ -43,8 +43,8 @@ public class Constant implements Serializable {
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
 	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
-	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement.";
-	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM.";
+	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
+	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM";
 	public static final String AUCUNE_DEMANDE = "AUCUNE DEMANDE";
 	public static final String DEFAULT = "default";
 	public static final String DEMANDE = "La demande ";

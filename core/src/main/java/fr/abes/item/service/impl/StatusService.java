@@ -1,6 +1,7 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.service.IStatusService;
@@ -48,7 +49,7 @@ public class StatusService implements IStatusService {
         try {
             cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
             return true;
-        } catch (CBSException e) {
+        } catch (CBSException | CommException e) {
             log.error("serveur " + serveurSudoc + " : " + e.getMessage());
             return false;
         }

@@ -1,10 +1,6 @@
 package fr.abes.item;
 
 import fr.abes.item.constant.Constant;
-import fr.abes.item.entities.item.DemandeExemp;
-import fr.abes.item.entities.item.DemandeModif;
-import fr.abes.item.entities.item.DemandeRecouv;
-import fr.abes.item.restart.SelectJobsToRestartTasklet;
 import fr.abes.item.service.service.ServiceProvider;
 import fr.abes.item.traitement.*;
 import fr.abes.item.traitement.model.LigneFichierDtoExemp;
@@ -118,13 +114,6 @@ public class BatchConfiguration {
                 .build().build();
     }
 
-    // Job de relance des Jobs en état Unknown
-    @Bean
-    public Job jobRelanceJobsUnknown() {
-        return jobs.get(Constant.SPRING_BATCH_JOB_RESTART_JOBS_UNKNOW).incrementer(incrementer())
-                .start(stepSelectJobsToRestart())
-                .build();
-    }
 
     // Job d'export des statistiques mensuelles
     @Bean
@@ -253,13 +242,6 @@ public class BatchConfiguration {
                 .build();
     }
 
-    @Bean
-    public Step stepSelectJobsToRestart() {
-        return stepBuilderFactory
-                .get("stepSelectJobsToRestart").allowStartIfComplete(true)
-                .tasklet(selectJobsToRestartTasklet())
-                .build();
-    }
 
     //Steps d'archivage automatique des demandes
     @Bean
@@ -351,9 +333,6 @@ public class BatchConfiguration {
 
     @Bean
     public ExportStatistiquesTasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(); }
-
-    @Bean
-    public SelectJobsToRestartTasklet selectJobsToRestartTasklet() { return new SelectJobsToRestartTasklet(jdbcTemplate, service); }
 
 
     //Archivage automatique des demandes
