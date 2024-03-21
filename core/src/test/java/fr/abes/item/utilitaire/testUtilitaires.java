@@ -85,7 +85,7 @@ class testUtilitaires {
                 "A98 301892102:02-12-05" +
                 "A99 248398830" +
                 Constants.STR_1E + Constants.VMC;
-        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp, epn)).isEqualTo(Constants.STR_1F +
+        assertThat(Utilitaires.getExempFromNotice(noticeDeuxExemp, epn)).isEqualTo(
                 "e03 $a02-12-05$bx" +
                 "930 ##$b301892102$a306.485 ETH$ju" +
                 "A97 02-12-05 16:22:37.000 " +

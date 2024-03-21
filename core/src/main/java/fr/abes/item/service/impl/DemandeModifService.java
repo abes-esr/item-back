@@ -311,7 +311,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @throws CBSException : erreur CBS
      */
     @Override
-    public Exemplaire getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException {
+    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException {
         try {
             getService().getTraitement().authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
@@ -331,18 +331,19 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @return la notice modifiée
      */
     @Override
-    public Exemplaire getNoticeTraitee(DemandeModif demandeModif, Exemplaire exemplaire, LigneFichierModif ligneFichierModif) throws ZoneException {
+    public Exemplaire getNoticeTraitee(DemandeModif demandeModif, String exemplaire, LigneFichierModif ligneFichierModif) throws ZoneException {
+        String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
         switch (demandeModif.getTraitement().getNomMethode()) {
             case "creerNouvelleZone":
-                return getService().getTraitement().creerNouvelleZone(exemplaire, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return getService().getTraitement().creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             case "supprimerZone":
-                return getService().getTraitement().supprimerZone(exemplaire, demandeModif.getZone());
+                return getService().getTraitement().supprimerZone(exempStr, demandeModif.getZone());
             case "supprimerSousZone":
-                return getService().getTraitement().supprimerSousZone(exemplaire, demandeModif.getZone(), demandeModif.getSousZone());
+                return getService().getTraitement().supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
             case "ajoutSousZone":
-                return getService().getTraitement().creerSousZone(exemplaire, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return getService().getTraitement().creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             case "remplacerSousZone":
-                return getService().getTraitement().remplacerSousZone(exemplaire, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+                return getService().getTraitement().remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
             default:
         }
         return null;

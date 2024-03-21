@@ -48,9 +48,9 @@ import java.util.List;
 public interface IDemandeModifService extends IDemandeService{
     LigneFichierModif getLigneFichier(DemandeModif demandeModif, Integer numLigne);
 
-    Exemplaire getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException;
+    String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException;
 
-    Exemplaire getNoticeTraitee(DemandeModif demandeModif, Exemplaire noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException;
+    Exemplaire getNoticeTraitee(DemandeModif demandeModif, String noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException;
 
     String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 

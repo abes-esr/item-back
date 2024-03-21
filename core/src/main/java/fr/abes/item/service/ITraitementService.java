@@ -30,17 +30,17 @@ public interface ITraitementService {
 
     void authenticate(String login) throws CBSException, CommException;
 
-    Exemplaire getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException;
+    String getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException;
 
-    Exemplaire creerNouvelleZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire creerNouvelleZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    Exemplaire supprimerZone(Exemplaire notice, String tag) throws ZoneException;
+    Exemplaire supprimerZone(String notice, String tag) throws ZoneException;
 
-    Exemplaire supprimerSousZone(Exemplaire notice, String tag, String subTag) throws ZoneException;
+    Exemplaire supprimerSousZone(String notice, String tag, String subTag) throws ZoneException;
 
-    Exemplaire creerSousZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire creerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    Exemplaire remplacerSousZone(Exemplaire notice, String tag, String subTag, String valeur) throws ZoneException;
+    Exemplaire remplacerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
 
     String saveExemplaire(String noticeModifiee, String epn) throws CBSException, CommException;
 

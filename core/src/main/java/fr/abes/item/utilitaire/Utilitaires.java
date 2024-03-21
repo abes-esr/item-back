@@ -101,8 +101,8 @@ public class Utilitaires {
             if (listExemps[i].contains("A99 " + epn)) {
                 //la fin de la chaine est différente en fonction de si l'exemplaire trouvé est le dernier ou non, on adapte le retour en fonction
                 return (listExemps[i].contains(Constants.STR_1E + Constants.VMC))
-                        ? listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F), listExemps[i].indexOf(Constants.STR_1E + Constants.VMC)) + Constants.STR_1E
-                        : listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F));
+                        ? listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F) + 1, listExemps[i].indexOf(Constants.STR_1E + Constants.VMC)) + Constants.STR_1E
+                        : listExemps[i].substring(listExemps[i].indexOf(Constants.STR_1F) + 1);
             }
         }
         return "";

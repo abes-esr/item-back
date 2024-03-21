@@ -70,7 +70,7 @@ public class ProxyRetry {
         ILigneFichierDtoMapper ligneFichierDtoMapper = factory.getStrategy(ILigneFichierDtoMapper.class, TYPE_DEMANDE.MODIF);
         try {
             //récupération de la exemplaire correpondant à la ligne du fichier en cours
-            Exemplaire exemplaire = getService().getTraitement().getNoticeFromEPN(ligneFichierDtoModif.getEpn());
+            String exemplaire = getService().getTraitement().getNoticeFromEPN(ligneFichierDtoModif.getEpn());
             //modification de la exemplaire d'exemplaire
             Exemplaire noticeTraitee = getService().getDemandeModif().getNoticeTraitee(demande, exemplaire, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
             getService().getTraitement().saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());

@@ -312,8 +312,8 @@ public class DemandeRestService extends AbstractRestService implements IDemandeR
                 try {
                     LigneFichierModif ligneFichierModif = getService().getDemandeModif().getLigneFichier((DemandeModif) getService().getDemandeModif().findById(numDemande), numLigne);
                     /*Notice init := notice avant traitement*/
-                    Exemplaire noticeInit = getService().getDemandeModif().getNoticeInitiale((DemandeModif) getService().getDemandeModif().findById(numDemande), ligneFichierModif.getEpn());
-                    String noticeInitStr = noticeInit.toString().replace("\r", "\r\n");
+                    String noticeInit = getService().getDemandeModif().getNoticeInitiale((DemandeModif) getService().getDemandeModif().findById(numDemande), ligneFichierModif.getEpn());
+                    String noticeInitStr = noticeInit.replace("\r", "\r\n");
                     /*Notice traitée := notice après traitement*/
                     Exemplaire noticeTraitee = getService().getDemandeModif().getNoticeTraitee((DemandeModif) getService().getDemandeModif().findById(numDemande), noticeInit, ligneFichierModif);
 
