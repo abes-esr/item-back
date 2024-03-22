@@ -59,7 +59,7 @@ public class TraitementService implements ITraitementService {
      * @throws CBSException : Erreur CBS
      */
     @Override
-    public String getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException {
+    public String getNoticeFromEPN(String epn) throws CBSException, CommException {
         cbs.search("che EPN " + epn);
         if (cbs.getNbNotices() == 1) {
             String noticeEpn = cbs.getClientCBS().mod("1", String.valueOf(cbs.getLotEncours()));
@@ -70,7 +70,7 @@ public class TraitementService implements ITraitementService {
             return Constants.STR_1F + resu2.substring(resu2.indexOf("e" + numEx)) + Constants.STR_0D + Constants.STR_1E;
         } else {
             log.error(epn + " pas trouvé");
-            throw new CBSException(Level.ERROR, Constant.ERR_FILE_NOTICE_EPN_NUMBER);
+            throw new CBSException(Level.FATAL, Constant.ERR_FILE_NOTICE_EPN_NUMBER);
         }
     }
 
