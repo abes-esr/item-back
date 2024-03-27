@@ -28,6 +28,9 @@ import java.util.List;
 @Service
 public class TraitementService implements ITraitementService {
 
+    @Value("${sudoc.poll}")
+    private Integer poll;
+
     @Value("${sudoc.serveur}")
     private String serveurSudoc;
 
@@ -42,7 +45,7 @@ public class TraitementService implements ITraitementService {
     private DaoProvider dao;
 
     public TraitementService() {
-        cbs = new ProcessCBS();
+        cbs = new ProcessCBS(poll);
     }
 
     @Override
