@@ -1,7 +1,6 @@
 package fr.abes.item.traitement;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
 import fr.abes.cbs.notices.Exemplaire;
@@ -28,6 +27,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -46,10 +46,10 @@ public class ProxyRetry {
      *
      * @param login login d'authentification
      * @throws CBSException erreur de validation CBS
-     * @throws CommException erreur de communication avec le CBS
+     * @throws IOException erreur de communication avec le CBS
      */
-    @Retryable(include = CommException.class, exclude = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2))
-    public void authenticate(String login) throws CBSException, CommException {
+    @Retryable(include = IOException.class, exclude = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2))
+    public void authenticate(String login) throws CBSException, IOException {
         log.warn(Constant.PROXY_AUTHENTICATION_WITH_LOGIN + login);
         getService().getTraitement().authenticate(login);
     }
@@ -64,10 +64,10 @@ public class ProxyRetry {
      * @param demande  demande de modification
      * @param ligneFichierDtoModif dto de la ligne fichier à modifier
      * @throws CBSException  : erreur CBS
-     * @throws CommException : erreur de communication avec le CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
-    @Retryable(maxAttempts = 4, include = CommException.class, exclude = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
-    public void saveExemplaire(DemandeModif demande, LigneFichierDtoModif ligneFichierDtoModif) throws CBSException, CommException, ZoneException {
+    @Retryable(maxAttempts = 4, include = IOException.class, exclude = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
+    public void saveExemplaire(DemandeModif demande, LigneFichierDtoModif ligneFichierDtoModif) throws CBSException, IOException, ZoneException {
         ILigneFichierDtoMapper ligneFichierDtoMapper = factory.getStrategy(ILigneFichierDtoMapper.class, TYPE_DEMANDE.MODIF);
         try {
             //récupération de la exemplaire correpondant à la ligne du fichier en cours
@@ -82,7 +82,7 @@ public class ProxyRetry {
                 this.authenticate("M" + demande.getRcr());
             }
             throw ex;
-        } catch (CommException ex) {
+        } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande modif " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoModif.getNumLigneFichier() + " / epn : " + ligneFichierDtoModif.getEpn());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();
@@ -97,11 +97,11 @@ public class ProxyRetry {
      * @param ligneFichierDtoExemp ligne fichier à traiter
      * @throws CBSException : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
-     * @throws CommException : erreur de communication avec le CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
-    @Retryable(maxAttempts = 4, include = CommException.class,
+    @Retryable(maxAttempts = 4, include = IOException.class,
             exclude = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
-    public void newExemplaire(DemandeExemp demande, LigneFichierDtoExemp ligneFichierDtoExemp) throws CBSException, ZoneException, CommException {
+    public void newExemplaire(DemandeExemp demande, LigneFichierDtoExemp ligneFichierDtoExemp) throws CBSException, ZoneException, IOException {
         try {
             ligneFichierDtoExemp.setRequete(getService().getDemandeExemp().getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
             //lancement de la requête de récupération de la notice dans le CBS
@@ -140,7 +140,7 @@ public class ProxyRetry {
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
-        } catch (CommException ex) {
+        } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande exemp " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoExemp.getNumLigneFichier());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();
@@ -164,11 +164,11 @@ public class ProxyRetry {
      * @param ligneFichierDtoRecouv ligne fichier à traiter
      * @throws CBSException : erreur CBS
      * @throws QueryToSudocException : erreur dans le type d'index de recherche
-     * @throws CommException : erreur de communication avec le CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
-    @Retryable(maxAttempts = 4, include = CommException.class,
+    @Retryable(maxAttempts = 4, include = IOException.class,
             exclude = {CBSException.class, QueryToSudocException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
-    public void recouvExemplaire(DemandeRecouv demande, LigneFichierDtoRecouv ligneFichierDtoRecouv) throws CommException, QueryToSudocException, CBSException {
+    public void recouvExemplaire(DemandeRecouv demande, LigneFichierDtoRecouv ligneFichierDtoRecouv) throws IOException, QueryToSudocException, CBSException {
         ligneFichierDtoRecouv.setRequete(getService().getDemandeRecouv().getQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
         try {
             ligneFichierDtoRecouv.setNbReponses(getService().getDemandeRecouv().launchQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
@@ -182,7 +182,7 @@ public class ProxyRetry {
                 default:
                     ligneFichierDtoRecouv.setListePpn(getService().getTraitement().getCbs().getListePpn().toString().replace(';', ','));
             }
-        } catch (CommException ex) {
+        } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande recouv " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoRecouv.getNumLigneFichier());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();

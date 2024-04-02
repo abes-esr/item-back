@@ -1,7 +1,6 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -27,9 +27,6 @@ import java.util.List;
 @Slf4j
 @Service
 public class TraitementService implements ITraitementService {
-
-    @Value("${sudoc.poll}")
-    private Integer poll;
 
     @Value("${sudoc.serveur}")
     private String serveurSudoc;
@@ -45,13 +42,12 @@ public class TraitementService implements ITraitementService {
     private DaoProvider dao;
 
     public TraitementService() {
-        cbs = new ProcessCBS(poll);
+        cbs = new ProcessCBS();
     }
 
     @Override
-    public void authenticate(String login) throws CBSException, CommException {
+    public void authenticate(String login) throws CBSException, IOException {
         this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
-        log.debug("je suis authentifié");
     }
 
     /**
@@ -60,9 +56,10 @@ public class TraitementService implements ITraitementService {
      * @param epn : epn à rechercher
      * @return notice d'exemplaire trouvée
      * @throws CBSException : Erreur CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
     @Override
-    public String getNoticeFromEPN(String epn) throws CBSException, CommException {
+    public String getNoticeFromEPN(String epn) throws CBSException, IOException {
         cbs.search("che EPN " + epn);
         if (cbs.getNbNotices() == 1) {
             String noticeEpn = cbs.getClientCBS().mod("1", String.valueOf(cbs.getLotEncours()));
@@ -190,9 +187,10 @@ public class TraitementService implements ITraitementService {
      * @param noticeModifiee notice à sauvegarder
      * @return : retour CBS
      * @throws CBSException : erreur CBS
+     * @throws IOException : erreur de communication CBS
      */
     @Override
-    public String saveExemplaire(String noticeModifiee, String epn) throws CBSException, CommException {
+    public String saveExemplaire(String noticeModifiee, String epn) throws CBSException, IOException {
         String numEx = Utilitaires.getNumExFromExemp(noticeModifiee);
         log.debug(epn + " sauvegarde exemplaire");
         return cbs.modifierExemp(noticeModifiee, numEx);

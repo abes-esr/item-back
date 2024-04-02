@@ -1,7 +1,6 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.service.IStatusService;
@@ -15,6 +14,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -49,7 +49,7 @@ public class StatusService implements IStatusService {
         try {
             cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
             return true;
-        } catch (CBSException | CommException e) {
+        } catch (CBSException | IOException e) {
             log.error("serveur " + serveurSudoc + " : " + e.getMessage());
             return false;
         }

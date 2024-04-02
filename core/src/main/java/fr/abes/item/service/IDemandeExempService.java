@@ -1,7 +1,6 @@
 package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.DemandeCheckingException;
@@ -42,13 +41,13 @@ import java.util.List;
 public interface IDemandeExempService extends IDemandeService{
     boolean hasDonneeLocaleExistante();
 
-    String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, ZoneException, CommException;
+    String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, ZoneException, IOException;
 
     String creerExemplaireFromHeaderEtValeur(String header, String valeur, String rcr, String numExemp) throws CBSException, ZoneException;
 
     String creerDonneesLocalesFromHeaderEtValeur(String header, String valeur) throws ZoneException;
 
-    String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException;
+    String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException;
 
     LigneFichierExemp getLigneFichier(DemandeExemp demande, Integer numLigne);
 

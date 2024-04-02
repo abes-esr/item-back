@@ -1,7 +1,6 @@
 package fr.abes.item.web.impl;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.constant.Constant;
@@ -305,7 +304,7 @@ public class DemandeRestService extends AbstractRestService implements IDemandeR
     @Override
     @GetMapping("/simulerLigne")
     public String[] simulerLigne(TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request)
-            throws CBSException, UserExistException, ForbiddenException, ZoneException, CommException {
+            throws CBSException, UserExistException, ForbiddenException, ZoneException, IOException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
             case MODIF:

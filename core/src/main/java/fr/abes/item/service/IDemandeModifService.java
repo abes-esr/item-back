@@ -1,7 +1,6 @@
 package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.entities.item.*;
@@ -48,7 +47,7 @@ import java.util.List;
 public interface IDemandeModifService extends IDemandeService{
     LigneFichierModif getLigneFichier(DemandeModif demandeModif, Integer numLigne);
 
-    String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, CommException, ZoneException;
+    String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, IOException, ZoneException;
 
     Exemplaire getNoticeTraitee(DemandeModif demandeModif, String noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException;
 
