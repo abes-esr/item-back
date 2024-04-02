@@ -1,7 +1,6 @@
 package fr.abes.item.traitement.traiterlignesfichierchunk;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
@@ -31,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 @Slf4j
@@ -80,7 +80,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 default:
                     return processDemandeRecouv(ligneFichierDto);
             }
-        } catch (CBSException | ZoneException | QueryToSudocException | CommException e) {
+        } catch (CBSException | ZoneException | QueryToSudocException | IOException e) {
             log.error(Constant.ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE + e);
             ligneFichierDto.setRetourSudoc(e.getMessage());
         } catch (JDBCConnectionException | ConstraintViolationException j) {
@@ -106,9 +106,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
      * @throws CBSException  : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
-     * @throws CommException : erreur de communication avec le CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
-    private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, CommException {
+    private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeModif demandeModif = (DemandeModif) demande;
         LigneFichierDtoModif ligneFichierDtoModif = (LigneFichierDtoModif) ligneFichierDto;
         //sauvegarde la notice modifiée
@@ -124,9 +124,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
      * @throws CBSException  : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
-     * @throws CommException : erreur de communication avec le CBS
+     * @throws IOException : erreur de communication avec le CBS
      */
-    private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, CommException {
+    private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeExemp demandeExemp = (DemandeExemp) this.demande;
         LigneFichierDtoExemp ligneFichierDtoExemp = (LigneFichierDtoExemp) ligneFichierDto;
         this.proxyRetry.newExemplaire(demandeExemp, ligneFichierDtoExemp);
@@ -141,9 +141,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO ligneFichier mise à jour en fonction du résultat de la requête che
      * @throws CBSException          : erreur CBS
      * @throws QueryToSudocException : erreur dans le type d'index de recherche
-     * @throws CommException         : erreur de communication avec le CBS
+     * @throws IOException         : erreur de communication avec le CBS
      */
-    private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException, CommException {
+    private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException, IOException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) this.demande;
         LigneFichierDtoRecouv ligneFichierDtoRecouv = (LigneFichierDtoRecouv) ligneFichierDto;
         this.proxyRetry.recouvExemplaire(demandeRecouv, ligneFichierDtoRecouv);

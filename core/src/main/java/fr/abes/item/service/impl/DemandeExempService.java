@@ -1,7 +1,6 @@
 package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
 import fr.abes.cbs.notices.Exemplaire;
@@ -123,7 +122,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     @Override
     public boolean hasDonneeLocaleExistante() {
-        return (donneeLocaleExistante.isEmpty())?false:true;
+        return (donneeLocaleExistante.isEmpty()) ? false : true;
     }
 
     /**
@@ -148,7 +147,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     /**
      * vérification du fichier et création de l'objet correspondant
-     * @param file fichier issu du front
+     *
+     * @param file    fichier issu du front
      * @param demande demande concernée
      * @return message indiquant le bon déroulement de l'opération renvoyé au front
      * @throws IOException
@@ -360,7 +360,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param ligneFichier ligneFichier à traiter
      * @return la chaine de l'exemplaire construit, ou message d'erreur
      */
-    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, CommException {
+    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, IOException {
         try {
             getService().getTraitement().authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
@@ -389,18 +389,14 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @return le numéro du prochain exemplaire à créer dans la notice au format "xx"
      */
     @Override
-    public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException {
+    public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
-        //TODO insérer la requête pour sauver la requête en base
 
         if (!query.isEmpty()) {
-            try {
-                getService().getTraitement().getCbs().search(query);
-                nbReponses = getService().getTraitement().getCbs().getNbNotices();
-            } catch (CommException e) {
-                nbReponses = 0;
-            }
+            getService().getTraitement().getCbs().search(query);
+            nbReponses = getService().getTraitement().getCbs().getNbNotices();
+
             switch (nbReponses) {
                 //Le sudoc n'a pas trouvé de notice correspondant au PPN ou autre critère de recherche
                 case 0:
@@ -743,7 +739,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     case "SOU":
                         return "tno t; tdo b; che sou " + valeur[0];
                     case "DAT":
-                        if(valeur[1].isEmpty()){
+                        if (valeur[1].isEmpty()) {
                             return "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
                         }
                         return "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
@@ -753,7 +749,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         }
     }
 
-    /** méthode d'archivage d'une demande
+    /**
+     * méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage
      *
      * @param demande demande à archiver

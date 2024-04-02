@@ -1,6 +1,5 @@
 package fr.abes.item.service;
 
-import fr.abes.cbs.exception.CommException;
 import fr.abes.item.entities.item.Demande;
 import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.entities.item.EtatDemande;
@@ -18,7 +17,7 @@ import java.util.List;
 public interface IDemandeRecouvService extends IDemandeService {
     String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 
-    int launchQueryToSudoc(String codeIndex, String valeurs) throws QueryToSudocException, CommException;
+    int launchQueryToSudoc(String codeIndex, String valeurs) throws QueryToSudocException, IOException;
 
     String getQueryToSudoc(String codeIndex, String[] tabValeurs) throws QueryToSudocException;
 

@@ -72,7 +72,7 @@ public interface IDemandeRestService {
 
     @GetMapping("/simulerLigne")
     @ApiOperation(value = "permet de simuler la modification d'un exemplaire", notes="pour un exemplaire donné du fichier enrichi, renvoie un tableau contenant la notice avant et après modification")
-    String[] simulerLigne(@RequestParam(required = false, defaultValue = "MODIF") TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request) throws CBSException, UserExistException, ForbiddenException, QueryToSudocException, ZoneException, CommException;
+    String[] simulerLigne(@RequestParam(required = false, defaultValue = "MODIF") TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request) throws CBSException, UserExistException, ForbiddenException, QueryToSudocException, ZoneException, CommException, IOException;
 
     @GetMapping("/passerEnAttente")
     @ApiOperation(value = "permet de modifier le statut de la demande pour la passer à : en attente")
