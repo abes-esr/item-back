@@ -1,7 +1,6 @@
 package fr.abes.item.web;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
@@ -72,7 +71,7 @@ public interface IDemandeRestService {
 
     @GetMapping("/simulerLigne")
     @ApiOperation(value = "permet de simuler la modification d'un exemplaire", notes="pour un exemplaire donné du fichier enrichi, renvoie un tableau contenant la notice avant et après modification")
-    String[] simulerLigne(@RequestParam(required = false, defaultValue = "MODIF") TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request) throws CBSException, UserExistException, ForbiddenException, QueryToSudocException, ZoneException, CommException, IOException;
+    String[] simulerLigne(@RequestParam(required = false, defaultValue = "MODIF") TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request) throws CBSException, UserExistException, ForbiddenException, QueryToSudocException, ZoneException, IOException;
 
     @GetMapping("/passerEnAttente")
     @ApiOperation(value = "permet de modifier le statut de la demande pour la passer à : en attente")

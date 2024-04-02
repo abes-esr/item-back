@@ -1,7 +1,6 @@
 package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.CommException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.process.ProcessCBS;
@@ -29,9 +28,9 @@ public interface ITraitementService {
 
     ProcessCBS getCbs();
 
-    void authenticate(String login) throws CBSException, CommException, IOException;
+    void authenticate(String login) throws CBSException, IOException;
 
-    String getNoticeFromEPN(String epn) throws CBSException, CommException, ZoneException, IOException;
+    String getNoticeFromEPN(String epn) throws CBSException, ZoneException, IOException;
 
     Exemplaire creerNouvelleZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
 
@@ -43,7 +42,7 @@ public interface ITraitementService {
 
     Exemplaire remplacerSousZone(String notice, String tag, String subTag, String valeur) throws ZoneException;
 
-    String saveExemplaire(String noticeModifiee, String epn) throws CBSException, CommException, IOException;
+    String saveExemplaire(String noticeModifiee, String epn) throws CBSException, IOException;
 
     void disconnect() throws CBSException;
 
