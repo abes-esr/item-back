@@ -13,8 +13,8 @@ import fr.abes.item.entities.item.Traitement;
 import fr.abes.item.service.ITraitementService;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@NoArgsConstructor
 public class TraitementService implements ITraitementService {
 
     @Value("${sudoc.serveur}")
@@ -41,12 +42,10 @@ public class TraitementService implements ITraitementService {
     @Getter
     private DaoProvider dao;
 
-    public TraitementService() {
-        cbs = new ProcessCBS();
-    }
 
     @Override
     public void authenticate(String login) throws CBSException, IOException {
+        this.cbs = new ProcessCBS();
         this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
     }
 
@@ -70,7 +69,7 @@ public class TraitementService implements ITraitementService {
             return Constants.STR_1F + resu2.substring(resu2.indexOf("e" + numEx)) + Constants.STR_0D + Constants.STR_1E;
         } else {
             log.error(epn + " pas trouvé");
-            throw new CBSException(Level.FATAL, Constant.ERR_FILE_NOTICE_EPN_NUMBER);
+            throw new IOException(Constant.ERR_FILE_NOTICE_EPN_NUMBER);
         }
     }
 

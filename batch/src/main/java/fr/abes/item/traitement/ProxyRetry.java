@@ -20,7 +20,6 @@ import fr.abes.item.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -75,13 +74,6 @@ public class ProxyRetry {
             //modification de la exemplaire d'exemplaire
             Exemplaire noticeTraitee = getService().getDemandeModif().getNoticeTraitee(demande, exemplaire, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
             getService().getTraitement().saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());
-        } catch (CBSException ex) {
-            //en cas d'erreur CBS de type Fatal (erreur qui ne devrait pas se produire) on se déconnecte / reconnecte et on renvoie l'exception
-            if (ex.getCodeErreur().equals(Level.FATAL)) {
-                this.disconnect();
-                this.authenticate("M" + demande.getRcr());
-            }
-            throw ex;
         } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande modif " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoModif.getNumLigneFichier() + " / epn : " + ligneFichierDtoModif.getEpn());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
