@@ -47,4 +47,9 @@
 
 ![img_13.png](documentation/img_13.png)
 
-_ on peut maintenant avoir toutes les lignes qui suivent la recherche par filtre effectuée (soit toutes les lignes qui suivent le traitement d'une demande)
+- on peut maintenant avoir toutes les lignes qui suivent la recherche par filtre effectuée (soit toutes les lignes qui suivent le traitement d'une demande)
+
+## Pour retrouver les lignes traitées par le batch sur une demande spécifique comprise dans un plage (exemple le filtre dbeaver sur la demande 11548382)
+
+![img.png](img.png)
+
