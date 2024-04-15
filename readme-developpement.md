@@ -53,3 +53,4 @@
 
 ![img.png](img.png)
 
+- faire ensuite un filtre dans kibana avec en paramètre le num_lignefichier pour retrouver ce qui s'est passé
