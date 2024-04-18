@@ -17,7 +17,7 @@ import java.util.Set;
 @Table(name="DEMANDE_EXEMP")
 public class DemandeExemp extends Demande{
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "DEM_TYPE_EXEMP")
     private TypeExemp typeExemp;
 
@@ -27,7 +27,7 @@ public class DemandeExemp extends Demande{
     @OneToMany(mappedBy = "demandeExemp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<JournalDemandeExemp> journalDemandes;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "DEM_INDEX_RECHERCHE")
     private IndexRecherche indexRecherche;
 

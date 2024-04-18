@@ -7,7 +7,6 @@ import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.cbs.notices.ZoneEtatColl;
 import fr.abes.cbs.utilitaire.Constants;
-import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiExemp;
 import fr.abes.item.constant.Constant;
@@ -176,7 +175,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
 
     /**
      * vérification du fichier et création de l'objet correspondant
-     * @param file fichier issu du front
+     *
+     * @param file    fichier issu du front
      * @param demande demande concernée
      * @return message indiquant le bon déroulement de l'opération renvoyé au front
      * @throws IOException : erreur lecture fichier
@@ -377,7 +377,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param ligneFichier ligneFichier à traiter
      * @return la chaine de l'exemplaire construit, ou message d'erreur
      */
-    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException {
+    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, IOException {
         try {
             traitementService.authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
@@ -389,7 +389,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     Utilitaires.removeNonPrintableCharacters(donneeLocaleExistante).replace("\r", "\r\n") + "\r\n" + exemplairesExistants.replace("\r", "\r\n"), //2*r\n\ comptent pour un saut de ligne
                     //L'indice 2 retourne le bloc de données locales et l'exemplaire à créer
                     creerDonneesLocalesFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone()).replace("\r", "\r\n") + "\r\n" +
-                            Utilitaire.recupEntre(creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone(), demande.getRcr(), numEx), Constants.STR_1F, Constants.STR_0D + Constants.STR_1E).replace("\r", "\r\n"),
+                            creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichier.getValeurZone(), demande.getRcr(), numEx).replace("\r", "\r\n"),
             };
             //Si l'utilisateur n'a pas autorisé la création d'exemplaires multiples sur les notices de cette demande associée à ce RCR en cas d'exemplaires déjà présents
 
@@ -406,12 +406,11 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @return le numéro du prochain exemplaire à créer dans la notice au format "xx"
      */
     @Override
-    public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException {
+    public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
-        //TODO insérer la requête pour sauver la requête en base
 
-        if (!Objects.equals(query, "")) {
+        if (!query.isEmpty()) {
             try {
                 traitementService.getCbs().search(query);
                 nbReponses = traitementService.getCbs().getNbNotices();
@@ -738,7 +737,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
                     case "SOU":
                         return "tno t; tdo b; che sou " + valeur[0];
                     case "DAT":
-                        if(valeur[1].isEmpty()){
+                        if (valeur[1].isEmpty()) {
                             return "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
                         }
                         return "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
@@ -748,7 +747,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         }
     }
 
-    /** méthode d'archivage d'une demande
+    /**
+     * méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage
      *
      * @param demande demande à archiver

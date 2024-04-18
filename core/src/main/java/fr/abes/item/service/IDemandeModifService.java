@@ -2,6 +2,7 @@ package fr.abes.item.service;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.entities.item.*;
 import fr.abes.item.exception.DemandeCheckingException;
 import fr.abes.item.exception.FileCheckingException;
@@ -44,9 +45,9 @@ import java.util.List;
  */
 public interface IDemandeModifService extends IDemandeService{
 
-    String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException;
+    String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, IOException, ZoneException;
 
-    String getNoticeTraitee(DemandeModif demandeModif, String noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException;
+    Exemplaire getNoticeTraitee(DemandeModif demandeModif, String noticeInit, LigneFichierModif ligneFichierModif) throws ZoneException;
 
     String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 

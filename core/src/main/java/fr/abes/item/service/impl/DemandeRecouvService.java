@@ -1,6 +1,5 @@
 package fr.abes.item.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
 import fr.abes.item.components.Fichier;
 import fr.abes.item.components.FichierEnrichiRecouv;
 import fr.abes.item.constant.Constant;
@@ -296,7 +295,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public int launchQueryToSudoc(String codeIndex, String valeurs) throws CBSException, QueryToSudocException {
+    public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(codeIndex, tabvaleurs);
         traitementService.getCbs().search(query);

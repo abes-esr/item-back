@@ -28,7 +28,7 @@ public class TypeExemp implements Serializable, GenericEntity<Integer> {
     @OneToMany(mappedBy = "typeExemp", fetch = FetchType.LAZY)
     private Set<DemandeExemp> demandes;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "INDEX_RECHERCHE_TYPE_EXEMP",
             joinColumns = @JoinColumn(name = "NUM_TYPE_EXEMP"),
             inverseJoinColumns = @JoinColumn(name = "NUM_INDEX_RECHERCHE"))

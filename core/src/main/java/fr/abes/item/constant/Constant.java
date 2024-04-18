@@ -39,8 +39,8 @@ public class Constant implements Serializable {
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
 	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
-	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement.";
-	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM.";
+	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
+	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM";
 	public static final String AUCUNE_DEMANDE = "AUCUNE DEMANDE";
 	public static final String DEFAULT = "default";
 	public static final String DEMANDE = "La demande ";
@@ -111,7 +111,7 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_DOLLARFORBID = "le caractère $ est interdit dans la 4è colonne.";
 	public static final String ERR_FILE_LINEFILE = "Erreur de traitement sur la ligne du fichier.";
 	public static final String ERR_FILE_FORMAT = "Erreur de format de fichier : le fichier doit être au format .txt ou .csv.";
-	public static final String ERR_FILE_NOTICE_EPN_NUMBER = "Numéro EPN de notice érroné.";
+	public static final String ERR_FILE_NOTICE_EPN_NUMBER = "Erreur de communication avec le serveur sur la récupération de la notice.";
 	public static final String ERR_FILE_NOTICE_NOT_FOUND = "Aucune notice ne correspond à la recherche.";
 	public static final String ERR_FILE_MULTIPLES_NOTICES_FOUND = "Plusieurs PPN correspondent à la requête : ";
 	public static final String ERR_FILE_SEARCH_INDEX_NOT_COMPLIANT = "Impossible de générer la requête, l'index de recherche n'est pas conforme";

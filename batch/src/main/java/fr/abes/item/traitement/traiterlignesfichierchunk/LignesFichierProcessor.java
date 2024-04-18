@@ -2,11 +2,12 @@ package fr.abes.item.traitement.traiterlignesfichierchunk;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.notices.DonneeLocale;
-import fr.abes.cbs.notices.Zone;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
-import fr.abes.item.entities.item.*;
+import fr.abes.item.entities.item.Demande;
+import fr.abes.item.entities.item.DemandeExemp;
+import fr.abes.item.entities.item.DemandeModif;
+import fr.abes.item.entities.item.DemandeRecouv;
 import fr.abes.item.exception.QueryToSudocException;
 import fr.abes.item.service.IDemandeService;
 import fr.abes.item.service.TraitementService;
@@ -17,6 +18,13 @@ import fr.abes.item.service.impl.DemandeRecouvService;
 import fr.abes.item.traitement.ProxyRetry;
 import fr.abes.item.traitement.model.*;
 import lombok.NonNull;
+import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.traitement.ProxyRetry;
+import fr.abes.item.traitement.model.LigneFichierDto;
+import fr.abes.item.traitement.model.LigneFichierDtoExemp;
+import fr.abes.item.traitement.model.LigneFichierDtoModif;
+import fr.abes.item.traitement.model.LigneFichierDtoRecouv;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -29,8 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -43,16 +51,16 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     TraitementService traitementService;
 
     private Demande demande;
-    
+
     @Autowired
     private DemandeModifService demandeModifService;
 
     @Autowired
     private DemandeExempService demandeExempService;
-    
+
     @Autowired
     private DemandeRecouvService demandeRecouvService;
-    
+
     @Override
     public void beforeStep(StepExecution stepExecution) {
         ExecutionContext executionContext = stepExecution
@@ -78,7 +86,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 case EXEMP -> processDemandeExemp(ligneFichierDto);
                 default -> processDemandeRecouv(ligneFichierDto);
             };
-        } catch (CBSException e) {
+        } catch (CBSException | ZoneException | QueryToSudocException | IOException e) {
             log.error(Constant.ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE + e);
             ligneFichierDto.setRetourSudoc(e.getMessage());
         } catch (JDBCConnectionException | ConstraintViolationException j) {
@@ -101,18 +109,15 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement de modification
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws CBSException : erreur d'accès au Sudoc
+     * @throws CBSException  : erreur CBS
+     * @throws ZoneException : erreur de construction de la notice
+     * @throws IOException : erreur de communication avec le CBS
      */
-    private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException {
+    private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeModif demandeModif = (DemandeModif) demande;
-        ILigneFichierDtoMapper ligneFichierDtoMapper = factory.getStrategy(ILigneFichierDtoMapper.class, TYPE_DEMANDE.MODIF);
         LigneFichierDtoModif ligneFichierDtoModif = (LigneFichierDtoModif) ligneFichierDto;
-        //récupération de la notice correpondant à la ligne du fichier en cours
-        String notice = traitementService.getNoticeFromEPN(ligneFichierDtoModif.getEpn());
-        //modification de la notice d'exemplaire
-        String noticetraitee = demandeModifService.getNoticeTraitee(demandeModif, notice, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
         //sauvegarde la notice modifiée
-        this.proxyRetry.saveExemplaire(noticetraitee);
+        this.proxyRetry.saveExemplaire(demandeModif, ligneFichierDtoModif);
         ligneFichierDtoModif.setRetourSudoc(Constant.EXEMPLAIRE_MODIFIE);
         return ligneFichierDtoModif;
     }
@@ -122,41 +127,15 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement d'exemplarisation
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws CBSException : erreur d'accès au Sudoc
      * @throws QueryToSudocException 0 ou plus de 1 résultat à la requête che
+     * @throws CBSException  : erreur CBS
+     * @throws ZoneException : erreur de construction de la notice
+     * @throws IOException : erreur de communication avec le CBS
      */
-    private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws Exception {
+    private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeExemp demandeExemp = (DemandeExemp) this.demande;
-
         LigneFichierDtoExemp ligneFichierDtoExemp = (LigneFichierDtoExemp) ligneFichierDto;
-        try {
-            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
-            //lancement de la requête de récupération de la notice dans le CBS
-            String numEx = demandeExempService.launchQueryToSudoc(demandeExemp, ligneFichierDtoExemp.getIndexRecherche());
-            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
-            if (ligneFichierDtoExemp.getNbReponses() == 1) {
-                ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getPpnEncours());
-            } else {
-                ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString());
-            }
-
-            String exemplaire = demandeExempService.creerExemplaireFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demandeExemp.getRcr(), numEx);
-            String donneeLocale = demandeExempService.creerDonneesLocalesFromHeaderEtValeur(demandeExemp.getListeZones(), ligneFichierDtoExemp.getValeurZone());
-
-            this.proxyRetry.newExemplaire(numEx, exemplaire, donneeLocale, demandeExempService.hasDonneeLocaleExistante());
-            ligneFichierDtoExemp.setNumExemplaire(numEx);
-            ligneFichierDtoExemp.setL035(getL035fromDonneesLocales(donneeLocale));
-            ligneFichierDtoExemp.setRetourSudoc(Constant.EXEMPLAIRE_CREE);
-        } catch (QueryToSudocException e) {
-            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
-            ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
-            ligneFichierDtoExemp.setRetourSudoc("");
-        } catch (DataAccessException d) {
-            if (d.getRootCause() instanceof SQLException sqlEx) {
-                log.error("Erreur SQL : " + sqlEx.getErrorCode());
-                log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
-            }
-        }
+        this.proxyRetry.newExemplaire(demandeExemp, ligneFichierDtoExemp);
         return ligneFichierDtoExemp;
     }
 
@@ -174,24 +153,14 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer la requête
      * @return la DTO ligneFichier mise à jour en fonction du résultat de la requête che
-     * @throws CBSException : erreur d'accès au Sudoc
+     * @throws CBSException          : erreur CBS
+     * @throws QueryToSudocException : erreur dans le type d'index de recherche
+     * @throws IOException         : erreur de communication avec le CBS
      */
-    private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException {
+    private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException, IOException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) this.demande;
         LigneFichierDtoRecouv ligneFichierDtoRecouv = (LigneFichierDtoRecouv) ligneFichierDto;
-        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
-        ligneFichierDtoRecouv.setNbReponses(demandeRecouvService.launchQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
-        switch (ligneFichierDtoRecouv.getNbReponses()) {
-            case 0:
-                ligneFichierDtoRecouv.setListePpn("");
-                break;
-            case 1:
-                ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getPpnEncours());
-                break;
-            default:
-                ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
-        }
-
+        this.proxyRetry.recouvExemplaire(demandeRecouv, ligneFichierDtoRecouv);
         return ligneFichierDtoRecouv;
     }
 }

@@ -41,13 +41,13 @@ import java.util.List;
 public interface IDemandeExempService extends IDemandeService {
     boolean hasDonneeLocaleExistante();
 
-    String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, ZoneException;
+    String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, ZoneException, IOException;
 
-    String creerExemplaireFromHeaderEtValeur(String header, String valeur, String rcr, String numExemp) throws Exception;
+    String creerExemplaireFromHeaderEtValeur(String header, String valeur, String rcr, String numExemp) throws CBSException, ZoneException;
 
     String creerDonneesLocalesFromHeaderEtValeur(String header, String valeur) throws ZoneException;
 
-    String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException;
+    String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException;
 
     DemandeExemp majTypeExemp(Integer idDemande, TypeExemp typeExemp);
 

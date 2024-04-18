@@ -13,6 +13,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -46,7 +47,7 @@ public class StatusService {
         try {
             cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
             return true;
-        } catch (CBSException e) {
+        } catch (CBSException | IOException e) {
             log.error("serveur " + serveurSudoc + " : " + e.getMessage());
             return false;
         }
