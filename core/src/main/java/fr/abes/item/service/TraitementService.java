@@ -12,7 +12,6 @@ import fr.abes.item.entities.item.Traitement;
 import fr.abes.item.repository.item.ITraitementDao;
 import fr.abes.item.utilitaire.Utilitaires;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@NoArgsConstructor
 public class TraitementService {
 	private final ITraitementDao traitementDao;
 
@@ -33,8 +31,7 @@ public class TraitementService {
 
 	@Value("${sudoc.port}")
 	private String portSudoc;
-	
-	private String datePattern = "dd-MM-yyyy HH:mm";
+
 
 	@Getter
 	private ProcessCBS cbs;
@@ -45,7 +42,6 @@ public class TraitementService {
 		cbs = new ProcessCBS();
     }
 
-    @Override
     public void authenticate(String login) throws CBSException, IOException {
         this.cbs = new ProcessCBS();
         this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
@@ -59,7 +55,6 @@ public class TraitementService {
      * @throws CBSException : Erreur CBS
      * @throws IOException : erreur de communication avec le CBS
      */
-    @Override
     public String getNoticeFromEPN(String epn) throws CBSException, IOException {
         cbs.search("che EPN " + epn);
         if (cbs.getNbNotices() == 1) {
@@ -81,7 +76,6 @@ public class TraitementService {
      * @param exemp notice à modifier
      * @return notice avec nouvelle zone / sous zone préfixée de STR_1F
      */
-    @Override
     public Exemplaire creerNouvelleZone(String exemp, String tag, String subTag, String valeur) throws ZoneException {
         Exemplaire exemplaire = new Exemplaire(exemp);
         exemplaire.addZone(tag, subTag, valeur);
@@ -96,7 +90,6 @@ public class TraitementService {
      * @param tag   zone à supprimer
      * @return chaine de l'exemplaire modifié préfixé par STR_1F
      */
-    @Override
     public Exemplaire supprimerZone(String exemp, String tag) throws ZoneException {
         Exemplaire exemplaire = new Exemplaire(exemp);
         exemplaire.deleteZone(tag);
@@ -112,7 +105,6 @@ public class TraitementService {
      * @param subTag zone à supprimer
      * @return chaine de l'exemplaire modifié préfixé par STR_1F
      */
-    @Override
     public Exemplaire supprimerSousZone(String exemp, String tag, String subTag) throws ZoneException {
         Exemplaire exemplaire = new Exemplaire(exemp);
         exemplaire.deleteSousZone(tag, subTag);
@@ -130,7 +122,6 @@ public class TraitementService {
      * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
      * @return l'exemplaire modifié
      */
-    @Override
     public Exemplaire creerSousZone(String exemp, String tag, String subTag, String valeur) throws ZoneException {
         Exemplaire exemplaire = new Exemplaire(exemp);
         exemplaire.addSousZone(tag, subTag, valeur);
@@ -147,7 +138,6 @@ public class TraitementService {
      * @param valeur valeur associée à la sous zone (la sous-zone est la clé)
      * @return l'exemplaire modifié
      */
-    @Override
     public Exemplaire remplacerSousZone(String exemp, String tag, String subTag, String valeur) throws ZoneException {
         Exemplaire exemplaire = new Exemplaire(exemp);
         try {
@@ -190,7 +180,6 @@ public class TraitementService {
      * @throws CBSException : erreur CBS
      * @throws IOException : erreur de communication CBS
      */
-    @Override
     public String saveExemplaire(String noticeModifiee, String epn) throws CBSException, IOException {
         String numEx = Utilitaires.getNumExFromExemp(noticeModifiee);
         log.debug(epn + " sauvegarde exemplaire");
@@ -201,7 +190,6 @@ public class TraitementService {
     /**
      * Deconnexion du client CBS (sudoc)
      */
-    @Override
     public void disconnect() throws CBSException {
         cbs.getClientCBS().disconnect();
     }
@@ -212,14 +200,12 @@ public class TraitementService {
      *
      * @return liste de tous les traitements
      */
-    @Override
     public List<Traitement> findAll() {
-        return dao.getTraitement().findAll();
+        return traitementDao.findAll();
     }
 
-    @Override
     public Integer findTraitementByDemandeId(Integer id) {
-        return dao.getTraitement().findTraitementByDemandeModifId(id);
+        return traitementDao.findTraitementByDemandeModifId(id);
     }
 
 

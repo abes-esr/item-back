@@ -2,8 +2,7 @@ package fr.abes.item.web;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.utilitaire.Constants;
-import fr.abes.cbs.utilitaire.Utilitaire;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
@@ -14,7 +13,6 @@ import fr.abes.item.service.ReferenceService;
 import fr.abes.item.service.TraitementService;
 import fr.abes.item.service.UtilisateurService;
 import fr.abes.item.service.impl.*;
-import fr.abes.item.utilitaire.Utilitaires;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -332,19 +330,16 @@ public class DemandeRestService {
                     LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichierModifService.getLigneFichierbyDemandeEtPos(demandeModifService.findById(numDemande), numLigne);
                     /*Notice init := notice avant traitement*/
                     String noticeInit = demandeModifService.getNoticeInitiale(demandeModifService.findById(numDemande), ligneFichierModif.getEpn());
-                    noticeInit = demandeModifService.getSeparationBetweenBlocks(noticeInit); /*Gestion des espaces zones locales zones système*/
-
+                    String noticeInitStr = noticeInit.replace("\r", "\r\n");
                     /*Notice traitée := notice après traitement*/
-                    String noticeTraitee = demandeModifService.getNoticeTraitee(demandeModifService.findById(numDemande), noticeInit, ligneFichierModif);
-                    noticeTraitee = demandeModifService.getSeparationBetweenBlocks((noticeTraitee));
+                    Exemplaire noticeTraitee = demandeModifService.getNoticeTraitee(demandeModifService.findById(numDemande), noticeInit, ligneFichierModif);
 
-                    String numEx = Utilitaires.getNumExFromExemp(noticeInit);
                     return new String[]{
                             traitementService.getCbs().getPpnEncours(),
-                            Utilitaire.recupEntre(Utilitaire.recupEntre(noticeInit, Constants.STR_1F, Constants.STR_0D + Constants.STR_1E), 'e' + numEx, "").replace("\r", "\r\n"),
-                            Utilitaire.recupEntre(Utilitaire.recupEntre(noticeTraitee, Constants.STR_1F, Constants.STR_0D + Constants.STR_1E), 'e' + numEx, "").replace("\r", "\r\n")
+                            noticeInitStr,
+                            noticeTraitee.toString().replace("\r", "\r\n")
                     };
-                } catch (NullPointerException ex) {
+                } catch (NullPointerException | IOException ex) {
                     throw new NullPointerException(Constant.FILE_END);
                 }
             case EXEMP:
@@ -352,7 +347,7 @@ public class DemandeRestService {
                     DemandeExemp demande = demandeExempService.findById(numDemande);
                     LigneFichierExemp ligneFichierExemp = (LigneFichierExemp) ligneFichierExempService.getLigneFichierbyDemandeEtPos(demande, numLigne);
                     return demandeExempService.getNoticeExemplaireAvantApres(demande, ligneFichierExemp);
-                } catch (NullPointerException ex) {
+                } catch (NullPointerException | IOException ex) {
                     throw new NullPointerException(Constant.FILE_END);
                 }
             default:
@@ -384,7 +379,7 @@ public class DemandeRestService {
                 yield demandeExempService.changeState(demandeExemp, Constant.ETATDEM_ATTENTE);
             }
             default -> {
-                DemandeRecouv demandeRecouv = (DemandeRecouv) demandeRecouvService.findById(numDemande);
+                DemandeRecouv demandeRecouv = demandeRecouvService.findById(numDemande);
                 yield demandeRecouvService.changeState(demandeRecouv, Constant.ETATDEM_ATTENTE);
             }
         };
@@ -417,7 +412,7 @@ public class DemandeRestService {
                 yield demandeExempService.archiverDemande(demandeExemp);
             }
             default -> {
-                DemandeRecouv demandeRecouv = (DemandeRecouv) demandeRecouvService.findById(numDemande);
+                DemandeRecouv demandeRecouv = demandeRecouvService.findById(numDemande);
                 yield demandeRecouvService.archiverDemande(demandeRecouv);
             }
         };
@@ -450,7 +445,7 @@ public class DemandeRestService {
                 yield demandeExempService.previousState(demandeExemp);
             }
             default -> {
-                DemandeRecouv demandeRecouv = (DemandeRecouv) demandeRecouvService.findById(id);
+                DemandeRecouv demandeRecouv = demandeRecouvService.findById(id);
                 yield demandeRecouvService.previousState(demandeRecouv);
             }
         };

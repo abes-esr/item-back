@@ -2,13 +2,8 @@ package fr.abes.item.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.item.components.*;
 import fr.abes.cbs.notices.Exemplaire;
-import fr.abes.item.components.Fichier;
-import fr.abes.item.components.FichierEnrichiModif;
-import fr.abes.item.components.FichierInitial;
-import fr.abes.item.components.FichierPrepare;
-import fr.abes.item.components.basexml.Ppntoepn;
+import fr.abes.item.components.*;
 import fr.abes.item.constant.Constant;
 import fr.abes.item.constant.TYPE_DEMANDE;
 import fr.abes.item.entities.item.*;
@@ -301,7 +296,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @throws CBSException : erreur CBS
      */
     @Override
-    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, IOException, ZoneException {
+    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, IOException {
         try {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré

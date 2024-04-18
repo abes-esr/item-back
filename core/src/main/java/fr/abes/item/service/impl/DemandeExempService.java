@@ -414,7 +414,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
             try {
                 traitementService.getCbs().search(query);
                 nbReponses = traitementService.getCbs().getNbNotices();
-            } catch (CBSException e) {
+            } catch (IOException e) {
                 nbReponses = 0;
             }
             switch (nbReponses) {
@@ -625,16 +625,14 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * Méthode d'ajout d'une zone 991 prédéfinie dans l'exemplaire
      *
      * @param exemp : exemplaire sur lequel rajouter la 991
-     * @return : l'exemplaire modifié
      */
-    private Exemplaire ajout991(Exemplaire exemp) throws ZoneException {
+    private void ajout991(Exemplaire exemp) throws ZoneException {
         String datePattern = "dd-MM-yyyy HH:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
         String date = simpleDateFormat.format(new Date());
         String valeur991 = Constant.TEXTE_991_CREA + " le " + date;
         char[] indicateurs = {'#', '#'};
         exemp.addZone("991", "$a", valeur991, indicateurs);
-        return exemp;
     }
 
     /**
