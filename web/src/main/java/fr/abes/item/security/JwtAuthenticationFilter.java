@@ -1,6 +1,6 @@
 package fr.abes.item.security;
 
-import fr.abes.item.constant.Constant;
+import fr.abes.item.core.constant.Constant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

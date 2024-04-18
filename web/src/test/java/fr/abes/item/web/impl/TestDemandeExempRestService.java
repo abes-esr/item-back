@@ -1,7 +1,7 @@
 package fr.abes.item.web.impl;
 
-import fr.abes.item.entities.item.*;
-import fr.abes.item.repository.item.IDemandeExempDao;
+import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.repository.item.IDemandeExempDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TestDemandeExempRestService {
     @Mock private IDemandeExempDao myDao;
 
-    private DemandeExemp myEntity = new DemandeExemp();
+    private final DemandeExemp myEntity = new DemandeExemp();
 
     @Test
     void givenDemandeExamp_WhenDatabaseInsertion_ThenValidDemandeExampInBase(){

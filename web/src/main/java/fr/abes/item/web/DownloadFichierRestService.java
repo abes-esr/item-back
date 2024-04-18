@@ -1,9 +1,9 @@
 package fr.abes.item.web;
 
-import fr.abes.item.exception.ForbiddenException;
-import fr.abes.item.exception.UserExistException;
+import fr.abes.item.core.exception.ForbiddenException;
+import fr.abes.item.core.exception.UserExistException;
+import fr.abes.item.core.service.FileSystemStorageService;
 import fr.abes.item.security.CheckAccessToServices;
-import fr.abes.item.service.FileSystemStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;

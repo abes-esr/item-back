@@ -1,7 +1,7 @@
 package fr.abes.item.web;
 
-import fr.abes.item.entities.item.TypeExemp;
-import fr.abes.item.service.ReferenceService;
+import fr.abes.item.core.entities.item.TypeExemp;
+import fr.abes.item.core.service.ReferenceService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

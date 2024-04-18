@@ -1,9 +1,9 @@
 package fr.abes.item.web;
 
-import fr.abes.item.entities.item.Utilisateur;
-import fr.abes.item.exception.ForbiddenException;
+import fr.abes.item.core.entities.item.Utilisateur;
+import fr.abes.item.core.exception.ForbiddenException;
+import fr.abes.item.core.service.UtilisateurService;
 import fr.abes.item.security.CheckAccessToServices;
-import fr.abes.item.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;

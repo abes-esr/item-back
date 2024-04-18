@@ -1,6 +1,6 @@
 package fr.abes.item.web;
 
-import fr.abes.item.service.StatusService;
+import fr.abes.item.core.service.StatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;

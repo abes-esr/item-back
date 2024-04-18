@@ -3,7 +3,7 @@ package fr.abes.item.security;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import fr.abes.item.constant.Constant;
+import fr.abes.item.core.constant.Constant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +14,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class LoginAttemptService {
 
-    private int maxAttempt = 10;
-
-    private int nbMinutes = 15;
-
-    private LoadingCache<String, Integer> attemptsCache;
+    private final LoadingCache<String, Integer> attemptsCache;
 
     public LoginAttemptService() {
         super();
-        attemptsCache = CacheBuilder.newBuilder().expireAfterWrite(nbMinutes, TimeUnit.MINUTES).build(new CacheLoader<String, Integer>() {
+        int nbMinutes = 15;
+        attemptsCache = CacheBuilder.newBuilder().expireAfterWrite(nbMinutes, TimeUnit.MINUTES).build(new CacheLoader<>() {
             @Override
             public Integer load(final String key) {
                 return 0;
@@ -39,7 +36,7 @@ public class LoginAttemptService {
 
     public void loginFailed(final String key) {
         log.debug(Constant.ENTER_LOGIN_FAILED);
-        int attempts = 0;
+        int attempts;
         try {
             attempts = attemptsCache.get(key);
             log.info(Constant.NUMBER_IP_TENTATIVES + key + " est : " + attempts);
@@ -53,6 +50,7 @@ public class LoginAttemptService {
     public boolean isBlocked(final String key) {
         try {
             log.info(Constant.ERROR_BLOCKED_IP + attemptsCache.get(key));
+            int maxAttempt = 10;
             return attemptsCache.get(key) >= maxAttempt;
         } catch (final ExecutionException e) {
             return false;

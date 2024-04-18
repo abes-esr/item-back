@@ -1,7 +1,7 @@
 package fr.abes.item.web;
 
-import fr.abes.item.entities.item.Traitement;
-import fr.abes.item.service.TraitementService;
+import fr.abes.item.core.entities.item.Traitement;
+import fr.abes.item.core.service.TraitementService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

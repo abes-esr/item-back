@@ -1,15 +1,14 @@
 package fr.abes.item.security;
 
-import fr.abes.item.constant.Constant;
-import fr.abes.item.entities.baseXml.LibProfile;
-import fr.abes.item.entities.item.Utilisateur;
-import fr.abes.item.exception.ForbiddenException;
-import fr.abes.item.exception.UserExistException;
-import fr.abes.item.repository.baseXml.ILibProfileDao;
-import fr.abes.item.service.UtilisateurService;
-import fr.abes.item.service.impl.DemandeExempService;
-import fr.abes.item.service.impl.DemandeModifService;
-import fr.abes.item.service.impl.DemandeRecouvService;
+import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.entities.baseXml.LibProfile;
+import fr.abes.item.core.exception.ForbiddenException;
+import fr.abes.item.core.exception.UserExistException;
+import fr.abes.item.core.repository.baseXml.ILibProfileDao;
+import fr.abes.item.core.service.UtilisateurService;
+import fr.abes.item.core.service.impl.DemandeExempService;
+import fr.abes.item.core.service.impl.DemandeModifService;
+import fr.abes.item.core.service.impl.DemandeRecouvService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -64,30 +63,11 @@ public class CheckAccessToServices {
 
     }
 
-    /**
-     * L'admin peut accéder à tous les fichiers de toutes les demandes
-     * @param id identifiant de la demande
-     * @param userNum identifiant de l'utilisateur
-     * @throws ForbiddenException
-     * @throws UserExistException
-     */
-    public void autoriserAccessFichierDemandePourAdmin(Integer id, String userNum) throws ForbiddenException, UserExistException {
-        log.debug(Constant.ENTER_AUTORISER_ACCES_FICHIER_DEMANDE_ADMIN);
-        Utilisateur utilisateur = utilisateurService.findById(Integer.parseInt(userNum));
-        if (utilisateur == null) {
-            log.error(Constant.USERNUM_NOT_PRESENT_ON_DATABASE);
-            throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
-        }
-        String iln = demandeExempService.findById(id).getIln();
-        if (!iln.equals(utilisateur.getIln()) || (utilisateurService.isAdmin(utilisateur))) {
-            throw new ForbiddenException(Constant.ACCES_INTERDIT);
-        }
-    }
 
     /**
      *     On ne peut créer une demande que pour son iln
-     * @param rcr
-     * @param userNum
+     * @param rcr rcr à comparer
+     * @param userNum utilisateur à vérifier
      * @throws UserExistException si le user n'existe pas dans la base de données
      * @throws ForbiddenException si le user n'a pas accès à la création de la demande pour ce rcr
      */
