@@ -64,8 +64,7 @@ public class DemandeRestService {
     @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "renvoie les demandes pour les administrateurs",
             description = "renvoie les demande terminées et en erreur de tout le monde et toutes les demandeModifs créées par cet iln")
-
-    public List<Demande> getAllActiveDemandes(TYPE_DEMANDE type, boolean extension, HttpServletRequest request) {
+    public List<Demande> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("extension")boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
             case EXEMP ->
@@ -85,7 +84,7 @@ public class DemandeRestService {
     @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "renvoie les demandes de modif pour ce usernum",
             description = "renvoie toutes les demandes créées par cet iln")
-    public List<Demande> chercher(TYPE_DEMANDE type, HttpServletRequest request) {
+    public List<Demande> chercher(@RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
             case MODIF -> demandeModifService.getActiveDemandesForUser(iln);
@@ -103,7 +102,7 @@ public class DemandeRestService {
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @Operation(summary = "renvoie les demandes archivées pour cet iln",
             description = "renvoie les demandeModifs archivées créées par cet iln")
-    public List<Demande> getAllArchivedDemandes(TYPE_DEMANDE type, boolean extension, HttpServletRequest request) {
+    public List<Demande> getAllArchivedDemandes(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("extension") boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
             case MODIF ->
@@ -123,7 +122,7 @@ public class DemandeRestService {
      */
     @GetMapping(value = "/demandes/{id}")
     @Operation(summary = "renvoie une demande précise")
-    public Demande getDemande(TYPE_DEMANDE type, @PathVariable Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> demandeModifService.findById(id);
@@ -141,7 +140,7 @@ public class DemandeRestService {
      */
     @GetMapping(value = "/creerdemande")
     @Operation(summary = "permet de créer une nouvelle demande de  modif pour un rcr donné")
-    public Demande saveModif(TYPE_DEMANDE type, String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande saveModif(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
         Date datejour = new Date();
         Demande demToReturn;
@@ -172,7 +171,7 @@ public class DemandeRestService {
      */
     @DeleteMapping(value = "/demandes/{id}")
     @Operation(summary = "permet de supprimer une demande")
-    public void supprimer(TYPE_DEMANDE type, @PathVariable Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public void supprimer(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
             case MODIF:
@@ -189,7 +188,7 @@ public class DemandeRestService {
 
     @GetMapping(value ="/supprimerDemande")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
-    public Demande supprimerAvecConservationEnBase(TYPE_DEMANDE type, Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande supprimerAvecConservationEnBase(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande")Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
             case MODIF:
@@ -221,7 +220,7 @@ public class DemandeRestService {
     @PutMapping(value = "/demandes/{id}")
     @Operation(summary= "permet de créer une nouvelle demande de modif")
     @SuppressWarnings("squid:S4684")
-    public Demande saveModif(@PathVariable Integer id, DemandeModif dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande saveModif(@PathVariable("id") Integer id, @RequestParam("dem") DemandeModif dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
         return demandeModifService.save(dem);
@@ -230,7 +229,7 @@ public class DemandeRestService {
 
     @GetMapping(value = "/getTypeExemplarisationDemande/{id}")
     @Operation(summary = "permer de récupérer le type d'exemplarisation choisi pour une demande")
-    public String getTypeExemplarisationDemande(@PathVariable Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public String getTypeExemplarisationDemande(@PathVariable("id")Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return demandeExempService.getTypeExempDemande(id);
     }
@@ -238,7 +237,7 @@ public class DemandeRestService {
 
     @PutMapping(value = "/demandesExemp/{id}")
     @Operation(summary = "Mise à jour du type d'exemplarisation")
-    public Demande saveExemp(@PathVariable Integer id, DemandeExemp dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande saveExemp(@PathVariable("id")Integer id, @RequestParam("dem")DemandeExemp dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
         return demandeExempService.save(dem);
@@ -246,16 +245,16 @@ public class DemandeRestService {
 
     @PutMapping(value = "/demandesRecouv/{id}")
     @Operation(summary = "Mise à jour d'une demande de recouvrement'")
-    public Demande saveRecouv(@PathVariable Integer id, DemandeRecouv dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande saveRecouv(@PathVariable("id")Integer id, @RequestParam("dem")DemandeRecouv dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
         return demandeRecouvService.save(dem);
     }
 
     @PostMapping(value = "/majTypeExemp/{id}")
-    public Demande majTypeExemp(@PathVariable Integer id, TypeExemp typeExemp, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Demande majTypeExemp(@PathVariable("id")Integer id, @RequestParam("type") Integer type, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
-        return demandeExempService.majTypeExemp(id, typeExemp);
+        return demandeExempService.majTypeExemp(id, type);
     }
 
 
@@ -273,7 +272,7 @@ public class DemandeRestService {
      */
     @PostMapping("/uploadDemande")
     @Operation(summary = "permet de charger le fichier pour une demande")
-    public String uploadDemande(TYPE_DEMANDE type, MultipartFile file, Integer numDemande, HttpServletRequest request)
+    public String uploadDemande(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("file")MultipartFile file, @RequestParam("numDemande")Integer numDemande, HttpServletRequest request)
             throws FileTypeException, FileCheckingException, DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         /*autorisation d'accès utilisateur - controle*/
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
@@ -321,7 +320,7 @@ public class DemandeRestService {
      */
     @GetMapping("/simulerLigne")
     @Operation(summary = "permet de simuler la modification d'un exemplaire", description="pour un exemplaire donné du fichier enrichi, renvoie un tableau contenant la notice avant et après modification")
-    public String[] simulerLigne(TYPE_DEMANDE type, @RequestParam Integer numDemande, @RequestParam Integer numLigne, HttpServletRequest request)
+    public String[] simulerLigne(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, @RequestParam("numLigne") Integer numLigne, HttpServletRequest request)
             throws CBSException, UserExistException, ForbiddenException, ZoneException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
@@ -367,7 +366,7 @@ public class DemandeRestService {
      */
     @GetMapping("/passerEnAttente")
     @Operation(summary = "permet de modifier le statut de la demande pour la passer à : en attente")
-    public Demande passerEnAttente(TYPE_DEMANDE type, Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
+    public Demande passerEnAttente(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> {
@@ -399,7 +398,7 @@ public class DemandeRestService {
      */
     @GetMapping("/archiverDemande")
     @Operation(summary = "permet de passer la demande en statut archivé")
-    public Demande archiverDemande(TYPE_DEMANDE type, Integer numDemande, HttpServletRequest request) throws
+    public Demande archiverDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
@@ -432,7 +431,7 @@ public class DemandeRestService {
      */
     @GetMapping("/etapePrecedente/{id}")
     @Operation(summary = "permet de revenir à l'étape précédente dans le workflow de création d'une demande")
-    public Demande previousStep(TYPE_DEMANDE type, @PathVariable Integer id, HttpServletRequest request) throws
+    public Demande previousStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
             DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
@@ -462,7 +461,7 @@ public class DemandeRestService {
      */
     @GetMapping("/etapeChoisie/{id}")
     @Operation(summary = "permet de revenir à une étape bien précise dans le workflow de création d'une demande")
-    public Demande chosenStep(TYPE_DEMANDE type, @PathVariable Integer id, Integer etape, HttpServletRequest request) throws
+    public Demande chosenStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
@@ -490,7 +489,7 @@ public class DemandeRestService {
      */
     @GetMapping("/getNbLigneFichier/{id}")
     @Operation(summary = "permet de récupérer le nombre de ligne du fichier enrichi d'une demande")
-    public Integer getNbLigneFichier(TYPE_DEMANDE type, @PathVariable Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Integer getNbLigneFichier(@RequestParam("type")TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         Demande demande;
         return switch (type) {

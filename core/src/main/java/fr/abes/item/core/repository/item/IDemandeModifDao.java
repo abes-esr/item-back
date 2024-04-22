@@ -43,13 +43,13 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
     List<DemandeModif> getListDemandesToClean();
 
     //Même si l'ide signale la requête elle est correcte, demandes en statut terminé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
-    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 7 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 7 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
     List<DemandeModif> getNextDemandeToArchive();
 
     //Même si l'ide signale la requête elle est correcte, demandes en statut archivé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
-    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 9 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 9 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
     List<DemandeModif> getNextDemandeToPlaceInDeletedStatus();
 
-    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 and d.dateModification < current_date - 210 order by d.dateModification asc")
+    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 and (day(current_date) - day(d.dateModification)) > 210 order by d.dateModification asc")
     List<DemandeModif> getNextDemandeToDelete();
 }

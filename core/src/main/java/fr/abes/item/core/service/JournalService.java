@@ -5,7 +5,7 @@ import fr.abes.item.core.repository.item.IJournalDemandeExempDao;
 import fr.abes.item.core.repository.item.IJournalDemandeModifDao;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.util.Calendar;
 
 @Service
 public class JournalService {
@@ -18,10 +18,10 @@ public class JournalService {
     }
 
     public void addEntreeJournal(DemandeExemp demande, EtatDemande etat) {
-        journalDemandeExempDao.save(new JournalDemandeExemp(new Date(), demande.getUtilisateur(), etat, demande));
+        journalDemandeExempDao.save(new JournalDemandeExemp(Calendar.getInstance().getTime(), demande.getUtilisateur(), etat, demande));
     }
 
     public void addEntreeJournal(DemandeModif demandeModif, EtatDemande etat) {
-        journalDemandeModifDao.save(new JournalDemandeModif(new Date(), demandeModif.getUtilisateur(), etat, demandeModif));
+        journalDemandeModifDao.save(new JournalDemandeModif(Calendar.getInstance().getTime(), demandeModif.getUtilisateur(), etat, demandeModif));
     }
 }

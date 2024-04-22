@@ -48,7 +48,7 @@ public interface IDemandeExempService extends IDemandeService {
 
     String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException;
 
-    DemandeExemp majTypeExemp(Integer idDemande, TypeExemp typeExemp);
+    DemandeExemp majTypeExemp(Integer idDemande, Integer typeExemp);
 
     Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 

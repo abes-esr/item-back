@@ -37,7 +37,7 @@ public class DownloadFichierRestService {
 	@GetMapping(value="/files/{filename:.+}")
 	@Operation(summary = "permet de récupérer les fichiers relatifs à une demandeModif")
 	public ResponseEntity<Resource> downloadFile(
-			@PathVariable String filename, @RequestParam("id") Integer numDemande, HttpServletRequest request
+			@PathVariable("filename") String filename, @RequestParam("id") Integer numDemande, HttpServletRequest request
 	) throws UserExistException, ForbiddenException {
 
 		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString());

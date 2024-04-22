@@ -35,6 +35,11 @@ public class ReferenceService {
         return typeExempDao.findAll();
     }
 
+    public TypeExemp findTypeExempById(Integer id) {
+        Optional<TypeExemp> typeExemp = typeExempDao.findById(id);
+        return typeExemp.orElseThrow();
+    }
+
     public Set<IndexRecherche> getIndexRechercheFromTypeExemp(Integer id) {
         return typeExempDao.findById(id).get().getIndexRechercheSet();
     }

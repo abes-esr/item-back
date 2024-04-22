@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 
 @Slf4j
@@ -158,7 +158,7 @@ public class TraitementService {
     public Exemplaire ajout991(Exemplaire exemp) throws ZoneException {
         String datePattern = "dd-MM-yyyy HH:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
-        String date = simpleDateFormat.format(new Date());
+        String date = simpleDateFormat.format(Calendar.getInstance().getTime());
         char[] indicateurs = new char[2];
         indicateurs[0] = '#';
         indicateurs[1] = '#';

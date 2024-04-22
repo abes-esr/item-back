@@ -40,13 +40,13 @@ public interface IDemandeRecouvDao extends JpaRepository<DemandeRecouv, Integer>
     List<DemandeRecouv> getListDemandesToClean();
 
     //Même si l'ide signale la requête elle est correcte, demandes en statut terminé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
-    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 7 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 7 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToArchive();
 
     //Même si l'ide signale la requête elle est correcte, demandes en statut archivé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
-    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 9 and d.dateModification < current_date - 90 order by d.dateModification asc")
+    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 9 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToPlaceInDeletedStatus();
 
-    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 10 and d.dateModification < current_date - 210 order by d.dateModification asc")
+    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 10 and (day(current_date) - day(d.dateModification)) > 210 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToDelete();
 }

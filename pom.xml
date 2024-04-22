@@ -60,7 +60,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>3.1.3</version>
+                <version>3.2.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -130,6 +130,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Mapping -->
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>3.1.1</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -164,7 +170,7 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>3.0.0-M5</version>
                     <configuration>
-                        <pushChanges>no</pushChanges>
+                        <pushChanges>false</pushChanges>
                         <scmReleaseCommitComment>@{prefix} Version @{releaseLabel}</scmReleaseCommitComment>
                         <scmCommentPrefix>[maven-release-plugin] [no ci]</scmCommentPrefix>
                     </configuration>

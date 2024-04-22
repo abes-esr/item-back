@@ -1,8 +1,8 @@
 package fr.abes.item.core.configuration;
 
-import org.hibernate.dialect.Oracle12cDialect;
+import org.hibernate.dialect.OracleDialect;
 
-public class OracleCustomDriver extends Oracle12cDialect {
+public class OracleCustomDriver extends OracleDialect {
     public String getQuerySequencesString() {
         return "select * from all_sequences";
     }

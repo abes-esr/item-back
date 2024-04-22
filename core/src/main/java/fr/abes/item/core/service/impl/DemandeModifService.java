@@ -45,7 +45,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
-    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, ILigneFichierService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, Ppntoepn procStockee) {
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, Ppntoepn procStockee) {
         super(libProfileDao);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
@@ -358,7 +358,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     @Override
     public Demande save(Demande entity) {
         DemandeModif demande = (DemandeModif) entity;
-        entity.setDateModification(new Date());
+        entity.setDateModification(Calendar.getInstance().getTime());
         return demandeModifDao.save(demande);
     }
 

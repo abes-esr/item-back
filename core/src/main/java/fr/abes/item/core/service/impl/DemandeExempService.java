@@ -72,7 +72,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Getter
     private int nbReponses;
 
-    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, ILigneFichierService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
+    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
         super(libProfileDao);
         this.demandeExempDao = demandeExempDao;
         this.storageService = storageService;
@@ -116,7 +116,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public Demande save(Demande entity) {
         DemandeExemp demande = (DemandeExemp) entity;
-        entity.setDateModification(new Date());
+        entity.setDateModification(Calendar.getInstance().getTime());
         return demandeExempDao.save(demande);
     }
 
@@ -156,15 +156,16 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * mise à jour du type d'exemplarisation en fonction de l'option choisie coté front
      *
      * @param demandeId identifiant de la demande
-     * @param typeExemp valeur du type d'exemplarisation
+     * @param typeExempId valeur du type d'exemplarisation
      * @return la demande modifiée
      */
     @Override
-    public DemandeExemp majTypeExemp(Integer demandeId, TypeExemp typeExemp) {
+    public DemandeExemp majTypeExemp(Integer demandeId, Integer typeExempId) {
         Optional<DemandeExemp> demandeExemp = demandeExempDao.findById(demandeId);
+        TypeExemp typeExemp = referenceService.findTypeExempById(typeExempId);
         if (demandeExemp.isPresent()) {
             DemandeExemp dem = demandeExemp.get();
-            dem.setDateModification(new Date());
+            dem.setDateModification(Calendar.getInstance().getTime());
             dem.setTypeExemp(typeExemp);
             dem.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
             return demandeExempDao.save(dem);
@@ -503,7 +504,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Override
     public DemandeExemp creerDemande(String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
         DemandeExemp demandeExemp = new DemandeExemp(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
-        demandeExemp.setIln(libProfileDao.findById(rcr).orElse(null).getIln());
+        demandeExemp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         return demandeExemp;
     }
 
@@ -628,7 +629,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     private void ajout991(Exemplaire exemp) throws ZoneException {
         String datePattern = "dd-MM-yyyy HH:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
-        String date = simpleDateFormat.format(new Date());
+        String date = simpleDateFormat.format(Calendar.getInstance().getTime());
         String valeur991 = Constant.TEXTE_991_CREA + " le " + date;
         char[] indicateurs = {'#', '#'};
         exemp.addZone("991", "$a", valeur991, indicateurs);

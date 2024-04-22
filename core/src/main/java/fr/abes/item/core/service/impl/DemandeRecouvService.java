@@ -43,7 +43,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, ILigneFichierService ligneFichierRecouvService, TraitementService traitementService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
@@ -69,7 +69,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     @Override
     public Demande save(Demande entity) {
         DemandeRecouv demande = (DemandeRecouv) entity;
-        entity.setDateModification(new Date());
+        entity.setDateModification(Calendar.getInstance().getTime());
         return demandeRecouvDao.save(demande);
     }
 
@@ -311,7 +311,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
                 System.lineSeparator() +
                 System.lineSeparator() +
                 "Fin du recouvrement : " +
-                new Date();
+                Calendar.getInstance().getTime();
     }
 
     /**

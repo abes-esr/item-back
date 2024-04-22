@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Calendar;
 import java.util.Date;
 
 @Component
@@ -22,7 +23,7 @@ public class JwtTokenProvider {
 
     public String generateToken(User u) {
 
-        Date now = new Date();
+        Date now = Calendar.getInstance().getTime();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
