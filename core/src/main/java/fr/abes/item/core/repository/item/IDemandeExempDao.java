@@ -2,6 +2,7 @@ package fr.abes.item.core.repository.item;
 
 import fr.abes.item.core.configuration.ItemConfiguration;
 import fr.abes.item.core.entities.item.DemandeExemp;
+import fr.abes.item.core.entities.item.TypeExemp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,8 +23,8 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
     @Query("select d from DemandeExemp d where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' order by d.dateModification asc")
     List<DemandeExemp> getNextDemandeToProceedWithoutDAT();
 
-    @Query("select e.libelle from TypeExemp e where e.numTypeExemp in (select d.typeExemp.numTypeExemp from DemandeExemp d where d.numDemande = :numDemande)")
-    String getTypeExemp(@Param("numDemande") Integer numDemande);
+    @Query("select e from TypeExemp e where e.numTypeExemp in (select d.typeExemp.numTypeExemp from DemandeExemp d where d.numDemande = :numDemande)")
+    TypeExemp getTypeExemp(@Param("numDemande") Integer numDemande);
 
     @Query("select d from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
     List<DemandeExemp> getActiveDemandesExempForUserExceptedPreparedStatus(@Param("iln") String iln);

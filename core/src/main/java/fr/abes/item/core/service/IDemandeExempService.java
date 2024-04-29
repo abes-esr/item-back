@@ -50,13 +50,13 @@ public interface IDemandeExempService extends IDemandeService {
 
     DemandeExemp majTypeExemp(Integer idDemande, Integer typeExemp);
 
-    Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
+    Object changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 
     Demande changeStateCanceled(Demande demande, int etatDemande);
 
     String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 
-    String getTypeExempDemande(Integer idDemande);
+    String getLibelleTypeExempDemande(Integer idDemande);
 
     int getNbReponses();
 

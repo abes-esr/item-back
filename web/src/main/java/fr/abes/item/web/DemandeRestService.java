@@ -12,6 +12,11 @@ import fr.abes.item.core.service.ReferenceService;
 import fr.abes.item.core.service.TraitementService;
 import fr.abes.item.core.service.UtilisateurService;
 import fr.abes.item.core.service.impl.*;
+import fr.abes.item.core.utilitaire.UtilsMapper;
+import fr.abes.item.dto.DemandeExempWebDto;
+import fr.abes.item.dto.DemandeModifWebDto;
+import fr.abes.item.dto.DemandeRecouvWebDto;
+import fr.abes.item.dto.DemandeWebDto;
 import fr.abes.item.security.CheckAccessToServices;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,8 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -39,8 +45,9 @@ public class DemandeRestService {
     private final UtilisateurService utilisateurService;
     private final TraitementService traitementService;
     private final CheckAccessToServices checkAccessToServices;
+    private final UtilsMapper mapper;
 
-    public DemandeRestService(DemandeExempService demandeExempService, DemandeRecouvService demandeRecouvService, DemandeModifService demandeModifService, LigneFichierExempService ligneFichierExempService, LigneFichierModifService ligneFichierModifService, LigneFichierRecouvService ligneFichierRecouvService, ReferenceService referenceService, JournalService journalService, UtilisateurService utilisateurService, TraitementService traitementService, CheckAccessToServices checkAccessToServices) {
+    public DemandeRestService(DemandeExempService demandeExempService, DemandeRecouvService demandeRecouvService, DemandeModifService demandeModifService, LigneFichierExempService ligneFichierExempService, LigneFichierModifService ligneFichierModifService, LigneFichierRecouvService ligneFichierRecouvService, ReferenceService referenceService, JournalService journalService, UtilisateurService utilisateurService, TraitementService traitementService, CheckAccessToServices checkAccessToServices, UtilsMapper mapper) {
         this.demandeExempService = demandeExempService;
         this.demandeRecouvService = demandeRecouvService;
         this.demandeModifService = demandeModifService;
@@ -52,6 +59,7 @@ public class DemandeRestService {
         this.utilisateurService = utilisateurService;
         this.traitementService = traitementService;
         this.checkAccessToServices = checkAccessToServices;
+        this.mapper = mapper;
     }
 
     /**
@@ -64,15 +72,15 @@ public class DemandeRestService {
     @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "renvoie les demandes pour les administrateurs",
             description = "renvoie les demande terminées et en erreur de tout le monde et toutes les demandeModifs créées par cet iln")
-    public List<Demande> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("extension")boolean extension, HttpServletRequest request) {
+    public List<DemandeWebDto> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("extension")boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
             case EXEMP ->
-                    (!extension) ? demandeExempService.getAllActiveDemandesForAdmin(iln) : demandeExempService.getAllActiveDemandesForAdminExtended();
+                    (!extension) ? demandeExempService.getAllActiveDemandesForAdmin(iln).stream().map(element -> mapper.map(element, DemandeExempWebDto.class)).collect(Collectors.toList()) : demandeExempService.getAllActiveDemandesForAdminExtended().stream().map(element -> mapper.map(element, DemandeExempWebDto.class)).collect(Collectors.toList());
             case MODIF ->
-                    (!extension) ? demandeModifService.getAllActiveDemandesForAdmin(iln) : demandeModifService.getAllActiveDemandesForAdminExtended();
+                    (!extension) ? demandeModifService.getAllActiveDemandesForAdmin(iln).stream().map(element -> mapper.map(element, DemandeModifWebDto.class)).collect(Collectors.toList()) : demandeModifService.getAllActiveDemandesForAdminExtended().stream().map(element -> mapper.map(element, DemandeModifWebDto.class)).collect(Collectors.toList());
             default ->
-                    (!extension) ? demandeRecouvService.getAllActiveDemandesForAdmin(iln) : demandeRecouvService.getAllActiveDemandesForAdminExtended();
+                    (!extension) ? demandeRecouvService.getAllActiveDemandesForAdmin(iln).stream().map(element -> mapper.map(element, DemandeRecouvWebDto.class)).collect(Collectors.toList()) : demandeRecouvService.getAllActiveDemandesForAdminExtended().stream().map(element -> mapper.map(element, DemandeRecouvWebDto.class)).collect(Collectors.toList());
         };
     }
 
@@ -84,12 +92,12 @@ public class DemandeRestService {
     @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "renvoie les demandes de modif pour ce usernum",
             description = "renvoie toutes les demandes créées par cet iln")
-    public List<Demande> chercher(@RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) {
+    public List<DemandeWebDto> chercher(@RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
-            case MODIF -> demandeModifService.getActiveDemandesForUser(iln);
-            case EXEMP -> demandeExempService.getActiveDemandesForUser(iln);
-            default -> demandeRecouvService.getActiveDemandesForUser(iln);
+            case MODIF -> demandeModifService.getActiveDemandesForUser(iln).stream().map(element -> mapper.map(element, DemandeModifWebDto.class)).collect(Collectors.toList());
+            case EXEMP -> demandeExempService.getActiveDemandesForUser(iln).stream().map(element -> mapper.map(element, DemandeExempWebDto.class)).collect(Collectors.toList());
+            default -> demandeRecouvService.getActiveDemandesForUser(iln).stream().map(element -> mapper.map(element, DemandeWebDto.class)).collect(Collectors.toList());
         };
     }
 
@@ -102,15 +110,15 @@ public class DemandeRestService {
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @Operation(summary = "renvoie les demandes archivées pour cet iln",
             description = "renvoie les demandeModifs archivées créées par cet iln")
-    public List<Demande> getAllArchivedDemandes(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("extension") boolean extension, HttpServletRequest request) {
+    public List<DemandeWebDto> getAllArchivedDemandes(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("extension") boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         return switch (type) {
             case MODIF ->
-                    (!extension) ? demandeModifService.getAllArchivedDemandes(iln) : demandeModifService.getAllArchivedDemandesAllIln();
+                    (!extension) ? demandeModifService.getAllArchivedDemandes(iln).stream().map(element -> mapper.map(element, DemandeModifWebDto.class)).collect(Collectors.toList()) : demandeModifService.getAllArchivedDemandesAllIln().stream().map(element -> mapper.map(element, DemandeModifWebDto.class)).collect(Collectors.toList());
             case EXEMP ->
-                    (!extension) ? demandeExempService.getAllArchivedDemandes(iln) : demandeExempService.getAllArchivedDemandesAllIln();
+                    (!extension) ? demandeExempService.getAllArchivedDemandes(iln).stream().map(element -> mapper.map(element, DemandeExempWebDto.class)).collect(Collectors.toList()) : demandeExempService.getAllArchivedDemandesAllIln().stream().map(element -> mapper.map(element, DemandeExempWebDto.class)).collect(Collectors.toList());
             default ->
-                    (!extension) ? demandeRecouvService.getAllArchivedDemandes(iln) : demandeRecouvService.getAllArchivedDemandesAllIln();
+                    (!extension) ? demandeRecouvService.getAllArchivedDemandes(iln).stream().map(element -> mapper.map(element, DemandeRecouvWebDto.class)).collect(Collectors.toList()) : demandeRecouvService.getAllArchivedDemandesAllIln().stream().map(element -> mapper.map(element, DemandeRecouvWebDto.class)).collect(Collectors.toList());
         };
     }
 
@@ -122,12 +130,12 @@ public class DemandeRestService {
      */
     @GetMapping(value = "/demandes/{id}")
     @Operation(summary = "renvoie une demande précise")
-    public Demande getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
-            case MODIF -> demandeModifService.findById(id);
-            case EXEMP -> demandeExempService.findById(id);
-            default -> demandeRecouvService.findById(id);
+            case MODIF -> mapper.map(demandeModifService.findById(id), DemandeModifWebDto.class);
+            case EXEMP -> mapper.map(demandeExempService.findById(id), DemandeExempWebDto.class);
+            default -> mapper.map(demandeRecouvService.findById(id), DemandeRecouvWebDto.class);
         };
     }
 
@@ -140,27 +148,27 @@ public class DemandeRestService {
      */
     @GetMapping(value = "/creerdemande")
     @Operation(summary = "permet de créer une nouvelle demande de  modif pour un rcr donné")
-    public Demande saveModif(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto saveModif(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
-        Date datejour = new Date();
+        Calendar calendar = Calendar.getInstance();
         Demande demToReturn;
         switch (type) {
             case MODIF:
-                DemandeModif demandeModif = demandeModifService.creerDemande(rcr, datejour, datejour, "", "", "", referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())), null);
+                DemandeModif demandeModif = demandeModifService.creerDemande(rcr, calendar.getTime(), calendar.getTime(), "", "", "", referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())), null);
                 demToReturn = demandeModifService.save(demandeModif);
                 journalService.addEntreeJournal((DemandeModif) demToReturn, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
                 break;
             case EXEMP:
-                DemandeExemp demandeExemp = demandeExempService.creerDemande(rcr, datejour, datejour, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())));
+                DemandeExemp demandeExemp = demandeExempService.creerDemande(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())));
                 demToReturn = demandeExempService.save(demandeExemp);
                 journalService.addEntreeJournal((DemandeExemp) demToReturn, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
                 break;
             default:
-                DemandeRecouv demandeRecouv = demandeRecouvService.creerDemande(rcr, datejour, datejour, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())));
+                DemandeRecouv demandeRecouv = demandeRecouvService.creerDemande(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString())));
                 demToReturn = demandeRecouvService.save(demandeRecouv);
 
         }
-        return demToReturn;
+        return mapper.map(demToReturn, DemandeWebDto.class);
     }
 
     /**
@@ -188,21 +196,21 @@ public class DemandeRestService {
 
     @GetMapping(value ="/supprimerDemande")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
-    public Demande supprimerAvecConservationEnBase(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande")Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto supprimerAvecConservationEnBase(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande")Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         switch (type) {
             case MODIF:
                 DemandeModif demandeModif = demandeModifService.findById(numDemande);
                 ligneFichierModifService.deleteByDemande(demandeModif);
-                return demandeModifService.changeStateCanceled(demandeModif, Constant.ETATDEM_SUPPRIMEE);
+                return mapper.map(demandeModifService.changeStateCanceled(demandeModif, Constant.ETATDEM_SUPPRIMEE), DemandeWebDto.class);
             case EXEMP:
                 DemandeExemp demandeExemp = demandeExempService.findById(numDemande);
                 ligneFichierExempService.deleteByDemande(demandeExemp);
-                return demandeExempService.changeStateCanceled(demandeExemp, Constant.ETATDEM_SUPPRIMEE);
+                return mapper.map(demandeExempService.changeStateCanceled(demandeExemp, Constant.ETATDEM_SUPPRIMEE), DemandeWebDto.class);
             default:
                 DemandeRecouv demandeRecouv = demandeRecouvService.findById(numDemande);
                 ligneFichierRecouvService.deleteByDemande(demandeRecouv);
-                return demandeRecouvService.changeStateCanceled(demandeRecouv, Constant.ETATDEM_SUPPRIMEE);
+                return mapper.map(demandeRecouvService.changeStateCanceled(demandeRecouv, Constant.ETATDEM_SUPPRIMEE), DemandeWebDto.class);
         }
     }
 
@@ -220,10 +228,10 @@ public class DemandeRestService {
     @PutMapping(value = "/demandes/{id}")
     @Operation(summary= "permet de créer une nouvelle demande de modif")
     @SuppressWarnings("squid:S4684")
-    public Demande saveModif(@PathVariable("id") Integer id, @RequestParam("dem") DemandeModif dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto saveModif(@PathVariable("id") Integer id, @RequestParam("dem") DemandeModif dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
-        return demandeModifService.save(dem);
+        return mapper.map(demandeModifService.save(dem), DemandeWebDto.class);
     }
 
 
@@ -231,30 +239,30 @@ public class DemandeRestService {
     @Operation(summary = "permer de récupérer le type d'exemplarisation choisi pour une demande")
     public String getTypeExemplarisationDemande(@PathVariable("id")Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
-        return demandeExempService.getTypeExempDemande(id);
+        return demandeExempService.getLibelleTypeExempDemande(id);
     }
 
 
     @PutMapping(value = "/demandesExemp/{id}")
     @Operation(summary = "Mise à jour du type d'exemplarisation")
-    public Demande saveExemp(@PathVariable("id")Integer id, @RequestParam("dem")DemandeExemp dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto saveExemp(@PathVariable("id")Integer id, @RequestParam("dem")DemandeExemp dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
-        return demandeExempService.save(dem);
+        return mapper.map(demandeExempService.save(dem), DemandeWebDto.class);
     }
 
     @PutMapping(value = "/demandesRecouv/{id}")
     @Operation(summary = "Mise à jour d'une demande de recouvrement'")
-    public Demande saveRecouv(@PathVariable("id")Integer id, @RequestParam("dem")DemandeRecouv dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto saveRecouv(@PathVariable("id")Integer id, @RequestParam("dem")DemandeRecouv dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         dem.setNumDemande(id);
-        return demandeRecouvService.save(dem);
+        return mapper.map(demandeRecouvService.save(dem), DemandeWebDto.class);
     }
 
     @PostMapping(value = "/majTypeExemp/{id}")
-    public Demande majTypeExemp(@PathVariable("id")Integer id, @RequestParam("type") Integer type, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto majTypeExemp(@PathVariable("id")Integer id, @RequestParam("type") Integer type, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
-        return demandeExempService.majTypeExemp(id, type);
+        return mapper.map(demandeExempService.majTypeExemp(id, type), DemandeWebDto.class);
     }
 
 
@@ -366,20 +374,20 @@ public class DemandeRestService {
      */
     @GetMapping("/passerEnAttente")
     @Operation(summary = "permet de modifier le statut de la demande pour la passer à : en attente")
-    public Demande passerEnAttente(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
+    public DemandeWebDto passerEnAttente(@RequestParam("type")TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> {
                 DemandeModif demandeModif = demandeModifService.findById(numDemande);
-                yield demandeModifService.changeState(demandeModif, Constant.ETATDEM_ATTENTE);
+                yield mapper.map(demandeModifService.changeState(demandeModif, Constant.ETATDEM_ATTENTE), DemandeWebDto.class);
             }
             case EXEMP -> {
                 DemandeExemp demandeExemp = demandeExempService.findById(numDemande);
-                yield demandeExempService.changeState(demandeExemp, Constant.ETATDEM_ATTENTE);
+                yield mapper.map(demandeExempService.changeState(demandeExemp, Constant.ETATDEM_ATTENTE), DemandeWebDto.class);
             }
             default -> {
                 DemandeRecouv demandeRecouv = demandeRecouvService.findById(numDemande);
-                yield demandeRecouvService.changeState(demandeRecouv, Constant.ETATDEM_ATTENTE);
+                yield mapper.map(demandeRecouvService.changeState(demandeRecouv, Constant.ETATDEM_ATTENTE), DemandeWebDto.class);
             }
         };
 
@@ -398,21 +406,21 @@ public class DemandeRestService {
      */
     @GetMapping("/archiverDemande")
     @Operation(summary = "permet de passer la demande en statut archivé")
-    public Demande archiverDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws
+    public DemandeWebDto archiverDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> {
                 DemandeModif demandeModif = demandeModifService.findById(numDemande);
-                yield demandeModifService.archiverDemande(demandeModif);
+                yield mapper.map(demandeModifService.archiverDemande(demandeModif), DemandeWebDto.class);
             }
             case EXEMP -> {
                 DemandeExemp demandeExemp = demandeExempService.findById(numDemande);
-                yield demandeExempService.archiverDemande(demandeExemp);
+                yield mapper.map(demandeExempService.archiverDemande(demandeExemp), DemandeWebDto.class);
             }
             default -> {
                 DemandeRecouv demandeRecouv = demandeRecouvService.findById(numDemande);
-                yield demandeRecouvService.archiverDemande(demandeRecouv);
+                yield mapper.map(demandeRecouvService.archiverDemande(demandeRecouv), DemandeWebDto.class);
             }
         };
     }
@@ -431,21 +439,21 @@ public class DemandeRestService {
      */
     @GetMapping("/etapePrecedente/{id}")
     @Operation(summary = "permet de revenir à l'étape précédente dans le workflow de création d'une demande")
-    public Demande previousStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
+    public DemandeWebDto previousStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
             DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> {
                 DemandeModif demandeModif = demandeModifService.findById(id);
-                yield demandeModifService.previousState(demandeModif);
+                yield mapper.map(demandeModifService.previousState(demandeModif), DemandeWebDto.class);
             }
             case EXEMP -> {
                 DemandeExemp demandeExemp = demandeExempService.findById(id);
-                yield demandeExempService.previousState(demandeExemp);
+                yield mapper.map(demandeExempService.previousState(demandeExemp), DemandeWebDto.class);
             }
             default -> {
                 DemandeRecouv demandeRecouv = demandeRecouvService.findById(id);
-                yield demandeRecouvService.previousState(demandeRecouv);
+                yield mapper.map(demandeRecouvService.previousState(demandeRecouv), DemandeWebDto.class);
             }
         };
     }
@@ -461,17 +469,17 @@ public class DemandeRestService {
      */
     @GetMapping("/etapeChoisie/{id}")
     @Operation(summary = "permet de revenir à une étape bien précise dans le workflow de création d'une demande")
-    public Demande chosenStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
+    public DemandeWebDto chosenStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString());
         return switch (type) {
             case MODIF -> {
                 DemandeModif demandeModif = demandeModifService.findById(id);
-                yield demandeModifService.returnState(etape, demandeModif);
+                yield mapper.map(demandeModifService.returnState(etape, demandeModif), DemandeWebDto.class);
             }
             case EXEMP -> {
                 DemandeExemp demandeExemp = demandeExempService.findById(id);
-                yield demandeExempService.returnState(etape, demandeExemp);
+                yield mapper.map(demandeExempService.returnState(etape, demandeExemp), DemandeWebDto.class);
             }
             case RECOUV -> throw new DemandeCheckingException(Constant.UNAVAILABLE_SERVICE + type);
         };

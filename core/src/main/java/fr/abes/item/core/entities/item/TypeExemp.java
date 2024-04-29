@@ -36,6 +36,11 @@ public class TypeExemp implements Serializable, GenericEntity<Integer> {
         this.numTypeExemp = numTypeExemp;
     }
 
+    public TypeExemp(int numTypeExemp, String libelle) {
+        this.numTypeExemp = numTypeExemp;
+        this.libelle = libelle;
+    }
+
     @Override
     public Integer getId(){
         return this.numTypeExemp;

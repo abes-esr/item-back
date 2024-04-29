@@ -29,7 +29,7 @@ public interface IDemandeService {
 
     String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut);
 
-    Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
+    Object changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 
     List<Demande> getAllArchivedDemandes(String iln);
 

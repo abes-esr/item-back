@@ -109,8 +109,8 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     }
 
     @Override
-    public String getTypeExempDemande(Integer idDemande) {
-        return demandeExempDao.getTypeExemp(idDemande);
+    public String getLibelleTypeExempDemande(Integer idDemande) {
+        return demandeExempDao.getTypeExemp(idDemande).getLibelle();
     }
 
     @Override
