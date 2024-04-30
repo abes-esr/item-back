@@ -29,13 +29,14 @@ import java.util.*;
 @Slf4j
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.MODIF})
-public class DemandeModifService extends DemandeService implements IDemandeModifService {
+public class DemandeModifService extends DemandeService implements IDemandeService {
     private final IDemandeModifDao demandeModifDao;
     private final FileSystemStorageService storageService;
     private final ILigneFichierService ligneFichierService;
     private final TraitementService traitementService;
     private final JournalService journalService;
     private final ReferenceService referenceService;
+    private final UtilisateurService utilisateurService;
     private final Ppntoepn procStockee;
 
 
@@ -45,7 +46,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
-    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, Ppntoepn procStockee) {
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
         super(libProfileDao);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
@@ -53,6 +54,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         this.traitementService = traitementService;
         this.journalService = journalService;
         this.referenceService = referenceService;
+        this.utilisateurService = utilisateurService;
         this.procStockee = procStockee;
     }
 
@@ -67,8 +69,8 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     /**
      * Méthode permettant de chercher les demandeModifs d'un utilisateur
-     * @param iln numéro de l'utilisateur propriétaire des demandeModifs
      *
+     * @param iln numéro de l'utilisateur propriétaire des demandeModifs
      * @return liste des demandeModifs de l'utilisateur (hors demandeModifs archivées)
      */
     @Override
@@ -88,7 +90,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandesAllIln(){
+    public List<Demande> getAllArchivedDemandesAllIln() {
         List<DemandeModif> demandeModifs = this.demandeModifDao.getAllArchivedDemandesModifExtended();
         List<Demande> listeDemandes = new ArrayList<>(demandeModifs);
         setIlnShortNameOnList(listeDemandes);
@@ -192,7 +194,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
             fichier.generateFileName(numDemande);
-            return stockerFichierOnDisk(file, fichier, (DemandeModif)demande);
+            return stockerFichierOnDisk(file, fichier, (DemandeModif) demande);
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);
         }
@@ -202,13 +204,12 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     /**
      * Méthode de stockage physique d'un fichier sur le disque
      *
-     * @param file    fichier à stocker
-     * @param fichier objet fichier associé
+     * @param file         fichier à stocker
+     * @param fichier      objet fichier associé
      * @param demandeModif demandeModif associée (pour construction du filename)
      * @return message de validation du processus
      * @throws FileCheckingException type de fichier non reconnu
-     * @throws IOException
-        demandeExemp.setExemplairesMultiplesAutorise("t");      fichier illisible
+     * @throws IOException           demandeExemp.setExemplairesMultiplesAutorise("t");      fichier illisible
      * @throws FileTypeException     mauvais type de fichier
      */
     private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeModif demandeModif) throws FileCheckingException, IOException, FileTypeException, DemandeCheckingException {
@@ -274,14 +275,6 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         }
     }
 
-    @Override
-    public DemandeModif creerDemande(String rcr, Date dateCreation, Date dateModification, String zone, String sousZone, String comment, EtatDemande etatDemande, Utilisateur utilisateur, Traitement traitement) {
-        DemandeModif demandeModif = new DemandeModif(rcr, dateCreation, dateModification, zone, sousZone, comment, etatDemande, utilisateur, traitement);
-        demandeModif.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
-        return demandeModif;
-    }
-
-
     /**
      * Méthode de récupération d'une notice par son EPN
      *
@@ -290,8 +283,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * @return La notice trouvée dans le CBS
      * @throws CBSException : erreur CBS
      */
-    @Override
-    public String getNoticeInitiale(DemandeModif demandeModif, String epn) throws CBSException, IOException {
+    public String getNoticeInitiale(Demande demandeModif, String epn) throws CBSException, IOException {
         try {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
@@ -305,13 +297,14 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     /**
      * Méthode de modification d'une notice en fonction du traitement
      *
-     * @param demandeModif      permet de récupérer le traitement à lancer sur la notice
+     * @param demande      permet de récupérer le traitement à lancer sur la notice
      * @param exemplaire        notice récupérée du Sudoc sur laquelle on effectue le traitement
-     * @param ligneFichierModif informations à intégrer à la notice à traiter
+     * @param ligneFichier informations à intégrer à la notice à traiter
      * @return la notice modifiée
      */
-    @Override
-    public Exemplaire getNoticeTraitee(DemandeModif demandeModif, String exemplaire, LigneFichierModif ligneFichierModif) throws ZoneException {
+    public Exemplaire getNoticeTraitee(Demande demande, String exemplaire, LigneFichier ligneFichier) throws ZoneException {
+        DemandeModif demandeModif = (DemandeModif) demande;
+        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
         switch (demandeModif.getTraitement().getNomMethode()) {
             case "creerNouvelleZone":
@@ -334,6 +327,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
      * Lance une requête pour récupérer :
      * Les demandeModifs Terminées / En Erreur de tout le monde
      * ET toutes les demandeModifs créées par cet admin
+     *
      * @return la liste de toutes les demandeModifs
      */
     @Override
@@ -371,6 +365,15 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
     @Override
+    public Demande creerDemande(String rcr, Integer userNum) {
+        Calendar calendar = Calendar.getInstance();
+        DemandeModif demandeModif = new DemandeModif(rcr, calendar.getTime(), calendar.getTime(), "", "", "", referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum), null);
+        demandeModif.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
+        journalService.addEntreeJournal(demandeModif, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
+        return demandeModif;
+    }
+
+    @Override
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
         EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
         demande.setEtatDemande(etat);
@@ -393,7 +396,18 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         return changeState(demande, Constant.ETATDEM_TERMINEE);
     }
 
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
+        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
+        String noticeInit = getNoticeInitiale(this.findById(demande.getId()), ligneFichierModif.getEpn());
+        String noticeInitStr = noticeInit.replace("\r", "\r\n");
+        Exemplaire noticeTraitee = getNoticeTraitee(findById(demande.getId()), noticeInit, ligneFichier);
 
+        return new String[]{
+                traitementService.getCbs().getPpnEncours(),
+                noticeInitStr,
+                noticeTraitee.toString().replace("\r", "\r\n")
+        };
+    }
 
     /**
      * Permet de changer l'état d'une demandeModif
@@ -407,10 +421,9 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
         if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
-            journalService.addEntreeJournal((DemandeModif)demande, etat);
+            journalService.addEntreeJournal((DemandeModif) demande, etat);
             return save(demande);
-        }
-        else {
+        } else {
             throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
         }
     }
@@ -424,14 +437,14 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     @Override
     public Demande previousState(Demande demande) throws DemandeCheckingException, IOException {
-        DemandeModif demandeModif = (DemandeModif)demande;
+        DemandeModif demandeModif = (DemandeModif) demande;
         int etatDemande = demande.getEtatDemande().getId();
         switch (etatDemande) {
             case Constant.ETATDEM_PREPAREE:
                 resetDemande(demandeModif);
                 break;
             case Constant.ETATDEM_ACOMPLETER:
-                if ( demandeModif.getTraitement() != null) {
+                if (demandeModif.getTraitement() != null) {
                     demandeModif.setTraitement(null);
                     save(demandeModif);
                 } else {
@@ -445,7 +458,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
     /**
-     * @param etape etape à laquelle on souhaite retourner
+     * @param etape   etape à laquelle on souhaite retourner
      * @param demande demande que l'on souhaite modifier
      * @return demande modifiée
      * @throws DemandeCheckingException : demande dans un etat incorrect
@@ -454,7 +467,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
         switch (etape) {
-            case 2 :
+            case 2:
                 demandeModif.setTraitement(null); //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
                 demandeModif.setZone(null); //On repasse ZONE à null : obtenu ETAPE 5
                 demandeModif.setSousZone(null); //On repasse SOUS_ZONE à null : obtenu ETAPE 5
@@ -466,7 +479,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 save(demandeModif);
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
                 return demandeModif;
-            case 3 :
+            case 3:
                 demandeModif.setEtatDemande(new EtatDemande(3));
                 demandeModif.setTraitement(null);
                 demandeModif.setZone(null);
@@ -474,7 +487,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 ligneFichierService.deleteByDemande(demandeModif);
                 save(demandeModif);
                 return demandeModif;
-            case 4 :
+            case 4:
                 demandeModif.setEtatDemande(new EtatDemande(3));
                 //On ne modifie pas le traitement obtenu a etape 3
                 demandeModif.setZone(null);
@@ -482,12 +495,12 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
                 ligneFichierService.deleteByDemande(demandeModif);
                 save(demandeModif);
                 return demandeModif;
-            default :
+            default:
                 throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
         }
     }
 
-    private void resetDemande(DemandeModif demandeModif) throws IOException{
+    private void resetDemande(DemandeModif demandeModif) throws IOException {
         storageService.delete(fichierInit.getFilename());
         storageService.delete(fichierPrepare.getFilename());
         demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
@@ -503,8 +516,10 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
     }
 
 
-    /** méthode d'archivage d'une demande
+    /**
+     * méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage
+     *
      * @param demande demande à archiver
      * @return la demande dans l'état archivé
      * @throws DemandeCheckingException : problème dans l'état de la demande
@@ -518,6 +533,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     /**
      * Récupération de la prochaine demande terminée à archiver
+     *
      * @return demande récupérée dans la base
      */
     @Override
@@ -531,6 +547,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     /**
      * Récupération de la prochaine demande archivée à placer en statut supprimé
+     *
      * @return demande récupérée dans la base
      */
     @Override
@@ -544,6 +561,7 @@ public class DemandeModifService extends DemandeService implements IDemandeModif
 
     /**
      * Récupération de la prochaine demande en statut supprimé à supprimer définitivement
+     *
      * @return demande récupérée dans la base
      */
     @Override

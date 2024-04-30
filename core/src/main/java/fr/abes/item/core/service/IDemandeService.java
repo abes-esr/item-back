@@ -1,8 +1,13 @@
 package fr.abes.item.core.service;
 
+import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
+import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -13,11 +18,15 @@ public interface IDemandeService {
 
     Demande findById(Integer id);
 
+    Demande creerDemande(String rcr, Integer userNum);
+
     Demande archiverDemande(Demande demande) throws DemandeCheckingException;
 
     void deleteById(Integer id);
 
     void initFiles(Demande demande) throws FileTypeException;
+
+    String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 
     Demande previousState(Demande demande) throws DemandeCheckingException, IOException;
 
@@ -29,7 +38,9 @@ public interface IDemandeService {
 
     String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut);
 
-    Object changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
+    Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
+
+    Demande changeStateCanceled(Demande demande, int etatDemande);
 
     List<Demande> getAllArchivedDemandes(String iln);
 
@@ -39,6 +50,12 @@ public interface IDemandeService {
 
     List<Demande> getAllActiveDemandesForAdmin(String iln);
 
-    Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException, IOException;
+    Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException;
+
+    String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException;
+
+    List<? extends Demande> getIdNextDemandeToArchive();
+    List<? extends Demande> getIdNextDemandeToPlaceInDeletedStatus();
+    List<? extends Demande> getIdNextDemandeToDelete();
 
 }

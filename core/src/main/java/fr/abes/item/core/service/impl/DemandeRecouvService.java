@@ -1,5 +1,7 @@
 package fr.abes.item.core.service.impl;
 
+import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.components.Fichier;
 import fr.abes.item.core.components.FichierEnrichiRecouv;
 import fr.abes.item.core.configuration.factory.FichierFactory;
@@ -9,7 +11,7 @@ import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.Utilisateur;
+import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
@@ -31,25 +33,27 @@ import java.util.*;
 @Service
 @Strategy(type= IDemandeService.class, typeDemande = {TYPE_DEMANDE.RECOUV})
 @Slf4j
-public class DemandeRecouvService extends DemandeService implements IDemandeRecouvService {
+public class DemandeRecouvService extends DemandeService implements IDemandeService {
     private final IDemandeRecouvDao demandeRecouvDao;
     private final FileSystemStorageService storageService;
     private final ReferenceService referenceService;
     private final TraitementService traitementService;
     private final ILigneFichierService ligneFichierService;
+    private final UtilisateurService utilisateurService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
 
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
         this.traitementService = traitementService;
+        this.utilisateurService = utilisateurService;
     }
 
     public List<Demande> findAll() {
@@ -87,8 +91,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
     }
 
     @Override
-    public DemandeRecouv creerDemande(String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
-        DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
+    public DemandeRecouv creerDemande(String rcr, Integer userNum) {
+        Calendar calendar = Calendar.getInstance();
+        DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
         demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         return demandeRecouv;
     }
@@ -147,16 +152,17 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      */
     @Override
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
-        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        if (etape == 2) {
-            return demandeRecouv;
-        }
-        throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
+        throw new DemandeCheckingException(Constant.UNAVAILABLE_SERVICE + TYPE_DEMANDE.RECOUV);
     }
 
     @Override
     public Demande closeDemande(Demande demande) throws DemandeCheckingException {
         return changeState(demande, Constant.ETATDEM_TERMINEE);
+    }
+
+    @Override
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
+        return new String[]{"Simulation impossible pour le recouvrement", ""};
     }
 
     @Override
@@ -275,7 +281,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
         };
     }
 
-    @Override
     public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(codeIndex, tabvaleurs);
@@ -320,7 +325,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeReco
      * @param valeur tableau des valeurs utilisées pour construire la requête
      * @return requête che prête à être lancée vers le CBS
      */
-    @Override
     public String getQueryToSudoc(String codeIndex, String[] valeur) throws QueryToSudocException {
         return switch (codeIndex) {
             case "ISBN" -> "che isb " + valeur[0];

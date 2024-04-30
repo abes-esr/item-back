@@ -1,14 +1,14 @@
 package fr.abes.item.security;
 
+import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.baseXml.LibProfile;
 import fr.abes.item.core.exception.ForbiddenException;
 import fr.abes.item.core.exception.UserExistException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
+import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.UtilisateurService;
-import fr.abes.item.core.service.impl.DemandeExempService;
-import fr.abes.item.core.service.impl.DemandeModifService;
-import fr.abes.item.core.service.impl.DemandeRecouvService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,17 +19,13 @@ import java.util.Optional;
 public class CheckAccessToServices {
 
     private final UtilisateurService utilisateurService;
-    private final DemandeExempService demandeExempService;
-    private final DemandeModifService demandeModifService;
-    private final DemandeRecouvService demandeRecouvService;
+    private final StrategyFactory strategy;
 
     private final ILibProfileDao libProfileDao;
 
-    public CheckAccessToServices(UtilisateurService utilisateurService, DemandeExempService demandeExempService, DemandeModifService demandeModifService, DemandeRecouvService demandeRecouvService, ILibProfileDao libProfileDao) {
+    public CheckAccessToServices(UtilisateurService utilisateurService, StrategyFactory strategy, ILibProfileDao libProfileDao) {
         this.utilisateurService = utilisateurService;
-        this.demandeExempService = demandeExempService;
-        this.demandeModifService = demandeModifService;
-        this.demandeRecouvService = demandeRecouvService;
+        this.strategy = strategy;
         this.libProfileDao = libProfileDao;
     }
 
@@ -40,21 +36,16 @@ public class CheckAccessToServices {
      * @throws UserExistException si le user n'existe pas dans la base de données
      * @throws ForbiddenException si le user n'a pas accès à cette demandeModif
      */
-    public void autoriserAccesDemandeParIln(Integer id, String userNum) throws UserExistException, ForbiddenException {
+    public void autoriserAccesDemandeParIln(Integer id, String userNum, TYPE_DEMANDE type) throws UserExistException, ForbiddenException {
         log.debug(Constant.ENTER_AUTORISER_ACCES_DEMANDE_ILN);
         if (utilisateurService.findById(Integer.parseInt(userNum)) == null) {
             log.error(Constant.UTILISATEUR_ABSENT_BASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
 
-        String iln;
-        if (demandeExempService.findById(id) != null) {
-            iln = demandeExempService.findById(id).getIln();
-        } else if (demandeModifService.findById(id) != null) {
-            iln = demandeModifService.findById(id).getIln();
-        } else {
-            iln = demandeRecouvService.findById(id).getIln();
-        }
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        String iln = service.findById(id).getIln();
+
         if (!iln.equals(utilisateurService.findById(Integer.parseInt(userNum)).getIln())
                 // iln 1 can access to all
                 && !utilisateurService.findById(Integer.parseInt(userNum)).getIln().equals("1")) {

@@ -1,16 +1,13 @@
 package fr.abes.item.web.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeExemp;
-import fr.abes.item.core.entities.item.DemandeModif;
-import fr.abes.item.core.entities.item.DemandeRecouv;
-import fr.abes.item.core.service.JournalService;
-import fr.abes.item.core.service.ReferenceService;
-import fr.abes.item.core.service.TraitementService;
-import fr.abes.item.core.service.UtilisateurService;
-import fr.abes.item.core.service.impl.*;
-import fr.abes.item.core.utilitaire.UtilsMapper;
+import fr.abes.item.core.configuration.factory.StrategyFactory;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.service.impl.DemandeExempService;
+import fr.abes.item.core.service.impl.LigneFichierExempService;
+import fr.abes.item.dto.DtoBuilder;
 import fr.abes.item.exception.RestResponseEntityExceptionHandler;
 import fr.abes.item.security.CheckAccessToServices;
 import fr.abes.item.web.DemandeRestService;
@@ -22,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,13 +27,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = {DemandeRestService.class, UtilsMapper.class})
+@SpringBootTest(classes = {DemandeRestService.class, StrategyFactory.class, DtoBuilder.class, ObjectMapper.class})
 @ExtendWith({SpringExtension.class})
 class DemandeRestServiceTest {
     @Autowired
@@ -47,53 +46,40 @@ class DemandeRestServiceTest {
     @MockBean
     DemandeExempService demandeExempService;
     @MockBean
-    DemandeRecouvService demandeRecouvService;
-    @MockBean
-    DemandeModifService demandeModifService;
-    @MockBean
     LigneFichierExempService ligneFichierExempService;
-    @MockBean
-    LigneFichierModifService ligneFichierModifService;
-    @MockBean
-    LigneFichierRecouvService ligneFichierRecouvService;
-    @MockBean
-    ReferenceService referenceService;
-    @MockBean
-    JournalService journalService;
-    @MockBean
-    UtilisateurService utilisateurService;
-    @MockBean
-    TraitementService traitementService;
     @MockBean
     CheckAccessToServices checkAccessToServices;
     @Autowired
-    UtilsMapper mapper;
+    StrategyFactory strategy;
+    @Autowired
+    DtoBuilder builder;
+    @Autowired
+    ObjectMapper mapper;
 
     List<Demande> demandeExemps = new ArrayList<>();
-    List<Demande> demandeModifs = new ArrayList<>();
-    List<Demande> demandeRecouvs = new ArrayList<>();
     MockMvc mockMvc;
+
     @BeforeEach
     void init() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(context.getBean(DemandeRestService.class)).setControllerAdvice(new RestResponseEntityExceptionHandler()).build();
+        Calendar cal = Calendar.getInstance();
         DemandeExemp demande1 = new DemandeExemp(1);
+        cal.set(2024, Calendar.APRIL, 15);
+        demande1.setDateCreation(cal.getTime());
+        cal.set(2024, Calendar.MARCH, 20);
+        demande1.setDateModification(cal.getTime());
         demande1.setRcr("111111111");
+        demande1.setIndexRecherche(new IndexRecherche(1, "PPN"));
         DemandeExemp demande2 = new DemandeExemp(2);
         demande2.setRcr("222222222");
+        demande2.setTypeExemp(new TypeExemp(1, "Monographies"));
+        cal.set(2024, Calendar.APRIL, 15);
+        demande2.setDateCreation(cal.getTime());
+        cal.set(2024, Calendar.MARCH, 20);
+        demande2.setDateModification(cal.getTime());
         demandeExemps.addAll(Lists.newArrayList(demande1, demande2));
-
-        DemandeModif demande3 = new DemandeModif(3);
-        demande3.setRcr("3333333333");
-        DemandeModif demande4 = new DemandeModif(4);
-        demande4.setRcr("4444444444");
-        demandeModifs.addAll(Lists.newArrayList(demande3, demande4));
-
-        DemandeRecouv demande5 = new DemandeRecouv(5);
-        demande5.setRcr("555555555");
-        DemandeRecouv demande6 = new DemandeRecouv(6);
-        demande6.setRcr("666666666");
-        demandeRecouvs.addAll(Lists.newArrayList(demande5, demande6));
     }
+
     @Test
     @WithMockUser(authorities = {"ADMIN"})
     void testGetAllActiveDemandes() throws Exception {
@@ -102,24 +88,11 @@ class DemandeRestServiceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
+                .andExpect(jsonPath("$[0].indexRecherche").value("PPN"))
                 .andExpect(jsonPath("$[1].id").value("2"))
-                .andExpect(jsonPath("$[1].rcr").value("222222222"));
+                .andExpect(jsonPath("$[1].rcr").value("222222222"))
+                .andExpect(jsonPath("$[1].typeExemp").value("Monographies"));
 
-        Mockito.when(demandeModifService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeModifs);
-        this.mockMvc.perform(get("/api/v1/demandes?type=MODIF&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("3"))
-                .andExpect(jsonPath("$[0].rcr").value("3333333333"))
-                .andExpect(jsonPath("$[1].id").value("4"))
-                .andExpect(jsonPath("$[1].rcr").value("4444444444"));
-
-        Mockito.when(demandeRecouvService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeRecouvs);
-        this.mockMvc.perform(get("/api/v1/demandes?type=RECOUV&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("5"))
-                .andExpect(jsonPath("$[0].rcr").value("555555555"))
-                .andExpect(jsonPath("$[1].id").value("6"))
-                .andExpect(jsonPath("$[1].rcr").value("666666666"));
 
         Mockito.when(demandeExempService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeExemps);
         this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&extension=false").requestAttr("iln", "1"))
@@ -128,22 +101,6 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
                 .andExpect(jsonPath("$[1].id").value("2"))
                 .andExpect(jsonPath("$[1].rcr").value("222222222"));
-
-        Mockito.when(demandeModifService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeModifs);
-        this.mockMvc.perform(get("/api/v1/demandes?type=MODIF&extension=false").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("3"))
-                .andExpect(jsonPath("$[0].rcr").value("3333333333"))
-                .andExpect(jsonPath("$[1].id").value("4"))
-                .andExpect(jsonPath("$[1].rcr").value("4444444444"));
-
-        Mockito.when(demandeRecouvService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeRecouvs);
-        this.mockMvc.perform(get("/api/v1/demandes?type=RECOUV&extension=false").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("5"))
-                .andExpect(jsonPath("$[0].rcr").value("555555555"))
-                .andExpect(jsonPath("$[1].id").value("6"))
-                .andExpect(jsonPath("$[1].rcr").value("666666666"));
     }
 
     @Test
@@ -156,22 +113,6 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
                 .andExpect(jsonPath("$[1].id").value("2"))
                 .andExpect(jsonPath("$[1].rcr").value("222222222"));
-
-        Mockito.when(demandeModifService.getActiveDemandesForUser("1")).thenReturn(this.demandeModifs);
-        this.mockMvc.perform(get("/api/v1/chercherDemandes?type=MODIF&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("3"))
-                .andExpect(jsonPath("$[0].rcr").value("3333333333"))
-                .andExpect(jsonPath("$[1].id").value("4"))
-                .andExpect(jsonPath("$[1].rcr").value("4444444444"));
-
-        Mockito.when(demandeRecouvService.getActiveDemandesForUser("1")).thenReturn(this.demandeRecouvs);
-        this.mockMvc.perform(get("/api/v1/chercherDemandes?type=RECOUV&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("5"))
-                .andExpect(jsonPath("$[0].rcr").value("555555555"))
-                .andExpect(jsonPath("$[1].id").value("6"))
-                .andExpect(jsonPath("$[1].rcr").value("666666666"));
     }
 
     @Test
@@ -185,22 +126,6 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$[1].id").value("2"))
                 .andExpect(jsonPath("$[1].rcr").value("222222222"));
 
-        Mockito.when(demandeModifService.getAllArchivedDemandesAllIln()).thenReturn(this.demandeModifs);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=MODIF&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("3"))
-                .andExpect(jsonPath("$[0].rcr").value("3333333333"))
-                .andExpect(jsonPath("$[1].id").value("4"))
-                .andExpect(jsonPath("$[1].rcr").value("4444444444"));
-
-        Mockito.when(demandeRecouvService.getAllArchivedDemandesAllIln()).thenReturn(this.demandeRecouvs);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=RECOUV&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("5"))
-                .andExpect(jsonPath("$[0].rcr").value("555555555"))
-                .andExpect(jsonPath("$[1].id").value("6"))
-                .andExpect(jsonPath("$[1].rcr").value("666666666"));
-
         Mockito.when(demandeExempService.getAllArchivedDemandes("1")).thenReturn(this.demandeExemps);
         this.mockMvc.perform(get("/api/v1/chercherArchives?type=EXEMP&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
@@ -208,57 +133,147 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
                 .andExpect(jsonPath("$[1].id").value("2"))
                 .andExpect(jsonPath("$[1].rcr").value("222222222"));
-
-        Mockito.when(demandeModifService.getAllArchivedDemandes("1")).thenReturn(this.demandeModifs);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=MODIF&extension=false").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("3"))
-                .andExpect(jsonPath("$[0].rcr").value("3333333333"))
-                .andExpect(jsonPath("$[1].id").value("4"))
-                .andExpect(jsonPath("$[1].rcr").value("4444444444"));
-
-        Mockito.when(demandeRecouvService.getAllArchivedDemandes("1")).thenReturn(this.demandeRecouvs);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=RECOUV&extension=false").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("5"))
-                .andExpect(jsonPath("$[0].rcr").value("555555555"))
-                .andExpect(jsonPath("$[1].id").value("6"))
-                .andExpect(jsonPath("$[1].rcr").value("666666666"));
     }
 
     @Test
     @WithMockUser(authorities = {"USER"})
-    void testGetDemande1() throws Exception {
-        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1");
-
+    void testGetDemande() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         this.mockMvc.perform(get("/api/v1/demandes/1?type=EXEMP").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("111111111"))
+                .andExpect(jsonPath("$.indexRecherche").value("PPN"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testCreerDemande() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
+        Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demande);
+        this.mockMvc.perform(get("/api/v1/creerdemande?type=EXEMP&rcr=341720001").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("341720001"))
+                .andExpect(jsonPath("$.etatDemande").value("A compléter"));
+
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testSupprimer() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.doNothing().when(demandeExempService).deleteById(Mockito.anyInt());
+        this.mockMvc.perform(delete("/api/v1/demandes/1?type=EXEMP").requestAttr("userNum", "1"))
+                .andExpect(status().isOk());
+    }
+
+   /* @Test
+    @WithMockUser
+    void testSave() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1");
+        DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
+        Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demande);
+        this.mockMvc.perform(put("/api/v1/demandes/1?type=EXEMP").requestAttr("userNum", "1").content(mapper.writeValueAsString(demande))
+                .contentType(MediaType.APPLICATION_JSON_VALUE).characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("341720001"))
+                .andExpect(jsonPath("$.etatDemande").value("A compléter"));
+    }*/
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testUpload() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        MockMultipartFile file = new MockMultipartFile("file", "filename.txt", "text/plain", "data".getBytes());
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
+        Mockito.when(demandeExempService.findById(1)).thenReturn(demande);
+        Mockito.doNothing().when(demandeExempService).initFiles(Mockito.any());
+        Mockito.when(demandeExempService.stockerFichier(Mockito.any(), Mockito.any())).thenReturn("Fichier déposé");
+        this.mockMvc.perform(multipart("/api/v1/uploadDemande").file(file).param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value("Fichier déposé"));
+    }
+
+    @Test
+    void testSimulerLigne() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(ligneFichierExempService.getLigneFichierbyDemandeEtPos(Mockito.any(), Mockito.anyInt())).thenReturn(new LigneFichierExemp());
+        Mockito.when(demandeExempService.getNoticeExemplaireAvantApres(Mockito.any(), Mockito.any())).thenReturn(new String[]{"avant", "après"});
+        this.mockMvc.perform(get("/api/v1/simulerLigne").param("type", "EXEMP").param("numDemande", "1").param("numLigne", "1").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0]").value("avant"))
+                .andExpect(jsonPath("$.[1]").value("après"));
+    }
+
+    @Test
+    void testPasserEnAttente() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        demande.setEtatDemande(new EtatDemande(3, "En attente"));
+        Mockito.when(demandeExempService.changeState(Mockito.any(), Mockito.anyInt())).thenReturn(demande);
+        this.mockMvc.perform(get("/api/v1/passerEnAttente").param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.etatDemande").value("En attente"))
                 .andExpect(jsonPath("$.rcr").value("111111111"));
     }
 
     @Test
-    @WithMockUser(authorities = {"USER"})
-    void testGetDemande2() throws Exception {
-        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(3, "1");
-
-        Mockito.when(demandeModifService.findById(3)).thenReturn((DemandeModif) this.demandeModifs.get(0));
-        this.mockMvc.perform(get("/api/v1/demandes/3?type=MODIF").requestAttr("userNum", "1"))
+    void testArchiver() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        demande.setEtatDemande(new EtatDemande(7, "Archivée"));
+        Mockito.when(demandeExempService.archiverDemande(Mockito.any())).thenReturn(demande);
+        this.mockMvc.perform(get("/api/v1/archiverDemande").param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("3"))
-                .andExpect(jsonPath("$.rcr").value("333333333"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.etatDemande").value("Archivée"))
+                .andExpect(jsonPath("$.rcr").value("111111111"));
     }
 
     @Test
-    @WithMockUser(authorities = {"USER"})
-    void testGetDemande3() throws Exception {
-        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(5, "1");
-
-        Mockito.when(demandeRecouvService.findById(5)).thenReturn((DemandeRecouv) this.demandeRecouvs.get(0));
-        this.mockMvc.perform(get("/api/v1/demandes/5?type=RECOUV").requestAttr("userNum", "1"))
+    void testPreviousStep() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        demande.setEtatDemande(new EtatDemande(3, "En attente"));
+        Mockito.when(demandeExempService.previousState(Mockito.any())).thenReturn(demande);
+        this.mockMvc.perform(get("/api/v1/etapePrecedente/1").param("type", "EXEMP").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("5"))
-                .andExpect(jsonPath("$.rcr").value("555555555"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.etatDemande").value("En attente"))
+                .andExpect(jsonPath("$.rcr").value("111111111"));
+    }
+
+    @Test
+    void testChosenStep() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        demande.setEtatDemande(new EtatDemande(3, "En attente"));
+        Mockito.when(demandeExempService.returnState(Mockito.anyInt(), Mockito.any())).thenReturn(demande);
+        this.mockMvc.perform(get("/api/v1/etapeChoisie/1").param("type", "EXEMP").param("etape", "3").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.etatDemande").value("En attente"))
+                .andExpect(jsonPath("$.rcr").value("111111111"));
+    }
+
+    @Test
+    void testGetNbLigneFichier() throws Exception {
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.findById(Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(ligneFichierExempService.getNbLigneFichierTotalByDemande(Mockito.any())).thenReturn(30);
+        this.mockMvc.perform(get("/api/v1/getNbLigneFichier/1").param("type", "EXEMP").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(30));
     }
 }

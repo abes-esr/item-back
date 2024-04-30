@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 @Service
 @ToString
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.EXEMP})
-public class DemandeExempService extends DemandeService implements IDemandeExempService {
+public class DemandeExempService extends DemandeService implements IDemandeService {
     private FichierEnrichiExemp fichierEnrichiExemp;
 
     private final IDemandeExempDao demandeExempDao;
@@ -55,6 +55,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     private final JournalService journalService;
 
     private final TraitementService traitementService;
+    private final UtilisateurService utilisateurService;
 
     private final IZonesAutoriseesDao zonesAutoriseesDao;
 
@@ -72,7 +73,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     @Getter
     private int nbReponses;
 
-    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
+    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, UtilisateurService utilisateurService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
         super(libProfileDao);
         this.demandeExempDao = demandeExempDao;
         this.storageService = storageService;
@@ -80,6 +81,7 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         this.referenceService = referenceService;
         this.journalService = journalService;
         this.traitementService = traitementService;
+        this.utilisateurService = utilisateurService;
         this.zonesAutoriseesDao = zonesAutoriseesDao;
         this.ligneFichierExempDao = ligneFichierExempDao;
     }
@@ -108,7 +110,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         return demandeList;
     }
 
-    @Override
     public String getLibelleTypeExempDemande(Integer idDemande) {
         return demandeExempDao.getTypeExemp(idDemande).getLibelle();
     }
@@ -147,7 +148,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
         return listeDemande;
     }
 
-    @Override
     public boolean hasDonneeLocaleExistante() {
         return !donneeLocaleExistante.isEmpty();
     }
@@ -159,7 +159,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param typeExempId valeur du type d'exemplarisation
      * @return la demande modifiée
      */
-    @Override
     public DemandeExemp majTypeExemp(Integer demandeId, Integer typeExempId) {
         Optional<DemandeExemp> demandeExemp = demandeExempDao.findById(demandeId);
         TypeExemp typeExemp = referenceService.findTypeExempById(typeExempId);
@@ -373,12 +372,15 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     /**
      * Méthode permettant d'interroger le Sudoc, de créer un exemplaire et de le retourner pour la simulation
      *
-     * @param demande      demande d'exemplarisation concernée
-     * @param ligneFichier ligneFichier à traiter
+     * @param demandeExemp      demande d'exemplarisation concernée
+     * @param ligneFichierExemp ligneFichier à traiter
      * @return la chaine de l'exemplaire construit, ou message d'erreur
      */
-    public String[] getNoticeExemplaireAvantApres(DemandeExemp demande, LigneFichierExemp ligneFichier) throws CBSException, IOException {
+    @Override
+    public String[] getNoticeExemplaireAvantApres(Demande demandeExemp, LigneFichier ligneFichierExemp) throws CBSException, IOException {
         try {
+            DemandeExemp demande = (DemandeExemp) demandeExemp;
+            LigneFichierExemp ligneFichier = (LigneFichierExemp) ligneFichierExemp;
             traitementService.authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
             //Retourne le tableau exemplaires existants / Exemplaire à créer
@@ -405,7 +407,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param valeurs : tableau des valeurs des index de recherche
      * @return le numéro du prochain exemplaire à créer dans la notice au format "xx"
      */
-    @Override
     public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException {
         String[] tabvaleurs = valeurs.split(";");
         String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
@@ -502,9 +503,11 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
     }
 
     @Override
-    public DemandeExemp creerDemande(String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
-        DemandeExemp demandeExemp = new DemandeExemp(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
+    public DemandeExemp creerDemande(String rcr, Integer userNum) {
+        Calendar calendar = Calendar.getInstance();
+        DemandeExemp demandeExemp = new DemandeExemp(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
         demandeExemp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
+        journalService.addEntreeJournal(demandeExemp, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
         return demandeExemp;
     }
 
@@ -515,7 +518,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param valeurZones : chaine contenant les valeurs des zones à créer (séparées par des ;)
      * @return l'exemplaire sous forme de chaine
      */
-    @Override
     public String creerExemplaireFromHeaderEtValeur(String header, String valeurZones, String rcr, String numExemp) throws CBSException, ZoneException {
         String[] listeHeader = header.split(";");
         String[] listeValeur = valeurZones.split(";");
@@ -642,7 +644,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param valeurZones : valeurs des zones à ajouter dans les données locales
      * @return les données locales de la notice
      */
-    @Override
     public String creerDonneesLocalesFromHeaderEtValeur(String header, String valeurZones) throws ZoneException {
         String[] listeHeader = header.split(";");
         String[] listeValeur = valeurZones.split(";");
@@ -705,7 +706,6 @@ public class DemandeExempService extends DemandeService implements IDemandeExemp
      * @param valeur    tableau des valeurs utilisées pour construire la requête
      * @return requête che prête à être lancée vers le CBS
      */
-    @Override
     public String getQueryToSudoc(String codeIndex, String typeExemp, String[] valeur) throws QueryToSudocException {
         switch (typeExemp) {
             case "Monographies électroniques":

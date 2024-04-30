@@ -47,6 +47,10 @@ public class DemandeExemp extends Demande{
         super(rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
     }
 
+    public DemandeExemp(Integer id, String rcr, Date dateCreation, Date dateModification, EtatDemande etatDemande, String commentaire, Utilisateur utilisateur) {
+        super(id, rcr, dateCreation, dateModification, etatDemande, commentaire, utilisateur);
+    }
+
     public TYPE_DEMANDE getTypeDemande() {
         return TYPE_DEMANDE.EXEMP;
     }

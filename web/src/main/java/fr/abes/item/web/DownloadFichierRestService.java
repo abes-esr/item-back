@@ -1,5 +1,6 @@
 package fr.abes.item.web;
 
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.exception.ForbiddenException;
 import fr.abes.item.core.exception.UserExistException;
 import fr.abes.item.core.service.FileSystemStorageService;
@@ -32,15 +33,15 @@ public class DownloadFichierRestService {
 	 * Webservice de téléchargement d'un fichier en fonction d'une demande
 	 * @param filename : nom du fichier à télécharger
 	 * @param numDemande : numéro de la demande concernée
-	 * @return : Resource correspondant au fichier à télécharger
+	 * @param type : type de la demande concernée
+	 * @return : Ressource correspondant au fichier à télécharger
 	 */
 	@GetMapping(value="/files/{filename:.+}")
-	@Operation(summary = "permet de récupérer les fichiers relatifs à une demandeModif")
+	@Operation(summary = "permet de récupérer les fichiers relatifs à une demande")
 	public ResponseEntity<Resource> downloadFile(
-			@PathVariable("filename") String filename, @RequestParam("id") Integer numDemande, HttpServletRequest request
+			@PathVariable("filename") String filename, @RequestParam("id") Integer numDemande, TYPE_DEMANDE type, HttpServletRequest request
 	) throws UserExistException, ForbiddenException {
-
-		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString());
+		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString(), type);
 
 		if (numDemande != null && numDemande != 0) {
 			storageService.changePath(Paths.get(uploadPath + numDemande));
