@@ -1,7 +1,5 @@
 package fr.abes.item.core.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.components.Fichier;
 import fr.abes.item.core.components.FichierEnrichiRecouv;
 import fr.abes.item.core.configuration.factory.FichierFactory;
@@ -161,7 +159,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) {
         return new String[]{"Simulation impossible pour le recouvrement", ""};
     }
 
@@ -286,37 +284,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         String query = getQueryToSudoc(codeIndex, tabvaleurs);
         traitementService.getCbs().search(query);
         return traitementService.getCbs().getNbNotices();
-    }
-
-    public String getInfoFooterFichierResultat(Demande demande) {
-        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        int nbRechercheTotal = ligneFichierService.getNbLigneFichierTotalByDemande(demandeRecouv);
-        int nbNoticesTrouvees = ligneFichierService.getNbReponseTrouveesByDemande(demandeRecouv);
-        int nbZeroReponse = ligneFichierService.getNbZeroReponseByDemande(demandeRecouv);
-        int nbUneReponse = ligneFichierService.getNbUneReponseByDemande(demandeRecouv);
-        int nbReponseMultiple = ligneFichierService.getNbReponseMultipleByDemande(demandeRecouv);
-
-        return System.lineSeparator() + nbNoticesTrouvees + " notices trouvées sur " +
-                nbRechercheTotal +
-                System.lineSeparator() +
-                System.lineSeparator() +
-                "Nb de 1 réponse : " +
-                nbUneReponse +
-                " | Nb sans réponse : " +
-                nbZeroReponse +
-                " | Nb plusieurs réponses : " +
-                nbReponseMultiple +
-                System.lineSeparator() +
-                System.lineSeparator() +
-                "Taux de recouvrement : " +
-                (nbNoticesTrouvees / nbRechercheTotal) * 100 +
-                "% Taux de création d'exemplaires : " +
-                (nbUneReponse / nbRechercheTotal) * 100 +
-                "%" +
-                System.lineSeparator() +
-                System.lineSeparator() +
-                "Fin du recouvrement : " +
-                Calendar.getInstance().getTime();
     }
 
     /**

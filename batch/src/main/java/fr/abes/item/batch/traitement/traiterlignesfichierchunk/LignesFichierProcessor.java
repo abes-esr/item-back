@@ -114,7 +114,6 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      *
      * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement d'exemplarisation
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws QueryToSudocException 0 ou plus de 1 résultat à la requête che
      * @throws CBSException  : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
      * @throws IOException : erreur de communication avec le CBS

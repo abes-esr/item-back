@@ -45,20 +45,13 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     private FichierEnrichiExemp fichierEnrichiExemp;
 
     private final IDemandeExempDao demandeExempDao;
-
     private final FileSystemStorageService storageService;
-
     private final ILigneFichierService ligneFichierService;
-
     private final ReferenceService referenceService;
-
     private final JournalService journalService;
-
     private final TraitementService traitementService;
     private final UtilisateurService utilisateurService;
-
     private final IZonesAutoriseesDao zonesAutoriseesDao;
-
     private final ILigneFichierExempDao ligneFichierExempDao;
 
     @Value("${files.upload.path}")

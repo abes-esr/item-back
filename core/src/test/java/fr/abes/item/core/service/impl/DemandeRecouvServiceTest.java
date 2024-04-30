@@ -5,9 +5,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeRecouvDao;
 import fr.abes.item.core.repository.item.ILigneFichierRecouvDao;
 import fr.abes.item.core.service.FileSystemStorageService;
-import fr.abes.item.core.service.ILigneFichierService;
 import fr.abes.item.core.service.ReferenceService;
 import fr.abes.item.core.service.TraitementService;
+import fr.abes.item.core.service.UtilisateurService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +28,9 @@ class DemandeRecouvServiceTest {
     @MockBean
     TraitementService traitementService;
     @MockBean
-    ILigneFichierService ligneFichierRecouvService;
+    LigneFichierRecouvService ligneFichierRecouvService;
+    @MockBean
+    UtilisateurService utilisateurService;
     @MockBean
     ILibProfileDao libProfileDao;
     @Test

@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Test Couche service / traitement")
 @SpringBootTest(classes = {TraitementService.class})
-public class TestTraitementService {
+public class TraitementServiceTest {
     @Autowired
     TraitementService tManager;
     @MockBean

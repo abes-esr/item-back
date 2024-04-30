@@ -39,10 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DemandeRestServiceTest {
     @Autowired
     WebApplicationContext context;
-
     @InjectMocks
     DemandeRestService controller;
-
     @MockBean
     DemandeExempService demandeExempService;
     @MockBean
