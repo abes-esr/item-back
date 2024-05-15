@@ -32,12 +32,15 @@ public class DemandeModifWebDto extends DemandeWebDto {
         String dateModification = format.format(demande.getDateModification());
         this.id = demande.getId();
         this.rcr = demande.getRcr();
-        this.etatDemande = demande.getEtatDemande().getLibelle();
+        this.iln = demande.getIln();
+        if (demande.getEtatDemande() != null)
+            this.etatDemande = demande.getEtatDemande().getLibelle();
         this.commentaire = demande.getCommentaire();
         this.pourcentageProgressionTraitement = demande.getPourcentageProgressionTraitement();
         this.dateCreation = dateCreation;
         this.dateModification = dateModification;
         this.zoneEtSousZone = demande.getZone() + " " + demande.getSousZone();
-        this.traitement = demande.getTraitement().getLibelle();
+        if (demande.getTraitement() != null)
+            this.traitement = demande.getTraitement().getLibelle();
     }
 }
