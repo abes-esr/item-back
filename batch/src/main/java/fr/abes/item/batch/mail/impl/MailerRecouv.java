@@ -2,10 +2,11 @@ package fr.abes.item.batch.mail.impl;
 
 import fr.abes.item.batch.mail.IMailer;
 import fr.abes.item.core.configuration.factory.Strategy;
+import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.service.impl.LigneFichierRecouvService;
+import fr.abes.item.core.service.ILigneFichierService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 
@@ -18,11 +19,11 @@ import java.time.LocalDateTime;
 public class MailerRecouv extends Mailer implements IMailer {
 
     private final Environment env;
-    private final LigneFichierRecouvService service;
+    private final StrategyFactory strategy;
 
-    public MailerRecouv(Environment env, LigneFichierRecouvService service) {
+    public MailerRecouv(Environment env, StrategyFactory strategy) {
         this.env = env;
-        this.service = service;
+        this.strategy = strategy;
     }
 
     /**
@@ -42,6 +43,7 @@ public class MailerRecouv extends Mailer implements IMailer {
     @Override
     public void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin) {
         int numDemande = demande.getId();
+        ILigneFichierService service = strategy.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.RECOUV);
         int nbRechercheTotal = service.getNbLigneFichierTotalByDemande(demande);
         int nbNoticesTrouvees = service.getNbReponseTrouveesByDemande(demande);
         int nbZeroReponse = service.getNbZeroReponseByDemande(demande);

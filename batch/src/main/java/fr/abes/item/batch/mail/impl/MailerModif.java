@@ -2,10 +2,11 @@ package fr.abes.item.batch.mail.impl;
 
 import fr.abes.item.batch.mail.IMailer;
 import fr.abes.item.core.configuration.factory.Strategy;
+import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.service.impl.LigneFichierModifService;
+import fr.abes.item.core.service.ILigneFichierService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,10 @@ import java.time.LocalDateTime;
 public class MailerModif extends Mailer implements IMailer {
     private final Environment env;
 
-    private final LigneFichierModifService service;
-    public MailerModif(Environment env, LigneFichierModifService service) {
+    private final StrategyFactory strategy;
+    public MailerModif(Environment env, StrategyFactory strategy) {
         this.env = env;
-        this.service = service;
+        this.strategy = strategy;
     }
 
     /**
@@ -42,6 +43,7 @@ public class MailerModif extends Mailer implements IMailer {
     @Override
     public void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin) {
         int numDemande = demande.getId();
+        ILigneFichierService service = strategy.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.MODIF);
         String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_MODIFICATION_START + numDemande + " terminée - ILN " + demande.getIln(),
                 "Bonjour,<br />Votre demande " + numDemande + " de modification d'exemplaires a bien été traitée.<br />" +
                         "Nombre d'exemplaires traités : " + service.getNbLigneFichierTraiteeByDemande(demande) + Constant.HTML_BALISE_BR +

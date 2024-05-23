@@ -3,11 +3,12 @@ package fr.abes.item.batch.mail.impl;
 
 import fr.abes.item.batch.mail.IMailer;
 import fr.abes.item.core.configuration.factory.Strategy;
+import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeExemp;
-import fr.abes.item.core.service.impl.LigneFichierExempService;
+import fr.abes.item.core.service.ILigneFichierService;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +22,11 @@ public class MailerExemp extends Mailer implements IMailer {
 
     private final Environment env;
 
-    private final LigneFichierExempService service;
+    private final StrategyFactory strategy;
 
-    public MailerExemp(Environment env, LigneFichierExempService ligneFichierExempService) {
+    public MailerExemp(Environment env, StrategyFactory strategy) {
         this.env = env;
-        this.service = ligneFichierExempService;
+        this.strategy = strategy;
     }
 
     /**
@@ -46,6 +47,7 @@ public class MailerExemp extends Mailer implements IMailer {
     @Override
     public void mailFinTraitement(String mailDestinataire, Demande demande, File f, LocalDateTime dateDebut, LocalDateTime dateFin) {
         DecimalFormat df = new DecimalFormat("0.00");
+        ILigneFichierService service = strategy.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.EXEMP);
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         int nbExempCree = service.getNbLigneFichierSuccessByDemande(demandeExemp);
         int nbRechercheTotal = service.getNbLigneFichierTotalByDemande(demandeExemp);
