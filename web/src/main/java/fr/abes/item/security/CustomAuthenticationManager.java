@@ -65,6 +65,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             } else {
                 authorities = Collections.emptyList();
             }
+            u.setAuthorities(authorities);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(u, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
             authenticationEventPublisher.publishAuthenticationSuccess(auth);

@@ -18,6 +18,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -50,44 +53,25 @@ public class DemandeRestService {
      * @return Une liste de demandes
      */
     @GetMapping(value = "/demandes")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @Operation(summary = "renvoie les demandes pour les administrateurs",
-            description = "renvoie les demande terminées et en erreur de tout le monde et toutes les demandeModifs créées par cet iln")
-    public List<DemandeWebDto> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("extension") boolean extension, HttpServletRequest request) {
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    @Operation(summary = "renvoie les demandes en fonction du rôle de l'utilisateur",
+            description = "renvoie les demande terminées et en erreur de tout le monde et toutes les demande créées par cet iln")
+    public List<DemandeWebDto> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("archive") boolean archive, @RequestParam("extension") boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
-        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
-    }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = ((UserDetails)authentication.getPrincipal()).getAuthorities().stream().findFirst().get().toString();
 
-    /**
-     * Webservice : retour de l'ensemble des demandes pour un utilisateur
-     *
-     * @return liste des demandeModifs non archivées de l'utilisateur
-     */
-    @GetMapping(value = "/chercherDemandes")
-    @PreAuthorize("hasAuthority('USER')")
-    @Operation(summary = "renvoie les demandes de modif pour ce usernum",
-            description = "renvoie toutes les demandes créées par cet iln")
-    public List<DemandeWebDto> chercher(@RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) {
-        String iln = request.getAttribute("iln").toString();
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
-    }
-
-    /**
-     * Webservices : retour des demandes archivées
-     *
-     * @param type type de demande concernée par le webservice
-     * @return liste des demandes archivées de l'utilisateur
-     */
-    @GetMapping(value = "/chercherArchives")
-    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    @Operation(summary = "renvoie les demandes archivées pour cet iln",
-            description = "renvoie les demandeModifs archivées créées par cet iln")
-    public List<DemandeWebDto> getAllArchivedDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("extension") boolean extension, HttpServletRequest request) {
-        String iln = request.getAttribute("iln").toString();
-        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+        if (role.equals("ADMIN")) {
+            if (archive) {
+                return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+            }
+            else {
+                return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+            }
+        }
+        //role USER
+        return (archive) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
     }
 
     /**

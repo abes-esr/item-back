@@ -13,7 +13,6 @@ import fr.abes.item.security.CheckAccessToServices;
 import fr.abes.item.web.DemandeRestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -35,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = {DemandeRestService.class, StrategyFactory.class, DtoBuilder.class, ObjectMapper.class})
-@ExtendWith({SpringExtension.class})
 class DemandeRestServiceTest {
     @Autowired
     WebApplicationContext context;
@@ -55,6 +52,7 @@ class DemandeRestServiceTest {
     ObjectMapper mapper;
 
     List<Demande> demandeExemps = new ArrayList<>();
+
     MockMvc mockMvc;
 
     @BeforeEach
@@ -80,9 +78,9 @@ class DemandeRestServiceTest {
 
     @Test
     @WithMockUser(authorities = {"ADMIN"})
-    void testGetAllActiveDemandes() throws Exception {
+    void testGetAllActiveDemandesForAdmin() throws Exception {
         Mockito.when(demandeExempService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&extension=true").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -91,9 +89,13 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$[1].rcr").value("222222222"))
                 .andExpect(jsonPath("$[1].typeExemp").value("Monographies"));
 
+    }
 
+    @Test
+    @WithMockUser(authorities = {"ADMIN"})
+    void testGetAllActiveDemandesForAdminExtender() throws Exception {
         Mockito.when(demandeExempService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&extension=false").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -105,7 +107,19 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testChercher() throws Exception {
         Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/chercherDemandes?type=EXEMP&extension=true").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("1"))
+                .andExpect(jsonPath("$[0].rcr").value("111111111"))
+                .andExpect(jsonPath("$[1].id").value("2"))
+                .andExpect(jsonPath("$[1].rcr").value("222222222"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testGetAllArtiveDemandes() throws Exception {
+        Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
+        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -116,16 +130,8 @@ class DemandeRestServiceTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void testGetAllArchivedDemandes() throws Exception {
-        Mockito.when(demandeExempService.getAllArchivedDemandesAllIln()).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=EXEMP&extension=true").requestAttr("iln", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("1"))
-                .andExpect(jsonPath("$[0].rcr").value("111111111"))
-                .andExpect(jsonPath("$[1].id").value("2"))
-                .andExpect(jsonPath("$[1].rcr").value("222222222"));
-
         Mockito.when(demandeExempService.getAllArchivedDemandes("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/chercherArchives?type=EXEMP&extension=false").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=true&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
