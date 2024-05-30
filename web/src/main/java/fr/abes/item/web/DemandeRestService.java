@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO : vérifier les autorisations sur les accès controller : fait en partie
 @Slf4j
 @RestController
 @RequestMapping("/api/v1")
@@ -82,6 +81,7 @@ public class DemandeRestService {
      * @return demandeModif correspondant à la recherche
      */
     @GetMapping(value = "/demandes/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "renvoie une demande précise")
     public DemandeWebDto getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
@@ -97,6 +97,7 @@ public class DemandeRestService {
      * @return : la demandé modifiée
      */
     @GetMapping(value = "/creerdemande")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande de  modif pour un rcr donné")
     public DemandeWebDto save(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
@@ -113,6 +114,7 @@ public class DemandeRestService {
      * @param id   : identifiant de la demandeModif à supprimer
      */
     @DeleteMapping(value = "/demandes/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande")
     public void supprimer(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
@@ -121,6 +123,7 @@ public class DemandeRestService {
     }
 
     @GetMapping(value = "/supprimerDemande")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
     public DemandeWebDto supprimerAvecConservationEnBase(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
@@ -142,8 +145,8 @@ public class DemandeRestService {
      * @return : la demandeModif modifiée
      */
     @PutMapping(value = "/demandes/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande")
-    @SuppressWarnings("squid:S4684")
     public DemandeWebDto save(@PathVariable("id") Integer id, @RequestParam("dem") Demande dem, @RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) throws UserExistException, ForbiddenException {
         //TODO : a revoir, ne devrait pas recevoir un objet entier en requestParam
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
@@ -154,6 +157,7 @@ public class DemandeRestService {
 
 
     @GetMapping(value = "/getTypeExemplarisationDemande/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permer de récupérer le type d'exemplarisation choisi pour une demande")
     public String getTypeExemplarisationDemande(@PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.EXEMP);
@@ -180,6 +184,7 @@ public class DemandeRestService {
      * @throws FileCheckingException erreur dans la vérification du fichier
      */
     @PostMapping("/uploadDemande")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de charger le fichier pour une demande")
     public String uploadDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("file") MultipartFile file, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request)
             throws FileTypeException, FileCheckingException, DemandeCheckingException, IOException, UserExistException, ForbiddenException {
@@ -203,6 +208,7 @@ public class DemandeRestService {
      * @return : tableau contenant les notices avant et après simulation
      */
     @GetMapping("/simulerLigne")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de simuler la modification d'un exemplaire", description = "pour un exemplaire donné du fichier enrichi, renvoie un tableau contenant la notice avant et après modification")
     public String[] simulerLigne(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, @RequestParam("numLigne") Integer numLigne, HttpServletRequest request)
             throws CBSException, UserExistException, ForbiddenException, ZoneException {
@@ -230,6 +236,7 @@ public class DemandeRestService {
      * @throws ForbiddenException       : erreur d'accès à la méthode
      */
     @GetMapping("/passerEnAttente")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de modifier le statut de la demande pour la passer à : en attente")
     public DemandeWebDto passerEnAttente(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
@@ -249,6 +256,7 @@ public class DemandeRestService {
      * @throws ForbiddenException       controle d'accès échoué
      */
     @GetMapping("/archiverDemande")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de passer la demande en statut archivé")
     public DemandeWebDto archiverDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
@@ -270,6 +278,7 @@ public class DemandeRestService {
      * @throws ForbiddenException       controle d'accès échoué
      */
     @GetMapping("/etapePrecedente/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à l'étape précédente dans le workflow de création d'une demande")
     public DemandeWebDto previousStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
             DemandeCheckingException, IOException, UserExistException, ForbiddenException {
@@ -288,6 +297,7 @@ public class DemandeRestService {
      * @throws ForbiddenException       controle d'accès échoué
      */
     @GetMapping("/etapeChoisie/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à une étape bien précise dans le workflow de création d'une demande")
     public DemandeWebDto chosenStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
@@ -307,6 +317,7 @@ public class DemandeRestService {
      * @throws ForbiddenException controle d'accès échoué
      */
     @GetMapping("/getNbLigneFichier/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de récupérer le nombre de ligne du fichier enrichi d'une demande")
     public Integer getNbLigneFichier(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
