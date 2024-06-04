@@ -56,6 +56,12 @@ ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR:fr
 ENV LC_ALL fr_FR.UTF-8
 
+# Configuration du fuseau horaire
+# Pour résoudre le problème de décalage horaire dans les logs
+# de votre conteneur item-batch, vous devez ajouter ces instructions dans la partie batch-image de votre Dockerfile.
+ENV TZ=Europe/Paris
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
 # gettext: pour avoir envsubst qui permet de gérer le template tasks.tmpl
