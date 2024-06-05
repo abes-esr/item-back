@@ -6,10 +6,12 @@ import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -82,6 +84,7 @@ public class JwtTokenProvider {
         u.setRole(claims.get("role").toString());
         u.setShortName(claims.get("shortName").toString());
         u.setUserGroup(claims.get("userGroup").toString());
+        u.setAuthorities(Collections.singleton(new SimpleGrantedAuthority(u.getRole())));
         return u;
     }
 }
