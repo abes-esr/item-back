@@ -38,6 +38,9 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 	@ExceptionHandler({ ConstraintViolationException.class })
 	public ResponseEntity<?> handleConstraintFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
 
+	@ExceptionHandler({StorageFileNotFoundException.class})
+	public ResponseEntity<?> handleStorageFileNotFound(Throwable t) { return errorResponse(t, HttpStatus.NOT_FOUND);}
+
 	protected ResponseEntity<ExceptionMessage> errorResponse(Throwable throwable, HttpStatus status) {
 		if (null != throwable) {
 			log.error(Constant.ERROR_CAUGHT + throwable.getMessage());
