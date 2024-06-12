@@ -1,5 +1,6 @@
 package fr.abes.item.web;
 
+import fr.abes.item.core.exception.ForbiddenException;
 import fr.abes.item.security.JwtAuthenticationResponse;
 import fr.abes.item.security.JwtTokenProvider;
 import fr.abes.item.security.LoginRequest;
@@ -32,10 +33,13 @@ public class AuthenticationController {
 	@Operation(summary = "permet de s'authentifier et de récupérer un token.",
 			description = "le token doit être utilisé pour accéder aux ressources protegées.")
 	@PostMapping("/signin")
-	public ResponseEntity<JwtAuthenticationResponse> authenticateUser(@RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<JwtAuthenticationResponse> authenticateUser(@RequestBody LoginRequest loginRequest) throws ForbiddenException {
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		User user = (User)authentication.getPrincipal();
+		if (user.getAuthorities().isEmpty()) {
+			throw new ForbiddenException("Ce login ne dispose pas des droits nécessaires pour accéder à Item");
+		}
 		String jwt = tokenProvider.generateToken(user);
 
 		return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, user.getUserNum(), user.getShortName(), user.getIln(), user.getRole(), user.getMail()));

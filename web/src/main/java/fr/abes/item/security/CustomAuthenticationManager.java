@@ -59,7 +59,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
             u.setMail(this.getEmail(Integer.parseInt(u.getUserNum())));
             List<GrantedAuthority> authorities;
-            if (u.getRole() != null) {
+            if (u.getRole() != null && (u.getRole().equals("USER") || u.getRole().equals("ADMIN"))) {
                 authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority(u.getRole()));
             } else {
