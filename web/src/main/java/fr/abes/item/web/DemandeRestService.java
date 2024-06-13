@@ -17,6 +17,7 @@ import fr.abes.item.security.CheckAccessToServices;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.Level;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1")
 public class DemandeRestService {
+    private static final String LOGIN_MANAGER_INCONNU = "Pas de login rattaché au RCR de la demande, veuillez contacter l'assistance";
     private final DemandeExempService demandeExempService;
     private final CheckAccessToServices checkAccessToServices;
     private final DtoBuilder builder;
@@ -219,9 +221,14 @@ public class DemandeRestService {
             Demande demande = service.findById(numDemande);
             LigneFichier ligneFichier = ligneFichierService.getLigneFichierbyDemandeEtPos(demande, numLigne);
             return service.getNoticeExemplaireAvantApres(demande, ligneFichier);
+        } catch (CBSException e) {
+            //adaptation du message en cas de login manager manquant
+            if (e.getMessage().equals("Code d'accès non reconnu"))
+                throw new CBSException(Level.ERROR, LOGIN_MANAGER_INCONNU);
         } catch (IOException e) {
             throw new NullPointerException(Constant.FILE_END);
         }
+        return new String[]{};
     }
 
     /**

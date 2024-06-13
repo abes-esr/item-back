@@ -370,7 +370,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return la chaine de l'exemplaire construit, ou message d'erreur
      */
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demandeExemp, LigneFichier ligneFichierExemp) throws CBSException, IOException {
+    public String[] getNoticeExemplaireAvantApres(Demande demandeExemp, LigneFichier ligneFichierExemp) throws CBSException, IOException, ZoneException {
         try {
             DemandeExemp demande = (DemandeExemp) demandeExemp;
             LigneFichierExemp ligneFichier = (LigneFichierExemp) ligneFichierExemp;
@@ -388,8 +388,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
             };
             //Si l'utilisateur n'a pas autorisé la création d'exemplaires multiples sur les notices de cette demande associée à ce RCR en cas d'exemplaires déjà présents
 
-        } catch (CBSException | ZoneException | QueryToSudocException e) {
-            return new String[]{e.getMessage(), e.getMessage()};
+        } catch (QueryToSudocException e) {
+            throw new IOException(e);
         } finally {
             traitementService.disconnect();
         }
