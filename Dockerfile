@@ -69,8 +69,6 @@ RUN dnf install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
     echo "Europe/London" > /etc/timezone
 
-COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
-RUN chmod +x /scripts/itemBatchRestartJobs.sh
 COPY ./docker/batch/itemBatchArchiverDemandesPlusDeTroisMois.sh /scripts/itemBatchArchiverDemandesPlusDeTroisMois.sh
 RUN chmod +x /scripts/itemBatchArchiverDemandesPlusDeTroisMois.sh
 COPY ./docker/batch/itemBatchExportStatistiques.sh /scripts/itemBatchExportStatistiques.sh
