@@ -24,8 +24,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
@@ -35,25 +33,22 @@ import java.util.List;
 
 @Slf4j
 public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
-    @Autowired
-    private StrategyFactory factory;
-
+    private final StrategyFactory factory;
     private final List<LigneFichierDto> lignesFichier;
-    private Integer demandeId;
-    private TYPE_DEMANDE typeDemande;
-
-    private Demande demande;
-    private String email;
-    @Value("${mail.admin}")
-    private String mailAdmin;
-
+    private final String mailAdmin;
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private LocalDateTime dateDebut;
+    private Integer demandeId;
+    private TYPE_DEMANDE typeDemande;
+    private Demande demande;
+    private String email;
 
     IMailer mailer;
 
-    public LireLigneFichierTasklet() {
+    public LireLigneFichierTasklet(StrategyFactory factory, String mailAdmin) {
+        this.factory = factory;
+        this.mailAdmin = mailAdmin;
         lignesFichier = new ArrayList<>();
     }
 

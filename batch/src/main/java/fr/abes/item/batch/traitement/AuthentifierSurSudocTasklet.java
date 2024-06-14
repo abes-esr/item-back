@@ -18,8 +18,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
@@ -28,23 +26,21 @@ import java.util.List;
 
 @Slf4j
 public class AuthentifierSurSudocTasklet implements Tasklet, StepExecutionListener {
-    @Autowired
-    StrategyFactory factory;
-
+    private final StrategyFactory factory;
     private IMailer mailer;
-
-    private List<LigneFichierDto> lignesFichier;
-    @Value("${mail.admin}")
-    private String mailAdmin;
-    @Autowired
-    ProxyRetry proxyRetry;
-
+    private final String mailAdmin;
+    private final ProxyRetry proxyRetry;
     private IDemandeService demandeService;
-
+    private List<LigneFichierDto> lignesFichier;
     private String email;
     private Demande demande;
-
     private LocalDateTime dateDebut;
+
+    public AuthentifierSurSudocTasklet(StrategyFactory factory, String mailAdmin, ProxyRetry proxyRetry) {
+        this.factory = factory;
+        this.mailAdmin = mailAdmin;
+        this.proxyRetry = proxyRetry;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {

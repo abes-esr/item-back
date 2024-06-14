@@ -15,8 +15,6 @@ import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.ILigneFichierService;
-import fr.abes.item.core.service.impl.DemandeExempService;
-import fr.abes.item.core.service.impl.DemandeRecouvService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
@@ -27,8 +25,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 
 import java.io.BufferedWriter;
@@ -40,31 +36,23 @@ import java.time.LocalDateTime;
 
 @Slf4j
 public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
-    @Autowired
-    private StrategyFactory factory;
-
-    @Autowired
-    private DemandeExempService demandeExempService;
-    @Autowired
-    private DemandeRecouvService demandeRecouvService;
-    private IDemandeService demandeService;
-
-    ILigneFichierService ligneFichierService;
-
-    IMailer mailer;
-
-    @Value("${files.upload.path}")
-    private String uploadPath;
-
-    @Value("${mail.admin}")
-    private String mailAdmin;
-
-    @Value("${batch.nbPpnInFileResult}")
-    private Integer nbPpnInFileResult;
-
+    private final StrategyFactory factory;
+    private final String uploadPath;
+    private final String mailAdmin;
+    private final Integer nbPpnInFileResult;
     private LocalDateTime dateDebut;
     private String email;
     private Demande demande;
+    private IDemandeService demandeService;
+    private ILigneFichierService ligneFichierService;
+    private IMailer mailer;
+
+    public GenererFichierTasklet(StrategyFactory factory, String uploadPath, String mailAdmin, Integer nbPpnInFileResult) {
+        this.factory = factory;
+        this.uploadPath = uploadPath;
+        this.mailAdmin = mailAdmin;
+        this.nbPpnInFileResult = nbPpnInFileResult;
+    }
 
 
     @Override
@@ -124,7 +112,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      */
     private String genererFichier() throws IOException, FileTypeException, QueryToSudocException {
         FichierResultat fichierResultat;
-        IDemandeService demandeService = factory.getStrategy(IDemandeService.class, demande.getTypeDemande());
 
         fichierResultat = (FichierResultat) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
         fichierResultat.generateFileName(demande.getId());
@@ -141,7 +128,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                         DemandeExemp demandeExemp = (DemandeExemp) demande;
                         LigneFichierDtoExemp ligneFichierDtoExemp = new LigneFichierDtoExemp((LigneFichierExemp) ligne);
                         log.warn(ligneFichierDtoExemp.getIndexRecherche());
-                        ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+                        ligneFichierDtoExemp.setRequete(demandeService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoExemp.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                         break;
                     case MODIF:
@@ -151,7 +138,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     default:
                         DemandeRecouv demandeRecouv = (DemandeRecouv)demande;
                         LigneFichierDtoRecouv ligneFichierDtoRecouv = new LigneFichierDtoRecouv((LigneFichierRecouv) ligne);
-                        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+                        ligneFichierDtoRecouv.setRequete(demandeService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoRecouv.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                         break;
                 }

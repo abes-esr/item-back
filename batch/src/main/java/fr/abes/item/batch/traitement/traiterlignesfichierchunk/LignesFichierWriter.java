@@ -21,23 +21,23 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
 import java.util.List;
 
 @Slf4j
-@Component
 public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExecutionListener {
-    @Autowired
-    private StrategyFactory factory;
+    private final StrategyFactory factory;
 
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
     private Demande demande;
+
+    public LignesFichierWriter(StrategyFactory factory) {
+        this.factory = factory;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {

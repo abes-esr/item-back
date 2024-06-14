@@ -8,7 +8,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -25,14 +24,10 @@ import javax.sql.DataSource;
 @NoArgsConstructor
 @ItemConfiguration
 public class ItemPostgreConfig extends AbstractConfig {
-	@Value("${spring.jpa.item.database-platform}")
-	protected String platform;
 	@Value("${spring.jpa.item.hibernate.ddl-auto}")
 	protected String ddlAuto;
 	@Value("${spring.jpa.item.generate-ddl}")
 	protected boolean generateDdl;
-	@Value("${spring.jpa.item.properties.hibernate.dialect}")
-	protected String dialect;
 	@Value("${spring.jpa.item.show-sql}")
 	private boolean showsql;
 	@Value("${spring.sql.item.init.mode}")
@@ -40,35 +35,32 @@ public class ItemPostgreConfig extends AbstractConfig {
 	@Value("${spring.hibernate.item.enable_lazy_load_no_trans}")
 	private boolean lazyload;
 
-	@Primary
+
 	@Bean
+	@Primary
 	@ConfigurationProperties(prefix = "spring.datasource.item")
 	public DataSource itemDataSource() {
 		return DataSourceBuilder.create().build();
 	}
 
-	@Primary
+
 	@Bean
+	@Primary
 	public LocalContainerEntityManagerFactoryBean itemEntityManagerFactory() {
 		final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(itemDataSource());
 		em.setPackagesToScan("fr.abes.item.core.entities.item");
-		configHibernate(em, platform, showsql, dialect, ddlAuto, generateDdl, initMode, lazyload);
+		configHibernate(em, showsql, ddlAuto, generateDdl, initMode, lazyload);
 		return em;
 	}
 
-	@Primary
+
 	@Bean
+	@Primary
 	public JpaTransactionManager itemTransactionManager(EntityManagerFactory entityManagerFactory) {
 		final JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 		return transactionManager;
-	}
-	
-	@Primary
-	@Bean
-	public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
-		return new PersistenceExceptionTranslationPostProcessor();
 	}
 
 	@Bean(name = "itemJdbcTemplate")

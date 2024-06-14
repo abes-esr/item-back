@@ -281,7 +281,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
         String[] tabvaleurs = valeurs.split(";");
-        String query = getQueryToSudoc(codeIndex, tabvaleurs);
+        String query = getQueryToSudoc(codeIndex, null, tabvaleurs);
         traitementService.getCbs().search(query);
         return traitementService.getCbs().getNbNotices();
     }
@@ -289,10 +289,12 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     /**
      * Méthode construisant la requête che en fonction des paramètres d'une demande d'exemplarisation
      * @param codeIndex code de l'index de la recherche
+     * @param type : non utilisé dans cette implementation
      * @param valeur tableau des valeurs utilisées pour construire la requête
      * @return requête che prête à être lancée vers le CBS
      */
-    public String getQueryToSudoc(String codeIndex, String[] valeur) throws QueryToSudocException {
+    @Override
+    public String getQueryToSudoc(String codeIndex, String type, String[] valeur) throws QueryToSudocException {
         return switch (codeIndex) {
             case "ISBN" -> "che isb " + valeur[0];
             case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];

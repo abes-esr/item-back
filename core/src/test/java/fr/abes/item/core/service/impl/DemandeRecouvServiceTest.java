@@ -35,7 +35,7 @@ class DemandeRecouvServiceTest {
     ILibProfileDao libProfileDao;
     @Test
     void getQueryToSudoc() throws QueryToSudocException {
-        String result = service.getQueryToSudoc("DAT", new String[]{"a", "Téoàrtü", "ÛioëÂÄ"});
+        String result = service.getQueryToSudoc("DAT", null, new String[]{"a", "Téoàrtü", "ÛioëÂÄ"});
         System.out.printf(result);
     }
 }

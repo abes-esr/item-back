@@ -8,20 +8,20 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-@Component
 public class LignesFichierReader implements ItemReader<LigneFichierDto>, StepExecutionListener {
 
     private List<LigneFichierDto> lignesFichier;
     AtomicInteger i = new AtomicInteger();
-    @Autowired
-    ProxyRetry proxyRetry;
+    private final ProxyRetry proxyRetry;
+
+    public LignesFichierReader(ProxyRetry proxyRetry) {
+        this.proxyRetry = proxyRetry;
+    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {

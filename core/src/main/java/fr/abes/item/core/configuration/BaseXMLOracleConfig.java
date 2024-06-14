@@ -22,14 +22,10 @@ import javax.sql.DataSource;
 @NoArgsConstructor
 @BaseXMLConfiguration
 public class BaseXMLOracleConfig extends AbstractConfig {
-	@Value("${spring.jpa.basexml.database-platform}")
-	protected String platform;
 	@Value("${spring.jpa.basexml.hibernate.ddl-auto}")
 	protected String ddlAuto;
 	@Value("${spring.jpa.basexml.generate-ddl}")
 	protected boolean generateDdl;
-	@Value("${spring.jpa.basexml.properties.hibernate.dialect}")
-	protected String dialect;
 	@Value("${spring.jpa.basexml.show-sql}")
 	private boolean showsql;
 	@Value("${spring.sql.basexml.init.mode}")
@@ -50,7 +46,7 @@ public class BaseXMLOracleConfig extends AbstractConfig {
 		em.setDataSource(baseXmlDataSource());
 		em.setPackagesToScan(
                 "fr.abes.item.core.entities.baseXml");
-		configHibernate(em, platform, showsql, dialect, ddlAuto, generateDdl, initMode, lazyload);
+		configHibernate(em, showsql, ddlAuto, generateDdl, initMode, lazyload);
 		return em;
 	}
 

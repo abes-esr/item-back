@@ -169,7 +169,7 @@ public class ProxyRetry {
     @Retryable(maxAttempts = 4, retryFor = IOException.class,
             noRetryFor = {CBSException.class, QueryToSudocException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void recouvExemplaire(DemandeRecouv demande, LigneFichierDtoRecouv ligneFichierDtoRecouv) throws IOException, QueryToSudocException, CBSException {
-        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demande.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
         try {
             ligneFichierDtoRecouv.setNbReponses(demandeRecouvService.launchQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
             switch (ligneFichierDtoRecouv.getNbReponses()) {

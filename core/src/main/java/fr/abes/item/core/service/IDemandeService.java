@@ -7,6 +7,7 @@ import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
+import fr.abes.item.core.exception.QueryToSudocException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -58,4 +59,5 @@ public interface IDemandeService {
     List<? extends Demande> getIdNextDemandeToPlaceInDeletedStatus();
     List<? extends Demande> getIdNextDemandeToDelete();
 
+    String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException;
 }

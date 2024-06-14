@@ -511,7 +511,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @param valeurZones : chaine contenant les valeurs des zones à créer (séparées par des ;)
      * @return l'exemplaire sous forme de chaine
      */
-    public String creerExemplaireFromHeaderEtValeur(String header, String valeurZones, String rcr, String numExemp) throws CBSException, ZoneException {
+    public String creerExemplaireFromHeaderEtValeur(String header, String valeurZones, String rcr, String numExemp) throws ZoneException {
         String[] listeHeader = header.split(";");
         String[] listeValeur = valeurZones.split(";");
         String zonePrecedente = "";
@@ -699,6 +699,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @param valeur    tableau des valeurs utilisées pour construire la requête
      * @return requête che prête à être lancée vers le CBS
      */
+    @Override
     public String getQueryToSudoc(String codeIndex, String typeExemp, String[] valeur) throws QueryToSudocException {
         switch (typeExemp) {
             case "Monographies électroniques":

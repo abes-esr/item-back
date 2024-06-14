@@ -12,6 +12,7 @@ import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
+import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeModifDao;
 import fr.abes.item.core.service.*;
@@ -570,6 +571,12 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
+        return null;
+    }
+
+    @Override
+    public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+        //not implemented
         return null;
     }
 }

@@ -10,9 +10,9 @@ import fr.abes.item.batch.traitement.traiterlignesfichierchunk.LignesFichierRead
 import fr.abes.item.batch.traitement.traiterlignesfichierchunk.LignesFichierWriter;
 import fr.abes.item.batch.webstats.ExportStatistiquesTasklet;
 import fr.abes.item.batch.webstats.VerifierParamsTasklet;
-import fr.abes.item.core.configuration.BaseXMLConfiguration;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.service.FileSystemStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersIncrementer;
@@ -26,9 +26,13 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScans;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -38,27 +42,37 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EnableRetry
 @ComponentScans(value = {
         @ComponentScan(basePackages = {"fr.abes.item.core.repository.item"}),
-        @ComponentScan(basePackages = {"fr.abes.item.core.configuration"},
-                excludeFilters = {
-                        @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = BaseXMLConfiguration.class)
-                })
+        @ComponentScan(basePackages = {"fr.abes.item.core.service"}),
+        @ComponentScan(basePackages = {"fr.abes.item.core.configuration"}),
+        @ComponentScan(basePackages = {"fr.abes.item.core.components"})
 })
 @EntityScan("fr.abes.item.core.entities.item")
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
 
     private final ProxyRetry proxyRetry;
+
+    private final FileSystemStorageService storageService;
+
     @Value("${batch.min.hour}")
     int minHour;
 
     @Value("${batch.max.hour}")
     int maxHour;
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
+    @Value("${mail.admin}")
+    private String mailAdmin;
+
+    @Value("${files.upload.path}")
+    private String uploadPath;
+    @Value("${batch.nbPpnInFileResult}")
+    private Integer nbPpnInFileResult;
+
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, FileSystemStorageService storageService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
+        this.storageService = storageService;
     }
-
 
     @Bean
     public ExecutionContextSerializer configureSerializer() {
@@ -68,7 +82,7 @@ public class JobConfiguration {
     // ----- CHUNK ------
     @Bean
     public LignesFichierReader reader() {
-        return new LignesFichierReader();
+        return new LignesFichierReader(proxyRetry);
     }
     @Bean
     public LignesFichierProcessor processor() {
@@ -76,103 +90,106 @@ public class JobConfiguration {
     }
     @Bean
     public LignesFichierWriter writer() {
-        return new LignesFichierWriter();
+        return new LignesFichierWriter(strategyFactory);
     }
 
     // ------------- TASKLETS -----------------------
     @Bean
-    public GetNextDemandeModifTasklet getNextDemandeModifTasklet() { return new GetNextDemandeModifTasklet(minHour, maxHour); }
+    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeModifTasklet(strategyFactory, minHour, maxHour); }
     @Bean
-    public GetNextDemandeExempTasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(minHour, maxHour); }
+    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(strategyFactory, minHour, maxHour); }
     @Bean
-    public GetNextDemandeRecouvTasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(minHour, maxHour); }
+    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(strategyFactory, minHour, maxHour); }
     @Bean
-    public LireLigneFichierTasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(); }
+    public Tasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(strategyFactory, mailAdmin); }
     @Bean
-    public AuthentifierSurSudocTasklet authentifierSurSudocTasklet()
+    public Tasklet authentifierSurSudocTasklet()
     {
-        return new AuthentifierSurSudocTasklet();
+        return new AuthentifierSurSudocTasklet(strategyFactory, mailAdmin, proxyRetry);
     }
     @Bean
-    public GenererFichierTasklet genererFichierTasklet() { return new GenererFichierTasklet(); }
+    public Tasklet genererFichierTasklet() { return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult); }
     @Bean
-    public VerifierParamsTasklet verifierParamsTasklet() { return new VerifierParamsTasklet(); }
+    public Tasklet verifierParamsTasklet() { return new VerifierParamsTasklet(); }
 
+    //statistiques application
     @Bean
-    public ExportStatistiquesTasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(); }
+    public Tasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(); }
 
 
     //Archivage automatique des demandes
     @Bean
-    ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet changeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet archiveDemandesExempTakslet(){
+        return new ArchiveDemandesExempTakslet(strategyFactory);
     }
     @Bean
-    ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet changeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet archiveDemandesModifTasklet(){
+        return new ArchiveDemandesModifTasklet(strategyFactory);
     }
     @Bean
-    ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet changeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet archiveDemandesRecouvTasklet(){
+        return new ArchiveDemandesRecouvTasklet(strategyFactory);
     }
+
     //Passage en statut supprimé automatique des demandes
     @Bean
-    ChangeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet changeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet deleteStatusDemandesExempTasklet(){
+        return new DeleteStatusDemandesExempTasklet(strategyFactory);
     }
     @Bean
-    ChangeInDeletedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet changeInDeletedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInDeletedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet deleteStatusDemandesModifTasklet(){
+        return new DeleteStatusDemandesModifTasklet(strategyFactory);
     }
     @Bean
-    ChangeInDeletedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet changeInDeletedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet(){
-        return new ChangeInDeletedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet();
+    Tasklet deleteStatusDemandesRecouvTasklet(){
+        return new DeleteStatusDemandesRecouvTasklet(strategyFactory);
     }
+
     //Suppression définitive des demandes
     @Bean
-    DeleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet deleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet(){
-        return new DeleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet();
+    Tasklet deleteDemandesExempTasklet(){
+        return new DeleteDemandesExempTasklet(strategyFactory, storageService, uploadPath);
     }
     @Bean
-    DeleteAllDemandesModifInDeletedStatusForMoreThanSevenMonthsTasklet deleteAllDemandesModifInDeletedStatusForMoreThanSevenMonthsTasklet(){
-        return new DeleteAllDemandesModifInDeletedStatusForMoreThanSevenMonthsTasklet();
+    Tasklet deleteDemandesModifTasklet(){
+        return new DeleteDemandesModifTasklet(strategyFactory, storageService, uploadPath);
     }
     @Bean
-    DeleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet deleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet(){
-        return new DeleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet();
+    Tasklet deleteDemandesRecouvTasklet(){
+        return new DeleteDemandesRecouvTasklet(strategyFactory, storageService, uploadPath);
     }
 
     // ---------- STEP --------------------------------------------
 
     @Bean
-    public Step stepRecupererNextDemandeModif(JobRepository jobRepository, Tasklet getNextDemandeModifTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepRecupererNextDemandeModif(JobRepository jobRepository, @Qualifier("getNextDemandeModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeModif", jobRepository).allowStartIfComplete(true)
-                .tasklet(getNextDemandeModifTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepRecupererNextDemandeExemp(JobRepository jobRepository, Tasklet getNextDemandeExempTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepRecupererNextDemandeExemp(JobRepository jobRepository, @Qualifier("getNextDemandeExempTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeExemp", jobRepository).allowStartIfComplete(true)
-                .tasklet(getNextDemandeExempTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepRecupererNextDemandeRecouv(JobRepository jobRepository, Tasklet getNextDemandeRecouvTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepRecupererNextDemandeRecouv(JobRepository jobRepository, @Qualifier("getNextDemandeRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeRecouv", jobRepository).allowStartIfComplete(true)
-                .tasklet(getNextDemandeRecouvTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     // Steps pour lancement d'un traitement de modification de masse
     @Bean
-    public Step stepLireLigneFichier(JobRepository jobRepository, Tasklet lireLigneFichierTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepLireLigneFichier(JobRepository jobRepository, @Qualifier("lireLigneFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepLireLigneFichier", jobRepository).allowStartIfComplete(true)
-                .tasklet(lireLigneFichierTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepAuthentifierSurSudoc(JobRepository jobRepository, Tasklet authentifierSurSudocTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepAuthentifierSurSudoc(JobRepository jobRepository, @Qualifier("authentifierSurSudocTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepAuthentifierSurSudoc", jobRepository).allowStartIfComplete(true)
-                .tasklet(authentifierSurSudocTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
@@ -184,85 +201,85 @@ public class JobConfiguration {
                 .build();
     }
     @Bean
-    public Step stepGenererFichier(JobRepository jobRepository, Tasklet genererFichierTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepGenererFichier(JobRepository jobRepository, @Qualifier("genererFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepGenererFichier", jobRepository).allowStartIfComplete(true)
-                .tasklet(genererFichierTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     // Steps pour exports statistiques
     @Bean
-    public Step stepVerifierParams(JobRepository jobRepository, Tasklet verifierParamsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepVerifierParams(JobRepository jobRepository, @Qualifier("verifierParamsTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepVerifierParams", jobRepository).allowStartIfComplete(true)
-                .tasklet(verifierParamsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Step stepExportStatistiques(JobRepository jobRepository, Tasklet exportStatistiquesTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepExportStatistiques(JobRepository jobRepository, @Qualifier("exportStatistiquesTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepExportStatistiques", jobRepository).allowStartIfComplete(true)
-                .tasklet(exportStatistiquesTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
 
     //Steps d'archivage automatique des demandes
     @Bean
-    public Step stepArchivageAutomatiqueDemandesExemp(JobRepository jobRepository, Tasklet changeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesExemp(JobRepository jobRepository, @Qualifier("archiveDemandesExempTakslet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesExemp", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepArchivageAutomatiqueDemandesModif(JobRepository jobRepository, Tasklet changeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesModif(JobRepository jobRepository, @Qualifier("archiveDemandesModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesModif", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInArchivedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepArchivageAutomatiqueDemandesRecouv(JobRepository jobRepository, Tasklet changeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesRecouv(JobRepository jobRepository, @Qualifier("archiveDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesRecouv", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInArchivedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     //Steps de placement en statut supprimé automatique des demandes
     @Bean
-    public Step stepChangementStatutSupprimeDemandesExemp(JobRepository jobRepository, Tasklet changeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepChangementStatutSupprimeDemandesExemp(JobRepository jobRepository, @Qualifier("deleteStatusDemandesExempTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesExemp", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepChangementStatutSupprimeDemandesModif(JobRepository jobRepository, Tasklet changeInDeletedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepChangementStatutSupprimeDemandesModif(JobRepository jobRepository, @Qualifier("deleteStatusDemandesModifTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesModif", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInDeletedStatusAllDemandesModifFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepChangementStatutSupprimeDemandesRecouv(JobRepository jobRepository, Tasklet changeInDeletedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepChangementStatutSupprimeDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteStatusDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesRecouv", jobRepository).allowStartIfComplete(true)
-                .tasklet(changeInDeletedStatusAllDemandesRecouvFinishedForMoreThanThreeMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     //Steps de destruction en base de donnée des demandes
     @Bean
-    public Step stepSuppresionDemandesExemp(JobRepository jobRepository, Tasklet deleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesExemp(JobRepository jobRepository, @Qualifier("deleteDemandesExempTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesExemp", jobRepository).allowStartIfComplete(true)
-                .tasklet(deleteAllDemandesExempInDeletedStatusForMoreThanSevenMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepSuppresionDemandesModif(JobRepository jobRepository, Tasklet deleteAllDemandesModifInDeletedStatusForMoreThanSevenMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesModif(JobRepository jobRepository, @Qualifier("deleteDemandesModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesModif", jobRepository).allowStartIfComplete(true)
-                .tasklet(deleteAllDemandesModifInDeletedStatusForMoreThanSevenMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
     @Bean
-    public Step stepSuppresionDemandesRecouv(JobRepository jobRepository, Tasklet deleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesRecouv", jobRepository).allowStartIfComplete(true)
-                .tasklet(deleteAllDemandesRecouvInDeletedStatusForMoreThanSevenMonthsTasklet, transactionManager)
+                .tasklet(tasklet, transactionManager)
                 .build();
     }
 
@@ -271,107 +288,107 @@ public class JobConfiguration {
 
     // Job de lancement d'un traitement de modification
     @Bean
-    public Job jobTraiterLigneFichier(JobRepository jobRepository, Step stepRecupererNextDemandeModif, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepGenererFichier, Step stepTraiterLigneFichier) {
+    public Job jobTraiterLigneFichier(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeModif") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierModif", jobRepository ).incrementer(incrementer())
-                .start(stepRecupererNextDemandeModif).on(Constant.FAILED).end()
-                .from(stepRecupererNextDemandeModif).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepRecupererNextDemandeModif).on(Constant.COMPLETED).to(stepLireLigneFichier)
-                .from(stepLireLigneFichier).on(Constant.FAILED).end()
-                .from(stepLireLigneFichier).on(Constant.COMPLETED).to(stepAuthentifierSurSudoc)
-                .from(stepAuthentifierSurSudoc).on(Constant.FAILED).end()
-                .from(stepAuthentifierSurSudoc).on(Constant.COMPLETED).to(stepTraiterLigneFichier)
-                .from(stepTraiterLigneFichier).on(Constant.FAILED).end()
-                .from(stepTraiterLigneFichier).on(Constant.COMPLETED).to(stepGenererFichier)
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.COMPLETED).to(step3)
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.COMPLETED).to(step4)
+                .from(step4).on(Constant.FAILED).end()
+                .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
     }
 
     //job de lancement d'un traitement d'exemplarisation
     @Bean
-    public Job jobTraiterLigneFichierExemp(JobRepository jobRepository, Step stepRecupererNextDemandeExemp, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepTraiterLigneFichier, Step stepGenererFichier) {
+    public Job jobTraiterLigneFichierExemp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeExemp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierExemp", jobRepository).incrementer(incrementer())
-                .start(stepRecupererNextDemandeExemp).on(Constant.FAILED).end()
-                .from(stepRecupererNextDemandeExemp).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepRecupererNextDemandeExemp).on(Constant.COMPLETED).to(stepLireLigneFichier)
-                .from(stepLireLigneFichier).on(Constant.FAILED).end()
-                .from(stepLireLigneFichier).on(Constant.COMPLETED).to(stepAuthentifierSurSudoc)
-                .from(stepAuthentifierSurSudoc).on(Constant.FAILED).end()
-                .from(stepAuthentifierSurSudoc).on(Constant.COMPLETED).to(stepTraiterLigneFichier)
-                .from(stepTraiterLigneFichier).on(Constant.FAILED).end()
-                .from(stepTraiterLigneFichier).on(Constant.COMPLETED).to(stepGenererFichier)
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.COMPLETED).to(step3)
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.COMPLETED).to(step4)
+                .from(step4).on(Constant.FAILED).end()
+                .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
     }
 
     //job de lancement d'un test de recouvrement
     @Bean
-    public Job jobTraiterLigneFichierRecouv(JobRepository jobRepository, Step stepRecupererNextDemandeRecouv, Step stepLireLigneFichier, Step stepAuthentifierSurSudoc, Step stepTraiterLigneFichier, Step stepGenererFichier) {
+    public Job jobTraiterLigneFichierRecouv(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeRecouv") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierRecouv", jobRepository).incrementer(incrementer())
-                .start(stepRecupererNextDemandeRecouv).on(Constant.FAILED).end()
-                .from(stepRecupererNextDemandeRecouv).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepRecupererNextDemandeRecouv).on(Constant.COMPLETED).to(stepLireLigneFichier)
-                .from(stepLireLigneFichier).on(Constant.FAILED).end()
-                .from(stepLireLigneFichier).on(Constant.COMPLETED).to(stepAuthentifierSurSudoc)
-                .from(stepAuthentifierSurSudoc).on(Constant.FAILED).end()
-                .from(stepAuthentifierSurSudoc).on(Constant.COMPLETED).to(stepTraiterLigneFichier)
-                .from(stepTraiterLigneFichier).on(Constant.FAILED).end()
-                .from(stepTraiterLigneFichier).on(Constant.COMPLETED).to(stepGenererFichier)
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.COMPLETED).to(step3)
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.COMPLETED).to(step4)
+                .from(step4).on(Constant.FAILED).end()
+                .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
     }
 
 
     // Job d'export des statistiques mensuelles
     @Bean
-    public Job jobExportStatistiques(JobRepository jobRepository, Step stepVerifierParams, Step stepExportStatistiques) {
+    public Job jobExportStatistiques(JobRepository jobRepository, @Qualifier("stepVerifierParams") Step step1, @Qualifier("stepExportStatistiques") Step step2) {
         return new JobBuilder("exportStatistiques", jobRepository).incrementer(incrementer())
-                .start(stepVerifierParams).on(Constant.FAILED).end()
-                .from(stepVerifierParams).on(Constant.COMPLETED).to(stepExportStatistiques)
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.COMPLETED).to(step2)
                 .build().build();
     }
 
     //Job d'archivage automatique de toutes les demandes en statut terminé dont la dernière modification à plus de trois mois
     @Bean
-    public Job jobArchivageDemandes(JobRepository jobRepository, Step stepArchivageAutomatiqueDemandesExemp, Step stepArchivageAutomatiqueDemandesModif, Step stepArchivageAutomatiqueDemandesRecouv) {
+    public Job jobArchivageDemandes(JobRepository jobRepository, @Qualifier("stepArchivageAutomatiqueDemandesExemp") Step step1, @Qualifier("stepArchivageAutomatiqueDemandesModif") Step step2, @Qualifier("stepArchivageAutomatiqueDemandesRecouv") Step step3) {
         return new JobBuilder("archiverDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(stepArchivageAutomatiqueDemandesExemp).on(Constant.FAILED).end()
-                .from(stepArchivageAutomatiqueDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepArchivageAutomatiqueDemandesExemp).on(Constant.COMPLETED).end()
-                .from(stepArchivageAutomatiqueDemandesModif).on(Constant.FAILED).end()
-                .from(stepArchivageAutomatiqueDemandesModif).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepArchivageAutomatiqueDemandesModif).on(Constant.COMPLETED).end()
-                .from(stepArchivageAutomatiqueDemandesRecouv).on(Constant.FAILED).end()
-                .from(stepArchivageAutomatiqueDemandesRecouv).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepArchivageAutomatiqueDemandesRecouv).on(Constant.COMPLETED).end()
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).end()
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step2).on(Constant.COMPLETED).end()
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step3).on(Constant.COMPLETED).end()
                 .build().build();
     }
 
     //Job de placement en statut supprimé de toutes les demandes en statut archivé dont ce statut à plus de trois mois
     @Bean
-    public Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, Step stepChangementStatutSupprimeDemandesExemp, Step stepChangementStatutSupprimeDemandesModif, Step stepChangementStatutSupprimeDemandesRecouv) {
+    public Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, @Qualifier("stepChangementStatutSupprimeDemandesExemp") Step step1, @Qualifier("stepChangementStatutSupprimeDemandesModif") Step step2, @Qualifier("stepChangementStatutSupprimeDemandesRecouv") Step step3) {
         return new JobBuilder("statutSupprimeDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(stepChangementStatutSupprimeDemandesExemp).on(Constant.FAILED).end()
-                .from(stepChangementStatutSupprimeDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepChangementStatutSupprimeDemandesExemp).on(Constant.COMPLETED).end()
-                .from(stepChangementStatutSupprimeDemandesModif).on(Constant.FAILED).end()
-                .from(stepChangementStatutSupprimeDemandesModif).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepChangementStatutSupprimeDemandesModif).on(Constant.COMPLETED).end()
-                .from(stepChangementStatutSupprimeDemandesRecouv).on(Constant.FAILED).end()
-                .from(stepChangementStatutSupprimeDemandesRecouv).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepChangementStatutSupprimeDemandesRecouv).on(Constant.COMPLETED).end()
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).end()
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step2).on(Constant.COMPLETED).end()
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step3).on(Constant.COMPLETED).end()
                 .build().build();
     }
 
     //Job de suppression définitive en base de donnée de toutes les demandes en statut supprimé, dont ce statut à plus de trois mois
     @Bean
-    public Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, Step stepSuppresionDemandesExemp, Step stepSuppresionDemandesModif, Step stepSuppresionDemandesRecouv) {
+    public Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, @Qualifier("stepSuppresionDemandesExemp") Step step1, @Qualifier("stepSuppresionDemandesModif") Step step2, @Qualifier("stepSuppresionDemandesRecouv") Step step3) {
         return new JobBuilder("suppressionDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(stepSuppresionDemandesExemp).on(Constant.FAILED).end()
-                .from(stepSuppresionDemandesExemp).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepSuppresionDemandesExemp).on(Constant.COMPLETED).end()
-                .from(stepSuppresionDemandesModif).on(Constant.FAILED).end()
-                .from(stepSuppresionDemandesModif).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepSuppresionDemandesModif).on(Constant.COMPLETED).end()
-                .from(stepSuppresionDemandesRecouv).on(Constant.FAILED).end()
-                .from(stepSuppresionDemandesRecouv).on(Constant.AUCUNE_DEMANDE).end()
-                .from(stepSuppresionDemandesRecouv).on(Constant.COMPLETED).end()
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).end()
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step2).on(Constant.COMPLETED).end()
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step3).on(Constant.COMPLETED).end()
                 .build().build();
     }
 

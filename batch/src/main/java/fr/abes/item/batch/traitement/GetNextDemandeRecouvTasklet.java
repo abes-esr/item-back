@@ -1,9 +1,11 @@
 package fr.abes.item.batch.traitement;
 
+import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.exception.DemandeCheckingException;
-import fr.abes.item.core.service.impl.DemandeRecouvService;
+import fr.abes.item.core.service.IDemandeService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -15,23 +17,19 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
 
 @Slf4j
 public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListener {
-    @Autowired
-    DemandeRecouvService demandeRecouvService;
-
+    private final StrategyFactory strategyFactory;
     private DemandeRecouv demande;
+    private final int minHour;
+    private final int maxHour;
 
-    int minHour;
-
-    int maxHour;
-
-    public GetNextDemandeRecouvTasklet(int minHour, int maxHour) {
+    public GetNextDemandeRecouvTasklet(StrategyFactory factory, int minHour, int maxHour) {
+        this.strategyFactory = factory;
         this.minHour = minHour;
         this.maxHour = maxHour;
     }
@@ -52,15 +50,16 @@ public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListe
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
-        log.warn(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET);
+        log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET);
         try {
-            this.demande = (DemandeRecouv) demandeRecouvService.getIdNextDemandeToProceed(this.minHour, this.maxHour);
+            IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.RECOUV);
+            this.demande = (DemandeRecouv) service.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }
-            demandeRecouvService.changeState(this.demande, Constant.ETATDEM_ENCOURS);
+            service.changeState(this.demande, Constant.ETATDEM_ENCOURS);
         } catch (DemandeCheckingException e) {
             log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDERECOUVTASKLET
                     + e);
