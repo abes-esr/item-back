@@ -1,14 +1,17 @@
 package fr.abes.item.security;
 
 
-import fr.abes.item.constant.Constant;
+import fr.abes.item.core.constant.Constant;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -22,7 +25,7 @@ public class JwtTokenProvider {
 
     public String generateToken(User u) {
 
-        Date now = new Date();
+        Date now = Calendar.getInstance().getTime();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
@@ -81,6 +84,7 @@ public class JwtTokenProvider {
         u.setRole(claims.get("role").toString());
         u.setShortName(claims.get("shortName").toString());
         u.setUserGroup(claims.get("userGroup").toString());
+        u.setAuthorities(Collections.singleton(new SimpleGrantedAuthority(u.getRole())));
         return u;
     }
 }

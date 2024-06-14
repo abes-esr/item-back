@@ -1,6 +1,11 @@
 package fr.abes.item.security;
 
-import fr.abes.item.constant.Constant;
+import fr.abes.item.core.constant.Constant;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,10 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
         	log.debug(Constant.ENTER_DOFILTERINTERNAL);
             final String ip = getClientIP(request);
@@ -54,8 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private final String getClientIP(HttpServletRequest request) {
-        final String xfHeader = request.getHeader("X-Forwarded-For");
+    private String getClientIP(HttpServletRequest request) {
+        final var xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {
             return request.getRemoteAddr();
         }

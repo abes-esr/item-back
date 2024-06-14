@@ -1,14 +1,15 @@
 package fr.abes.item.security;
 
-import fr.abes.item.constant.Constant;
-import fr.abes.item.dao.impl.DaoProvider;
-import fr.abes.item.entities.baseXml.LibProfile;
-import fr.abes.item.entities.item.Utilisateur;
-import fr.abes.item.exception.ForbiddenException;
-import fr.abes.item.exception.UserExistException;
-import fr.abes.item.service.service.ServiceProvider;
+import fr.abes.item.core.configuration.factory.StrategyFactory;
+import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.entities.baseXml.LibProfile;
+import fr.abes.item.core.exception.ForbiddenException;
+import fr.abes.item.core.exception.UserExistException;
+import fr.abes.item.core.repository.baseXml.ILibProfileDao;
+import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.UtilisateurService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -17,10 +18,16 @@ import java.util.Optional;
 @Component
 public class CheckAccessToServices {
 
-   @Autowired
-   ServiceProvider service;
-   @Autowired
-   private DaoProvider dao;
+    private final UtilisateurService utilisateurService;
+    private final StrategyFactory strategy;
+
+    private final ILibProfileDao libProfileDao;
+
+    public CheckAccessToServices(UtilisateurService utilisateurService, StrategyFactory strategy, ILibProfileDao libProfileDao) {
+        this.utilisateurService = utilisateurService;
+        this.strategy = strategy;
+        this.libProfileDao = libProfileDao;
+    }
 
     /**
      * On ne peut accéder qu'aux demandeModifs de son ILN
@@ -29,53 +36,29 @@ public class CheckAccessToServices {
      * @throws UserExistException si le user n'existe pas dans la base de données
      * @throws ForbiddenException si le user n'a pas accès à cette demandeModif
      */
-    public void autoriserAccesDemandeParIln(Integer id, String userNum) throws UserExistException, ForbiddenException {
+    public void autoriserAccesDemandeParIln(Integer id, String userNum, TYPE_DEMANDE type) throws UserExistException, ForbiddenException {
         log.debug(Constant.ENTER_AUTORISER_ACCES_DEMANDE_ILN);
-        if (service.getUtilisateur().findById(Integer.parseInt(userNum)) == null) {
+        if (utilisateurService.findById(Integer.parseInt(userNum)) == null) {
             log.error(Constant.UTILISATEUR_ABSENT_BASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
 
-        String iln;
-        if (service.getDemandeExemp().findById(id) != null) {
-            iln = service.getDemandeExemp().findById(id).getIln();
-        } else if (service.getDemandeModif().findById(id) != null) {
-            iln = service.getDemandeModif().findById(id).getIln();
-        } else {
-            iln = service.getDemandeRecouv().findById(id).getIln();
-        }
-        if (!iln.equals(service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln())
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        String iln = service.findById(id).getIln();
+
+        if (!iln.equals(utilisateurService.findById(Integer.parseInt(userNum)).getIln())
                 // iln 1 can access to all
-                && !service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln().equals("1")) {
+                && !utilisateurService.findById(Integer.parseInt(userNum)).getIln().equals("1")) {
             throw new ForbiddenException(Constant.ACCES_INTERDIT);
         }
 
     }
 
-    /**
-     * L'admin peut accéder à tous les fichiers de toutes les demandes
-     * @param id identifiant de la demande
-     * @param userNum identifiant de l'utilisateur
-     * @throws ForbiddenException
-     * @throws UserExistException
-     */
-    public void autoriserAccessFichierDemandePourAdmin(Integer id, String userNum) throws ForbiddenException, UserExistException {
-        log.debug(Constant.ENTER_AUTORISER_ACCES_FICHIER_DEMANDE_ADMIN);
-        Utilisateur utilisateur = service.getUtilisateur().findById(Integer.parseInt(userNum));
-        if (utilisateur == null) {
-            log.error(Constant.USERNUM_NOT_PRESENT_ON_DATABASE);
-            throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
-        }
-        String iln = (service.getDemandeExemp().findById(id) != null) ? service.getDemandeExemp().findById(id).getIln() : service.getDemandeModif().findById(id).getIln();
-        if (!iln.equals(utilisateur.getIln()) || (service.getUtilisateur().isAdmin(utilisateur))) {
-            throw new ForbiddenException(Constant.ACCES_INTERDIT);
-        }
-    }
 
     /**
      *     On ne peut créer une demande que pour son iln
-     * @param rcr
-     * @param userNum
+     * @param rcr rcr à comparer
+     * @param userNum utilisateur à vérifier
      * @throws UserExistException si le user n'existe pas dans la base de données
      * @throws ForbiddenException si le user n'a pas accès à la création de la demande pour ce rcr
      */
@@ -85,16 +68,16 @@ public class CheckAccessToServices {
         log.debug(Constant.ENTER_CREATION_DEMANDE_BY_USERNUM);
 
         // verification que le user existe dans la base
-        if (service.getUtilisateur().findById(Integer.parseInt(userNum)) == null) {
+        if (utilisateurService.findById(Integer.parseInt(userNum)) == null) {
             log.error(Constant.UTILISATEUR_ABSENT_BASE);
             throw new UserExistException(Constant.UTILISATEUR_ABSENT_BASE);
         }
 
         // recupération de l'iln du user
-        String ilnUser = service.getUtilisateur().findById(Integer.parseInt(userNum)).getIln();
+        String ilnUser = utilisateurService.findById(Integer.parseInt(userNum)).getIln();
 
         // récupération de l'iln du rcr
-        Optional<LibProfile> library = dao.getLibProfile().findById(rcr);
+        Optional<LibProfile> library = libProfileDao.findById(rcr);
         if (library.isPresent()) {
             String ilnRcr = library.get().getIln();
             if (!ilnUser.equals(ilnRcr)) {

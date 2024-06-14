@@ -4,5 +4,5 @@
 LANG=fr_FR.UTF-8
 if [[ $(pgrep -cf "item-batch.jar --spring.batch.job.names=suppressionDemandesPlusDeTroisMois") < 1 ]];
 then
-    java -jar /scripts/item-batch.jar --spring.batch.job.names=suppressionDemandesPlusDeTroisMois
+    java -jar -XX:MaxRAMPercentage=95 /scripts/item-batch.jar --spring.batch.job.names=suppressionDemandesPlusDeTroisMois
 fi

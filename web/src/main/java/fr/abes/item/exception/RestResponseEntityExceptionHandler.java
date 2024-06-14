@@ -2,7 +2,8 @@ package fr.abes.item.exception;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.item.constant.Constant;
+import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.rest.webmvc.support.ExceptionMessage;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +37,9 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
 	@ExceptionHandler({ ConstraintViolationException.class })
 	public ResponseEntity<?> handleConstraintFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
+
+	@ExceptionHandler({StorageFileNotFoundException.class})
+	public ResponseEntity<?> handleStorageFileNotFound(Throwable t) { return errorResponse(t, HttpStatus.NOT_FOUND);}
 
 	protected ResponseEntity<ExceptionMessage> errorResponse(Throwable throwable, HttpStatus status) {
 		if (null != throwable) {

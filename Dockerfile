@@ -1,6 +1,6 @@
 ###
 # Image pour la compilation
-FROM maven:3-eclipse-temurin-11 as build-image
+FROM maven:3-eclipse-temurin-17 as build-image
 WORKDIR /build/
 # Installation et configuration de la locale FR
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt -y install locales
@@ -35,7 +35,7 @@ RUN mvn --batch-mode \
 #FROM tomcat:9-jdk11 as api-image
 #COPY --from=build-image /build/web/target/*.war /usr/local/tomcat/webapps/ROOT.war
 #CMD [ "catalina.sh", "run" ]
-FROM tomcat:9-jdk11 as api-image
+FROM tomcat:9-jdk17 as api-image
 WORKDIR /app/
 COPY --from=build-image /build/web/target/*.jar /app/item.jar
 ENV TZ=Europe/Paris
@@ -69,14 +69,12 @@ RUN dnf install -y cronie gettext && \
     crond -V && rm -rf /etc/cron.*/*
 COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 # Le JAR et le script pour le batch de LN
-RUN dnf install -y java-11-openjdk
+RUN dnf install -y java-17-openjdk
 
 RUN dnf install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
     echo "Europe/London" > /etc/timezone
 
-COPY ./docker/batch/itemBatchRestartJobs.sh /scripts/itemBatchRestartJobs.sh
-RUN chmod +x /scripts/itemBatchRestartJobs.sh
 COPY ./docker/batch/itemBatchArchiverDemandesPlusDeTroisMois.sh /scripts/itemBatchArchiverDemandesPlusDeTroisMois.sh
 RUN chmod +x /scripts/itemBatchArchiverDemandesPlusDeTroisMois.sh
 COPY ./docker/batch/itemBatchExportStatistiques.sh /scripts/itemBatchExportStatistiques.sh
