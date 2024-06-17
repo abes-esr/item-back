@@ -34,6 +34,10 @@ public class ModifDeMasseApplication extends SpringBootServletInitializer {
         System.out.println("App launched." +
                 " | Env:" + Arrays.toString(env.getActiveProfiles()) +
                 " | Port:" + env.getProperty("server.port") +
+                " | Module:" + "web"
+
+        );
+        System.out.println("Connected to." +
                 " | BDD:" + env.getProperty("spring.datasource.item.jdbcurl") +
                 " | XMLBase:" + env.getProperty("spring.datasource.basexml.jdbcurl")
 
