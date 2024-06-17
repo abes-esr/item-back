@@ -1,5 +1,7 @@
 package fr.abes.item;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -10,12 +12,19 @@ import org.springframework.core.Ordered;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.core.env.Environment;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 
 @SpringBootApplication
 public class ModifDeMasseApplication extends SpringBootServletInitializer {
+    private static Environment env;
+
+    public ModifDeMasseApplication(Environment environment) {
+        env = environment;
+    }
 
 	@Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -24,6 +33,20 @@ public class ModifDeMasseApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
 	    SpringApplication.run(ModifDeMasseApplication.class, args);
+        System.out.println("App launched." +
+                " | Env:" + Arrays.toString(env.getActiveProfiles()) +
+                " | Port:" + env.getProperty("server.port") +
+                " | BDD:" + env.getProperty("spring.datasource.item.jdbcurl") +
+                " | XMLBase:" + env.getProperty("spring.datasource.basexml.jdbcurl")
+
+        );
+        System.out.println("Level of log." +
+                " | App: " + env.getProperty("logging.level.fr.abes") +
+                " | Tomcat: " + env.getProperty("logging.level.tomcat") +
+                " | Web: " + env.getProperty("logging.level.web") +
+                " | Sql: " + env.getProperty("logging.level.sql") +
+                " | Spring: " + env.getProperty("logging.level.spring")
+        );
     }
 
     @Bean
