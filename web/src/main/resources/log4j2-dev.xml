@@ -122,7 +122,7 @@
     </Appenders>
 
     <Loggers>
-        <Root level="ERROR">
+        <Root level="all">
             <AppenderRef ref="Console" />
             <AppenderRef ref="DebugFile" />
             <AppenderRef ref="LogFile" />

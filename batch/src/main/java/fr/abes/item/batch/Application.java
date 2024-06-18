@@ -16,7 +16,9 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        SpringApplication.exit(SpringApplication.run(Application.class, args));
+        SpringApplication app = new SpringApplication(Application.class);
+        app.setAdditionalProfiles("batch"); // Activer le profil "batch"
+        app.run(args);
         System.out.println("App launched." +
                 " | Env:" + Arrays.toString(env.getActiveProfiles()) +
                 " | Port:" + env.getProperty("server.port") +
