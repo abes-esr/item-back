@@ -32,10 +32,7 @@ public class Application {
         );
         System.out.println("Level of log." +
                 " | App: " + env.getProperty("logging.level.fr.abes") +
-                " | Tomcat: " + env.getProperty("logging.level.tomcat") +
-                " | Web: " + env.getProperty("logging.level.web") +
-                " | Sql: " + env.getProperty("logging.level.sql") +
-                " | Spring: " + env.getProperty("logging.level.spring")
+                " | Spring: " + env.getProperty("logging.level.root")
         );
     }
 }
