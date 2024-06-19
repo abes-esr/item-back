@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 @SpringBootApplication
 public class Application {
-
     private static Environment env;
 
     public Application(Environment environment) {
