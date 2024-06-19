@@ -9,6 +9,7 @@ import org.springframework.data.rest.webmvc.support.ExceptionMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -23,6 +24,9 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 	public ResponseEntity<?> handleForbiddenFailures(Throwable t) {
 		return errorResponse(t, HttpStatus.FORBIDDEN);
 	}
+
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<?> handleBadCredentials(Throwable t) { return errorResponse(t, HttpStatus.UNAUTHORIZED); }
 
 	@ExceptionHandler({ IllegalArgumentException.class, FileCheckingException.class, FileTypeException.class})
 	public ResponseEntity<?> handleMiscFailures(Throwable t) {
