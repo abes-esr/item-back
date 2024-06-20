@@ -1,10 +1,7 @@
 package fr.abes.item.dto;
 
 import fr.abes.item.core.constant.TYPE_DEMANDE;
-import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeExemp;
-import fr.abes.item.core.entities.item.DemandeModif;
-import fr.abes.item.core.entities.item.DemandeRecouv;
+import fr.abes.item.core.entities.item.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +22,15 @@ public class DtoBuilder {
         dtoList.add(DemandeRecouvWebDto.class);
     }
 
-    public DemandeWebDto buildDto(Demande demande, TYPE_DEMANDE type) {
+    public DemandeWebDto buildDemandeDto(Demande demande, TYPE_DEMANDE type) {
         return switch (type) {
             case EXEMP -> new DemandeExempWebDto((DemandeExemp) demande);
             case MODIF -> new DemandeModifWebDto((DemandeModif) demande);
             case RECOUV -> new DemandeRecouvWebDto((DemandeRecouv) demande);
         };
+    }
+
+    public UtilisateurWebDto buildUtilisateurDto(Utilisateur utilisateur) {
+        return new UtilisateurWebDto(utilisateur.getId(), utilisateur.getEmail());
     }
 }
