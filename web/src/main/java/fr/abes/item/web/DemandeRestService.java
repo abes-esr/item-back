@@ -65,14 +65,14 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         if (role.equals("ADMIN")) {
             if (archive) {
-                return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+                return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
             }
             else {
-                return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+                return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
             }
         }
         //role USER
-        return (archive) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList()) : service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDto(element, type)).collect(Collectors.toList());
+        return (archive) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
     }
 
     /**
@@ -88,7 +88,7 @@ public class DemandeRestService {
     public DemandeWebDto getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.findById(id), type);
+        return builder.buildDemandeDto(service.findById(id), type);
     }
 
     /**
@@ -106,7 +106,7 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.creerDemande(rcr, Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()));
         Demande demToReturn = service.save(demande);
-        return builder.buildDto(demToReturn, type);
+        return builder.buildDemandeDto(demToReturn, type);
     }
 
     /**
@@ -133,7 +133,7 @@ public class DemandeRestService {
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
         Demande demande = service.findById(numDemande);
         ligneFichierService.deleteByDemande(demande);
-        return builder.buildDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
+        return builder.buildDemandeDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
     }
 
 
@@ -154,7 +154,7 @@ public class DemandeRestService {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         dem.setNumDemande(id);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.save(dem), type);
+        return builder.buildDemandeDto(service.save(dem), type);
     }
 
 
@@ -169,7 +169,7 @@ public class DemandeRestService {
     @PostMapping(value = "/majTypeExemp/{id}")
     public DemandeWebDto majTypeExemp(@PathVariable("id") Integer id, @RequestParam("type") Integer type, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.EXEMP);
-        return builder.buildDto(demandeExempService.majTypeExemp(id, type), TYPE_DEMANDE.EXEMP);
+        return builder.buildDemandeDto(demandeExempService.majTypeExemp(id, type), TYPE_DEMANDE.EXEMP);
     }
 
 
@@ -248,7 +248,7 @@ public class DemandeRestService {
     public DemandeWebDto passerEnAttente(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.changeState(service.findById(numDemande), Constant.ETATDEM_ATTENTE), type);
+        return builder.buildDemandeDto(service.changeState(service.findById(numDemande), Constant.ETATDEM_ATTENTE), type);
     }
 
     /**
@@ -269,7 +269,7 @@ public class DemandeRestService {
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.archiverDemande(service.findById(numDemande)), type);
+        return builder.buildDemandeDto(service.archiverDemande(service.findById(numDemande)), type);
     }
 
     /**
@@ -291,7 +291,7 @@ public class DemandeRestService {
             DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.previousState(service.findById(id)), type);
+        return builder.buildDemandeDto(service.previousState(service.findById(id)), type);
     }
 
     /**
@@ -310,7 +310,7 @@ public class DemandeRestService {
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDto(service.returnState(etape, service.findById(id)), type);
+        return builder.buildDemandeDto(service.returnState(etape, service.findById(id)), type);
     }
 
     /**
