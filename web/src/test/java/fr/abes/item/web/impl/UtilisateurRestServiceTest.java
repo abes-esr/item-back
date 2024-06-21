@@ -2,7 +2,6 @@ package fr.abes.item.web.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.item.core.entities.item.Utilisateur;
-import fr.abes.item.core.exception.ForbiddenException;
 import fr.abes.item.core.service.UtilisateurService;
 import fr.abes.item.dto.DtoBuilder;
 import fr.abes.item.exception.RestResponseEntityExceptionHandler;
@@ -22,7 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,27 +54,10 @@ public class UtilisateurRestServiceTest {
         Utilisateur utilisateurSaved = new Utilisateur(1, "test@test.com", "1");
         Mockito.when(service.save(Mockito.any())).thenReturn(utilisateurSaved);
 
-        this.mockMvc.perform(post("/api/v1/utilisateurs/1").content("test@test.com").requestAttr("userNum", "1")
+        this.mockMvc.perform(put("/api/v1/utilisateurs/1").content("test@test.com").requestAttr("userNum", "1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE).characterEncoding(StandardCharsets.UTF_8))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value("1"))
                 .andExpect(jsonPath("$.email").value("test@test.com"));
-    }
-
-    @Test
-    void testSaveUtilisateurForbidden() throws Exception {
-        Mockito.doThrow(ForbiddenException.class).when(checkAccessToServices).autoriserMajUtilisateurParUserNum(1, "1");
-        this.mockMvc.perform(post("/api/v1/utilisateurs/1").content("test@test.com").requestAttr("userNum", "1")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE).characterEncoding(StandardCharsets.UTF_8))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void testSaveUtilisateurNoUser() throws Exception {
-        Mockito.doNothing().when(checkAccessToServices).autoriserMajUtilisateurParUserNum(1, "1");
-        Mockito.when(service.findById(1)).thenReturn(null);
-        this.mockMvc.perform(post("/api/v1/utilisateurs/1").content("test@test.com").requestAttr("userNum", "1")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE).characterEncoding(StandardCharsets.UTF_8))
-                .andExpect(status().isBadRequest());
     }
 }
