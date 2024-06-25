@@ -98,9 +98,9 @@ public class DemandeRestService {
      * @param rcr  : rcr de la demandeModif à enregistrer
      * @return : la demandé modifiée
      */
-    @GetMapping(value = "/creerdemande")
+    @PutMapping(value = "/demandes")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    @Operation(summary = "permet de créer une nouvelle demande de  modif pour un rcr donné")
+    @Operation(summary = "permet de créer une nouvelle demande pour un rcr donné")
     public DemandeWebDto save(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -146,7 +146,7 @@ public class DemandeRestService {
      * @param dem : la demandeModif à enregistrer
      * @return : la demandeModif modifiée
      */
-    @PutMapping(value = "/demandes/{id}")
+    @PostMapping(value = "/demandes/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande")
     public DemandeWebDto save(@PathVariable("id") Integer id, @RequestParam("dem") Demande dem, @RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) throws UserExistException, ForbiddenException {
