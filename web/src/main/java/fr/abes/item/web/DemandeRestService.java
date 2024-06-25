@@ -98,7 +98,7 @@ public class DemandeRestService {
      * @param rcr  : rcr de la demandeModif à enregistrer
      * @return : la demandé modifiée
      */
-    @PutMapping(value = "/demandes")
+    @PostMapping(value = "/demandes")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande pour un rcr donné")
     public DemandeWebDto save(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
@@ -146,7 +146,7 @@ public class DemandeRestService {
      * @param dem : la demandeModif à enregistrer
      * @return : la demandeModif modifiée
      */
-    @PostMapping(value = "/demandes/{id}")
+    @PutMapping(value = "/demandes/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande")
     public DemandeWebDto save(@PathVariable("id") Integer id, @RequestParam("dem") Demande dem, @RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) throws UserExistException, ForbiddenException {
