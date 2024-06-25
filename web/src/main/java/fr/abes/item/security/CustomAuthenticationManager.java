@@ -2,6 +2,7 @@ package fr.abes.item.security;
 
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.service.UtilisateurService;
+import fr.abes.item.exception.WsAuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -19,7 +20,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -53,7 +53,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        User u = this.estAuthentifie(name, password);
+        User u = this.callWsAuth(name, password);
 
         if (u != null) {
 
@@ -78,8 +78,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     }
 
 
-    private User estAuthentifie(String userKey, String password) {
-
+    private User callWsAuth(String userKey, String password) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String requestJson = "{\n" +
@@ -94,9 +93,9 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
             return restTemplate.postForObject(this.urlWsAuthSudoc, entity, User.class);
         }
-        catch (HttpClientErrorException e) {
-            log.info(Constant.ERROR_SUDOC_WS_AUTHENTICATION + e);
-            return null;
+        catch (Exception e) {
+            log.error(Constant.ERROR_SUDOC_WS_AUTHENTICATION + e);
+            throw new WsAuthException(e.getMessage());
         }
     }
     public String getEmail(Integer userNum) {
