@@ -159,7 +159,7 @@ class DemandeRestServiceTest {
         Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
         Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/creerdemande?type=EXEMP&rcr=341720001").requestAttr("userNum", "1"))
+        this.mockMvc.perform(put("/api/v1/demandes?type=EXEMP&rcr=341720001").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.rcr").value("341720001"))
