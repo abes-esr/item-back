@@ -169,6 +169,26 @@ class DemandeRestServiceTest {
 
     @Test
     @WithMockUser(authorities = {"USER"})
+    void testModifDemande() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        EtatDemande etat = new EtatDemande(1, "A compléter");
+        Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
+        DemandeExemp demandeIn = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
+        Mockito.when(demandeExempService.findById(1)).thenReturn(demandeIn);
+        DemandeExemp demandeOut = new DemandeExemp(1, "341725201", cal.getTime(), cal.getTime(), etat, "", utilisateur);
+        Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demandeOut);
+        this.mockMvc.perform(patch("/api/v1/demandes/1?type=EXEMP&rcr=341725201").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("341725201"))
+                .andExpect(jsonPath("$.etatDemande").value("A compléter"));
+
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
     void testSupprimer() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.doNothing().when(demandeExempService).deleteById(Mockito.anyInt());

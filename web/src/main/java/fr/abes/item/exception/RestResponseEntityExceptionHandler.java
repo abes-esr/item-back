@@ -36,6 +36,9 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 	@ExceptionHandler({ DemandeCheckingException.class })
 	public ResponseEntity<?> handleBadConditionsFailures(Throwable t) { return errorResponse(t, HttpStatus.PRECONDITION_FAILED);}
 
+	@ExceptionHandler({ UnknownDemandeException.class })
+	public ResponseEntity<?> handleUnknownDemande(Throwable t) { return errorResponse(t, HttpStatus.BAD_REQUEST);}
+
 	@ExceptionHandler({ CBSException.class, ZoneException.class, QueryToSudocException.class })
 	public ResponseEntity<?> handleBadRequestFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
 

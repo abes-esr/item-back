@@ -109,6 +109,18 @@ public class DemandeRestService {
         return builder.buildDemandeDto(demToReturn, type);
     }
 
+    @PatchMapping(value = "/demandes/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
+    public DemandeWebDto modifDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") String rcr, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+        checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        Demande demande = service.findById(id);
+        if (demande != null) {
+            demande.setRcr(rcr);
+            return builder.buildDemandeDto(service.save(demande), type);
+        }
+        throw new UnknownDemandeException("Demande inconnue");
+    }
     /**
      * Webservice de suppression d'une demandeModif
      *
@@ -135,6 +147,7 @@ public class DemandeRestService {
         ligneFichierService.deleteByDemande(demande);
         return builder.buildDemandeDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
     }
+
 
 
     /**
