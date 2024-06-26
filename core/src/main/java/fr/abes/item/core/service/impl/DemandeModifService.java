@@ -370,8 +370,9 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         Calendar calendar = Calendar.getInstance();
         DemandeModif demandeModif = new DemandeModif(rcr, calendar.getTime(), calendar.getTime(), "", "", "", referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum), null);
         demandeModif.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
+        DemandeModif demToReturn = (DemandeModif) save(demandeModif);
         journalService.addEntreeJournal(demandeModif, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
-        return demandeModif;
+        return demToReturn;
     }
 
     @Override
