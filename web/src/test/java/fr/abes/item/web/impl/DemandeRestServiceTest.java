@@ -80,7 +80,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"ADMIN"})
     void testGetAllActiveDemandesForAdmin() throws Exception {
         Mockito.when(demandeExempService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -95,7 +95,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"ADMIN"})
     void testGetAllActiveDemandesForAdminExtender() throws Exception {
         Mockito.when(demandeExempService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=false").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -107,7 +107,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testChercher() throws Exception {
         Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -119,7 +119,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testGetAllArtiveDemandes() throws Exception {
         Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=false&extension=true").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -131,7 +131,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testGetAllArchivedDemandes() throws Exception {
         Mockito.when(demandeExempService.getAllArchivedDemandes("1")).thenReturn(this.demandeExemps);
-        this.mockMvc.perform(get("/api/v1/demandes?type=EXEMP&archive=true&extension=false").requestAttr("iln", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP?archive=true&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].rcr").value("111111111"))
@@ -144,7 +144,7 @@ class DemandeRestServiceTest {
     void testGetDemande() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
-        this.mockMvc.perform(get("/api/v1/demandes/1?type=EXEMP").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/demandes/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.rcr").value("111111111"))
@@ -159,7 +159,7 @@ class DemandeRestServiceTest {
         Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
         Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demande);
-        this.mockMvc.perform(post("/api/v1/demandes?type=EXEMP&rcr=341720001").requestAttr("userNum", "1"))
+        this.mockMvc.perform(post("/api/v1/demandes/EXEMP?rcr=341720001").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.rcr").value("341720001"))
@@ -179,7 +179,7 @@ class DemandeRestServiceTest {
         Mockito.when(demandeExempService.findById(1)).thenReturn(demandeIn);
         DemandeExemp demandeOut = new DemandeExemp(1, "341725201", cal.getTime(), cal.getTime(), etat, "", utilisateur);
         Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demandeOut);
-        this.mockMvc.perform(patch("/api/v1/demandes/1?type=EXEMP&rcr=341725201").requestAttr("userNum", "1"))
+        this.mockMvc.perform(patch("/api/v1/demandes/EXEMP/1?rcr=341725201").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.rcr").value("341725201"))
@@ -192,7 +192,7 @@ class DemandeRestServiceTest {
     void testSupprimer() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.doNothing().when(demandeExempService).deleteById(Mockito.anyInt());
-        this.mockMvc.perform(delete("/api/v1/demandes/1?type=EXEMP").requestAttr("userNum", "1"))
+        this.mockMvc.perform(delete("/api/v1/demandes/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk());
     }
 
@@ -221,7 +221,7 @@ class DemandeRestServiceTest {
         Mockito.when(demandeExempService.findById(1)).thenReturn(demande);
         Mockito.doNothing().when(demandeExempService).initFiles(Mockito.any());
         Mockito.when(demandeExempService.stockerFichier(Mockito.any(), Mockito.any())).thenReturn("Fichier déposé");
-        this.mockMvc.perform(multipart("/api/v1/uploadDemande").file(file).param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(multipart("/api/v1/uploadDemande/EXEMP/1").file(file).requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("Fichier déposé"));
     }
@@ -232,7 +232,7 @@ class DemandeRestServiceTest {
         Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         Mockito.when(ligneFichierExempService.getLigneFichierbyDemandeEtPos(Mockito.any(), Mockito.anyInt())).thenReturn(new LigneFichierExemp());
         Mockito.when(demandeExempService.getNoticeExemplaireAvantApres(Mockito.any(), Mockito.any())).thenReturn(new String[]{"avant", "après"});
-        this.mockMvc.perform(get("/api/v1/simulerLigne").param("type", "EXEMP").param("numDemande", "1").param("numLigne", "1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/simulerLigne/EXEMP/1/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0]").value("avant"))
                 .andExpect(jsonPath("$.[1]").value("après"));
@@ -245,7 +245,7 @@ class DemandeRestServiceTest {
         DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.changeState(Mockito.any(), Mockito.anyInt())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/passerEnAttente").param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/passerEnAttente/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.etatDemande").value("En attente"))
@@ -258,7 +258,7 @@ class DemandeRestServiceTest {
         DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
         demande.setEtatDemande(new EtatDemande(7, "Archivée"));
         Mockito.when(demandeExempService.archiverDemande(Mockito.any())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/archiverDemande").param("type", "EXEMP").param("numDemande", "1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/archiverDemande/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.etatDemande").value("Archivée"))
@@ -271,7 +271,7 @@ class DemandeRestServiceTest {
         DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.previousState(Mockito.any())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/etapePrecedente/1").param("type", "EXEMP").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/etapePrecedente/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.etatDemande").value("En attente"))
@@ -284,7 +284,7 @@ class DemandeRestServiceTest {
         DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.returnState(Mockito.anyInt(), Mockito.any())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/etapeChoisie/1").param("type", "EXEMP").param("etape", "3").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/etapeChoisie/EXEMP/1").param("etape", "3").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.etatDemande").value("En attente"))
@@ -296,7 +296,7 @@ class DemandeRestServiceTest {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.when(demandeExempService.findById(Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         Mockito.when(ligneFichierExempService.getNbLigneFichierTotalByDemande(Mockito.any())).thenReturn(30);
-        this.mockMvc.perform(get("/api/v1/getNbLigneFichier/1").param("type", "EXEMP").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/getNbLigneFichier/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(30));
     }

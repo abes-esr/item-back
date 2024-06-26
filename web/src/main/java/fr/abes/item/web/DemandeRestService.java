@@ -53,11 +53,11 @@ public class DemandeRestService {
      * @param request le requete avec ses attributs
      * @return Une liste de demandes
      */
-    @GetMapping(value = "/demandes")
+    @GetMapping(value = "/demandes/{type}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "renvoie les demandes en fonction du rôle de l'utilisateur",
             description = "renvoie les demande terminées et en erreur de tout le monde et toutes les demande créées par cet iln")
-    public List<DemandeWebDto> getAllActiveDemandes(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("archive") boolean archive, @RequestParam("extension") boolean extension, HttpServletRequest request) {
+    public List<DemandeWebDto> getAllActiveDemandes(@PathVariable("type") TYPE_DEMANDE type, @RequestParam("archive") boolean archive, @RequestParam("extension") boolean extension, HttpServletRequest request) {
         String iln = request.getAttribute("iln").toString();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String role = ((UserDetails)authentication.getPrincipal()).getAuthorities().stream().findFirst().get().toString();
@@ -76,32 +76,32 @@ public class DemandeRestService {
     }
 
     /**
-     * Webservice de récupération d'une demandeModif par son identifiant
+     * Webservice de récupération d'une demande par son identifiant
      *
      * @param type type de demande concernée par le webservice
      * @param id   : identifiant de la demandeModif
      * @return demandeModif correspondant à la recherche
      */
-    @GetMapping(value = "/demandes/{id}")
+    @GetMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "renvoie une demande précise")
-    public DemandeWebDto getDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto getDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         return builder.buildDemandeDto(service.findById(id), type);
     }
 
     /**
-     * Webservice de sauvegarde d'une demandeModif via formulaire
+     * Webservice de sauvegarde d'une demande via formulaire
      *
      * @param type type de demande concernée par le webservice
      * @param rcr  : rcr de la demandeModif à enregistrer
      * @return : la demandé modifiée
      */
-    @PostMapping(value = "/demandes")
+    @PostMapping(value = "/demandes/{type}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande pour un rcr donné")
-    public DemandeWebDto save(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto save(@PathVariable("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.creerDemande(rcr, Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()));
@@ -109,9 +109,9 @@ public class DemandeRestService {
         return builder.buildDemandeDto(demToReturn, type);
     }
 
-    @PatchMapping(value = "/demandes/{id}")
+    @PatchMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public DemandeWebDto modifDemande(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") String rcr, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+    public DemandeWebDto modifRcrDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") String rcr, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(id);
@@ -127,19 +127,19 @@ public class DemandeRestService {
      * @param type type de demande concernée par le webservice
      * @param id   : identifiant de la demandeModif à supprimer
      */
-    @DeleteMapping(value = "/demandes/{id}")
+    @DeleteMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande")
-    public void supprimer(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public void supprimer(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         service.deleteById(id);
     }
 
-    @GetMapping(value = "/supprimerDemande")
+    @GetMapping(value = "/supprimerDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
-    public DemandeWebDto supprimerAvecConservationEnBase(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto supprimerAvecConservationEnBase(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
@@ -159,10 +159,10 @@ public class DemandeRestService {
      * @param dem : la demandeModif à enregistrer
      * @return : la demandeModif modifiée
      */
-    @PutMapping(value = "/demandes/{id}")
+    @PutMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de créer une nouvelle demande")
-    public DemandeWebDto save(@PathVariable("id") Integer id, @RequestParam("dem") Demande dem, @RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto save(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("dem") Demande dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
         //TODO : a revoir, ne devrait pas recevoir un objet entier en requestParam
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         dem.setNumDemande(id);
@@ -198,10 +198,10 @@ public class DemandeRestService {
      * @throws FileTypeException     le type de fichier est incorrect, non supporté pour le traitement
      * @throws FileCheckingException erreur dans la vérification du fichier
      */
-    @PostMapping("/uploadDemande")
+    @PostMapping("/uploadDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de charger le fichier pour une demande")
-    public String uploadDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("file") MultipartFile file, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request)
+    public String uploadDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, @RequestParam("file") MultipartFile file, HttpServletRequest request)
             throws FileTypeException, FileCheckingException, DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -222,10 +222,10 @@ public class DemandeRestService {
      * @param numLigne   : numéro de la ligne dans le fichier correspondant à la simulation
      * @return : tableau contenant les notices avant et après simulation
      */
-    @GetMapping("/simulerLigne")
+    @GetMapping("/simulerLigne/{type}/{id}/{numLigne}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de simuler la modification d'un exemplaire", description = "pour un exemplaire donné du fichier enrichi, renvoie un tableau contenant la notice avant et après modification")
-    public String[] simulerLigne(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, @RequestParam("numLigne") Integer numLigne, HttpServletRequest request)
+    public String[] simulerLigne(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, @PathVariable("numLigne") Integer numLigne, HttpServletRequest request)
             throws CBSException, UserExistException, ForbiddenException, ZoneException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -255,10 +255,10 @@ public class DemandeRestService {
      * @throws UserExistException       : erreur sur l'utilisateur accédant à la méthode
      * @throws ForbiddenException       : erreur d'accès à la méthode
      */
-    @GetMapping("/passerEnAttente")
+    @GetMapping("/passerEnAttente/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de modifier le statut de la demande pour la passer à : en attente")
-    public DemandeWebDto passerEnAttente(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
+    public DemandeWebDto passerEnAttente(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         return builder.buildDemandeDto(service.changeState(service.findById(numDemande), Constant.ETATDEM_ATTENTE), type);
@@ -275,10 +275,10 @@ public class DemandeRestService {
      * @throws UserExistException       utilisateur non trouvé
      * @throws ForbiddenException       controle d'accès échoué
      */
-    @GetMapping("/archiverDemande")
+    @GetMapping("/archiverDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de passer la demande en statut archivé")
-    public DemandeWebDto archiverDemande(@RequestParam("type") TYPE_DEMANDE type, @RequestParam("numDemande") Integer numDemande, HttpServletRequest request) throws
+    public DemandeWebDto archiverDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -297,10 +297,10 @@ public class DemandeRestService {
      * @throws UserExistException       utilisateur non trouvé
      * @throws ForbiddenException       controle d'accès échoué
      */
-    @GetMapping("/etapePrecedente/{id}")
+    @GetMapping("/etapePrecedente/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à l'étape précédente dans le workflow de création d'une demande")
-    public DemandeWebDto previousStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
+    public DemandeWebDto previousStep(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
             DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -316,10 +316,10 @@ public class DemandeRestService {
      * @throws UserExistException       utilisateur non trouvé
      * @throws ForbiddenException       controle d'accès échoué
      */
-    @GetMapping("/etapeChoisie/{id}")
+    @GetMapping("/etapeChoisie/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à une étape bien précise dans le workflow de création d'une demande")
-    public DemandeWebDto chosenStep(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
+    public DemandeWebDto chosenStep(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
             DemandeCheckingException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
@@ -336,10 +336,10 @@ public class DemandeRestService {
      * @throws UserExistException utilisateur non trouvé
      * @throws ForbiddenException controle d'accès échoué
      */
-    @GetMapping("/getNbLigneFichier/{id}")
+    @GetMapping("/getNbLigneFichier/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de récupérer le nombre de ligne du fichier enrichi d'une demande")
-    public Integer getNbLigneFichier(@RequestParam("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public Integer getNbLigneFichier(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
