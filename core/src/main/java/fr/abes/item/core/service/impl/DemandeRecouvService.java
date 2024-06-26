@@ -93,7 +93,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         Calendar calendar = Calendar.getInstance();
         DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
         demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
-        return demandeRecouv;
+        return (DemandeRecouv) save(demandeRecouv);
     }
 
     /**

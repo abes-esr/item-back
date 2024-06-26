@@ -104,8 +104,7 @@ public class DemandeRestService {
     public DemandeWebDto save(@PathVariable("type") TYPE_DEMANDE type, @RequestParam("rcr") String rcr, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        Demande demande = service.creerDemande(rcr, Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()));
-        Demande demToReturn = service.save(demande);
+        Demande demToReturn = service.creerDemande(rcr, Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()));
         return builder.buildDemandeDto(demToReturn, type);
     }
 
