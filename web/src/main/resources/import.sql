@@ -26,7 +26,7 @@ insert into TRAITEMENT(NUM_TRAITEMENT, LIBELLE, NOM_METHODE) values(5, 'Supprime
 
 insert into TYPE_EXEMP(NUM_TYPE_EXEMP, LIBELLE) values(1, 'Monographies électroniques');
 insert into TYPE_EXEMP(NUM_TYPE_EXEMP, LIBELLE) values(2, 'Périodiques électroniques');
-insert into TYPE_EXEMP(NUM_TYPE_EXEMP, LIBELLE) values(3, 'Autres ressources');
+insert into TYPE_EXEMP(NUM_TYPE_EXEMP, LIBELLE) values(3, 'Autres ressources (monographies imprimées)');
 
 insert into INDEX_RECHERCHE_TYPE_EXEMP(NUM_INDEX_RECHERCHE, NUM_TYPE_EXEMP) values(1, 1);
 insert into INDEX_RECHERCHE_TYPE_EXEMP(NUM_INDEX_RECHERCHE, NUM_TYPE_EXEMP) values(1, 3);
