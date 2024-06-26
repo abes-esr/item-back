@@ -186,16 +186,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      *
      * @param file    : contenu du fichier à stocker sur le disque
      * @param demande : demandeModif à laquelle est rattachée le fichier
-     * @return Message informant du bon déroulement de la méthode
      */
     @Override
-    public String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
+    public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
         Integer numDemande = demande.getNumDemande();
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
             fichier.generateFileName(numDemande);
-            return stockerFichierOnDisk(file, fichier, (DemandeModif) demande);
+            stockerFichierOnDisk(file, fichier, (DemandeModif) demande);
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);
         }
@@ -208,12 +207,11 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @param file         fichier à stocker
      * @param fichier      objet fichier associé
      * @param demandeModif demandeModif associée (pour construction du filename)
-     * @return message de validation du processus
      * @throws FileCheckingException type de fichier non reconnu
      * @throws IOException           demandeExemp.setExemplairesMultiplesAutorise("t");      fichier illisible
      * @throws FileTypeException     mauvais type de fichier
      */
-    private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeModif demandeModif) throws FileCheckingException, IOException, FileTypeException, DemandeCheckingException {
+    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeModif demandeModif) throws FileCheckingException, IOException, FileTypeException, DemandeCheckingException {
         Integer numDemande = demandeModif.getNumDemande();
         try {
             storageService.changePath(Paths.get(uploadPath + numDemande));
@@ -227,9 +225,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 fichierInitial.supprimerRetourChariot();
             }
             checkEtatDemande(demandeModif);
-            return Constant.MSG + file.getOriginalFilename() + " a bien été déposé sur le serveur avec le nom "
-                    + fichier.getFilename();
-
         } catch (FileCheckingException e) {
             storageService.delete(fichier.getFilename());
             throw e;

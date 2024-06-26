@@ -178,14 +178,14 @@ public class DemandeRestService {
     @PostMapping("/uploadDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de charger le fichier pour une demande")
-    public String uploadDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, @RequestParam("file") MultipartFile file, HttpServletRequest request)
+    public void uploadDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, @RequestParam("file") MultipartFile file, HttpServletRequest request)
             throws FileTypeException, FileCheckingException, DemandeCheckingException, IOException, UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(numDemande);
         if (demande.getUtilisateur().getNumUser().equals(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()))) {
             service.initFiles(demande);
-            return service.stockerFichier(file, demande);
+            service.stockerFichier(file, demande);
         } else {
             throw new DemandeCheckingException(Constant.ACCES_REFUSE);
         }

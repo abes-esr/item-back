@@ -219,16 +219,15 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
+    public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
         Integer numDemande = demande.getId();
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.RECOUV);
             fichier.generateFileName(numDemande);
-            String message = stockerFichierOnDisk(file, fichier, demandeRecouv);
+            stockerFichierOnDisk(file, fichier, demandeRecouv);
             this.majDemandeWithFichierEnrichi(demandeRecouv);
-            return message;
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);
         }
@@ -248,7 +247,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
      * @throws IOException : erreur d'accès au fichier
      * @throws FileCheckingException : erreur dans le format du fichier
      */
-    private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeRecouv demandeRecouv) throws IOException, FileCheckingException {
+    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeRecouv demandeRecouv) throws IOException, FileCheckingException {
         Integer numDemande = demandeRecouv.getId();
         try {
             storageService.changePath(Paths.get(uploadPath + numDemande));
@@ -257,8 +256,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             fichier.setPath(Paths.get(uploadPath + numDemande));
             //Ici l'objet fichierRecouv va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeRecouv);
-            return Constant.MSG + file.getOriginalFilename() + " a bien été déposé sur le serveur avec le nom "
-                    + fichier.getFilename();
         } catch (FileCheckingException e) {
             storageService.delete(fichier.getFilename());
             throw e;

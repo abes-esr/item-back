@@ -224,10 +224,9 @@ class DemandeRestServiceTest {
         DemandeExemp demande = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), new EtatDemande(1, "A compléter"), "", new Utilisateur(1, "test@test.com"));
         Mockito.when(demandeExempService.findById(1)).thenReturn(demande);
         Mockito.doNothing().when(demandeExempService).initFiles(Mockito.any());
-        Mockito.when(demandeExempService.stockerFichier(Mockito.any(), Mockito.any())).thenReturn("Fichier déposé");
+        Mockito.doNothing().when(demandeExempService).stockerFichier(Mockito.any(), Mockito.any());
         this.mockMvc.perform(multipart("/api/v1/uploadDemande/EXEMP/1").file(file).requestAttr("userNum", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value("Fichier déposé"));
+                .andExpect(status().isOk());
     }
 
     @Test

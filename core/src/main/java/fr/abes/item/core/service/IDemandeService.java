@@ -27,7 +27,7 @@ public interface IDemandeService {
 
     void initFiles(Demande demande) throws FileTypeException;
 
-    String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
+    void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException;
 
     Demande previousState(Demande demande) throws DemandeCheckingException, IOException;
 

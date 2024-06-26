@@ -170,23 +170,21 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      *
      * @param file    fichier issu du front
      * @param demande demande concernée
-     * @return message indiquant le bon déroulement de l'opération renvoyé au front
-     * @throws IOException : erreur lecture fichier
-     * @throws FileTypeException : erreur de type de fichier en entrée
-     * @throws FileCheckingException : erreur dans la vérification de l'extension du fichier
-     * @throws DemandeCheckingException  : erreur dans l'état de la demande
+     * @throws IOException              : erreur lecture fichier
+     * @throws FileTypeException        : erreur de type de fichier en entrée
+     * @throws FileCheckingException    : erreur dans la vérification de l'extension du fichier
+     * @throws DemandeCheckingException : erreur dans l'état de la demande
      */
     @Override
-    public String stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
+    public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
         Integer numDemande = demande.getNumDemande();
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.EXEMP); //Retourne un FichierEnrichiExemp
             fichier.generateFileName(numDemande); //génération nom du fichier
-            String message = stockerFichierOnDisk(file, fichier, demandeExemp); //stockage du fichier sur disque, le controle de l'entête du fichier s'effectue ici
+            stockerFichierOnDisk(file, fichier, demandeExemp); //stockage du fichier sur disque, le controle de l'entête du fichier s'effectue ici
             this.majDemandeWithFichierEnrichi(demandeExemp); //mise à jour de la demande avec les paramètres du fichier enrichi : index de recherche, liste des zones, ajout des lignes du fichier dans la BDD
-            return message;
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);
         }
@@ -198,11 +196,10 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @param file         fichier à sauvegarder issu du client
      * @param fichier      objet correspondant au fichier
      * @param demandeExemp demande rattachée au fichier
-     * @return message indiquant le bon déroulement du processus renvoyé au front
      * @throws IOException : erreur lecture fichier
      * @throws FileCheckingException : erreur vérification fichier
      */
-    private String stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeExemp demandeExemp) throws IOException, FileCheckingException {
+    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeExemp demandeExemp) throws IOException, FileCheckingException {
         Integer numDemande = demandeExemp.getId();
         try {
             storageService.changePath(Paths.get(uploadPath + numDemande));
@@ -211,8 +208,6 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
             fichier.setPath(Paths.get(uploadPath + numDemande));
             //Ici l'objet fichierExemp va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeExemp); //Contrôle de l'entête et contenu du fichier
-            return Constant.MSG + file.getOriginalFilename() + " a bien été déposé sur le serveur avec le nom "
-                    + fichier.getFilename();
         } catch (FileCheckingException e) {
             storageService.delete(fichier.getFilename());
             throw e;
