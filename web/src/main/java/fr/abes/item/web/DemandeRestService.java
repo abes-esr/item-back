@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -110,16 +111,22 @@ public class DemandeRestService {
 
     @PatchMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public DemandeWebDto modifRcrDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") String rcr, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
-        checkAccessToServices.autoriserCreationDemandeParUserNum(rcr, request.getAttribute(Constant.USER_NUM).toString());
+    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(id);
         if (demande != null) {
-            demande.setRcr(rcr);
-            return builder.buildDemandeDto(service.save(demande), type);
+            if (rcr.isPresent()) {
+                demande.setRcr(rcr.get());
+                return builder.buildDemandeDto(service.save(demande), type);
+            }
+            if (type.equals(TYPE_DEMANDE.EXEMP) && typeExemp.isPresent()) {
+                return builder.buildDemandeDto(demandeExempService.majTypeExemp(id, typeExemp.get()), type);
+            }
         }
         throw new UnknownDemandeException("Demande inconnue");
     }
+
     /**
      * Webservice de suppression d'une demandeModif
      *
@@ -147,41 +154,12 @@ public class DemandeRestService {
         return builder.buildDemandeDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
     }
 
-
-
-    /**
-     * Webservice de sauvegarde d'une demande via méthode PUT
-     * <p>
-     * Suppression erreur DTO Persistent entities should not be used as arguments of "@RequestMapping" methods
-     *
-     * @param id  : identifiant de la demandeModif
-     * @param dem : la demandeModif à enregistrer
-     * @return : la demandeModif modifiée
-     */
-    @PutMapping(value = "/demandes/{type}/{id}")
-    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    @Operation(summary = "permet de créer une nouvelle demande")
-    public DemandeWebDto save(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("dem") Demande dem, HttpServletRequest request) throws UserExistException, ForbiddenException {
-        //TODO : a revoir, ne devrait pas recevoir un objet entier en requestParam
-        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
-        dem.setNumDemande(id);
-        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
-        return builder.buildDemandeDto(service.save(dem), type);
-    }
-
-
     @GetMapping(value = "/getTypeExemplarisationDemande/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permer de récupérer le type d'exemplarisation choisi pour une demande")
     public String getTypeExemplarisationDemande(@PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.EXEMP);
         return demandeExempService.getLibelleTypeExempDemande(id);
-    }
-
-    @PostMapping(value = "/majTypeExemp/{id}")
-    public DemandeWebDto majTypeExemp(@PathVariable("id") Integer id, @RequestParam("type") Integer type, HttpServletRequest request) throws UserExistException, ForbiddenException {
-        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.EXEMP);
-        return builder.buildDemandeDto(demandeExempService.majTypeExemp(id, type), TYPE_DEMANDE.EXEMP);
     }
 
 
