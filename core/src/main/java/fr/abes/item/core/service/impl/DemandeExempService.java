@@ -497,6 +497,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         Calendar calendar = Calendar.getInstance();
         DemandeExemp demandeExemp = new DemandeExemp(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
         demandeExemp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
+        setIlnShortNameOnDemande(demandeExemp);
         DemandeExemp demToReturn = (DemandeExemp) save(demandeExemp);
         journalService.addEntreeJournal(demandeExemp, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
         return demToReturn;
