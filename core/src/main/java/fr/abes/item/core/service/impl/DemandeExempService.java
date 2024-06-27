@@ -154,15 +154,14 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @param typeExempId valeur du type d'exemplarisation
      * @return la demande modifiée
      */
-    public DemandeExemp majTypeExemp(Integer demandeId, Integer typeExempId) {
-        Optional<DemandeExemp> demandeExemp = demandeExempDao.findById(demandeId);
+    public Demande majTypeExemp(Integer demandeId, Integer typeExempId) {
+        DemandeExemp demandeExemp = this.findById(demandeId);
         TypeExemp typeExemp = referenceService.findTypeExempById(typeExempId);
-        if (demandeExemp.isPresent()) {
-            DemandeExemp dem = demandeExemp.get();
-            dem.setDateModification(Calendar.getInstance().getTime());
-            dem.setTypeExemp(typeExemp);
-            dem.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
-            return demandeExempDao.save(dem);
+        if (demandeExemp != null) {
+            demandeExemp.setDateModification(Calendar.getInstance().getTime());
+            demandeExemp.setTypeExemp(typeExemp);
+            demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
+            return this.save(demandeExemp);
         }
         return null;
     }
