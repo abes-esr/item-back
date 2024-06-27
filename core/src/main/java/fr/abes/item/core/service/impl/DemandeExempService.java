@@ -110,8 +110,10 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Override
     public Demande save(Demande entity) {
         DemandeExemp demande = (DemandeExemp) entity;
-        entity.setDateModification(Calendar.getInstance().getTime());
-        return demandeExempDao.save(demande);
+        demande.setDateModification(Calendar.getInstance().getTime());
+        DemandeExemp demandeSaved = demandeExempDao.save(demande);
+        demandeSaved.setShortname(entity.getShortname());
+        return demandeSaved;
     }
 
     @Override

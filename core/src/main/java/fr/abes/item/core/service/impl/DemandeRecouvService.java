@@ -72,7 +72,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     public Demande save(Demande entity) {
         DemandeRecouv demande = (DemandeRecouv) entity;
         entity.setDateModification(Calendar.getInstance().getTime());
-        return demandeRecouvDao.save(demande);
+        DemandeRecouv demandeOut = demandeRecouvDao.save(demande);
+        demandeOut.setShortname(entity.getShortname());
+        return demandeOut;
     }
 
     @Override

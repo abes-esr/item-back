@@ -349,7 +349,9 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public Demande save(Demande entity) {
         DemandeModif demande = (DemandeModif) entity;
         entity.setDateModification(Calendar.getInstance().getTime());
-        return demandeModifDao.save(demande);
+        DemandeModif demandeOut = demandeModifDao.save(demande);
+        demandeOut.setShortname(entity.getShortname());
+        return demandeOut;
     }
 
     @Override
