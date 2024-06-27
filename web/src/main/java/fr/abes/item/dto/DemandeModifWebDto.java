@@ -20,8 +20,8 @@ public class DemandeModifWebDto extends DemandeWebDto {
     @JsonProperty("traitement")
     private String traitement;
 
-    public DemandeModifWebDto(Integer id, String rcr, String iln, String etatDemande, String commentaire, Integer pourcentageProgressionTraitement, String dateCreation, String dateModification, String zoneEtSousZone, String traitement) {
-        super(id, rcr, iln, etatDemande, commentaire, pourcentageProgressionTraitement, dateCreation, dateModification);
+    public DemandeModifWebDto(Integer id, String rcr, String shortName, String iln, String etatDemande, String commentaire, Integer pourcentageProgressionTraitement, String dateCreation, String dateModification, String zoneEtSousZone, String traitement) {
+        super(id, rcr, shortName, iln, etatDemande, commentaire, pourcentageProgressionTraitement, dateCreation, dateModification);
         this.zoneEtSousZone = zoneEtSousZone;
         this.traitement = traitement;
     }
@@ -32,6 +32,7 @@ public class DemandeModifWebDto extends DemandeWebDto {
         String dateModification = format.format(demande.getDateModification());
         this.id = demande.getId();
         this.rcr = demande.getRcr();
+        this.shortName = demande.getShortname();
         this.iln = demande.getIln();
         if (demande.getEtatDemande() != null)
             this.etatDemande = demande.getEtatDemande().getLibelle();

@@ -23,6 +23,8 @@ public class DemandeWebDto {
     protected Integer id;
     @JsonProperty("rcr")
     protected String rcr;
+    @JsonProperty("shortname")
+    protected String shortName;
     @JsonProperty("iln")
     protected String iln;
     @JsonProperty("etatDemande")
@@ -35,6 +37,5 @@ public class DemandeWebDto {
     protected String dateCreation;
     @JsonProperty("dateModification")
     protected String dateModification;
-
 
 }

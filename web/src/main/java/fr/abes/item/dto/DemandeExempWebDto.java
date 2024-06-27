@@ -22,8 +22,8 @@ public class DemandeExempWebDto extends DemandeWebDto {
     @JsonProperty("indexRecherche")
     private String indexRecherche;
 
-    public DemandeExempWebDto(Integer id, String rcr, String iln, String etatDemande, String commentaire, Integer pourcentageProgressionTraitement, String dateCreation, String dateModification, String typeExemp, String indexRecherche) {
-        super(id, rcr, iln, etatDemande, commentaire, pourcentageProgressionTraitement, dateCreation, dateModification);
+    public DemandeExempWebDto(Integer id, String rcr, String shortName, String iln, String etatDemande, String commentaire, Integer pourcentageProgressionTraitement, String dateCreation, String dateModification, String typeExemp, String indexRecherche) {
+        super(id, rcr, shortName, iln, etatDemande, commentaire, pourcentageProgressionTraitement, dateCreation, dateModification);
         this.typeExemp = typeExemp;
         this.indexRecherche = indexRecherche;
     }
@@ -35,6 +35,7 @@ public class DemandeExempWebDto extends DemandeWebDto {
         String dateModification = format.format(demande.getDateModification());
         this.id = demande.getId();
         this.rcr = demande.getRcr();
+        this.shortName = demande.getShortname();
         this.iln = demande.getIln();
         if (demande.getEtatDemande() != null)
             this.etatDemande = demande.getEtatDemande().getLibelle();
