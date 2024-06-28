@@ -313,7 +313,7 @@ public class DemandeRestService {
      * @throws UserExistException utilisateur non trouvé
      * @throws ForbiddenException controle d'accès échoué
      */
-    @GetMapping("/getNbLigneFichier/{type}/{id}")
+    @GetMapping("/nbLignesFichier/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de récupérer le nombre de ligne du fichier enrichi d'une demande")
     public Integer getNbLigneFichier(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws UserExistException, ForbiddenException {
