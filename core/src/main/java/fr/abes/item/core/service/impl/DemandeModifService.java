@@ -217,7 +217,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
             storageService.changePath(Paths.get(uploadPath + "modif/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
-            fichier.setPath(Paths.get(uploadPath + numDemande));
+            fichier.setPath(Paths.get(uploadPath + "modif/" + numDemande));
             fichier.checkFileContent(demandeModif); //Controle de l'adequation des entêtes
             //Cas d'un fichier initial pouvant contenir des lignes vides à supprimer
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {

@@ -259,7 +259,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             storageService.changePath(Paths.get(uploadPath + "recouv/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
-            fichier.setPath(Paths.get(uploadPath + numDemande));
+            fichier.setPath(Paths.get(uploadPath + "recouv/" + numDemande));
             //Ici l'objet fichierRecouv va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeRecouv);
         } catch (FileCheckingException e) {

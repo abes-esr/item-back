@@ -209,7 +209,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
             storageService.changePath(Paths.get(uploadPath + "exemp/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
-            fichier.setPath(Paths.get(uploadPath + numDemande));
+            fichier.setPath(Paths.get(uploadPath + "exemp/" + numDemande));
             //Ici l'objet fichierExemp va etre renseigné avec les zones courante et valeur de ces zones
             fichier.checkFileContent(demandeExemp); //Contrôle de l'entête et contenu du fichier
         } catch (FileCheckingException e) {
