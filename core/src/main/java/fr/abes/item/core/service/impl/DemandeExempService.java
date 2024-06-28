@@ -127,7 +127,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Override
     public void deleteById(Integer id) {
         //suppression des fichiers et du répertoire
-        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.changePath(Paths.get(uploadPath + "exemp/" + id));
         storageService.deleteAll();
         demandeExempDao.deleteById(id);
     }
@@ -206,7 +206,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeExemp demandeExemp) throws IOException, FileCheckingException {
         Integer numDemande = demandeExemp.getId();
         try {
-            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.changePath(Paths.get(uploadPath + "exemp/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));

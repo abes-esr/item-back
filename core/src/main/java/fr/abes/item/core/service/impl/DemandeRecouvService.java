@@ -88,7 +88,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public void deleteById(Integer id) {
         //suppression des fichiers et du répertoire
-        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.changePath(Paths.get(uploadPath + "recouv/" +  id));
         storageService.deleteAll();
         demandeRecouvDao.deleteById(id);
     }
@@ -256,7 +256,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeRecouv demandeRecouv) throws IOException, FileCheckingException {
         Integer numDemande = demandeRecouv.getId();
         try {
-            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.changePath(Paths.get(uploadPath + "recouv/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));

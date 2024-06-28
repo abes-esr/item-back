@@ -214,7 +214,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeModif demandeModif) throws FileCheckingException, IOException, FileTypeException, DemandeCheckingException {
         Integer numDemande = demandeModif.getNumDemande();
         try {
-            storageService.changePath(Paths.get(uploadPath + numDemande));
+            storageService.changePath(Paths.get(uploadPath + "modif/" + numDemande));
             storageService.init();
             storageService.store(file, fichier.getFilename());
             fichier.setPath(Paths.get(uploadPath + numDemande));
@@ -357,7 +357,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public void deleteById(Integer id) {
         //suppression des fichiers et du répertoire
-        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.changePath(Paths.get(uploadPath + "modif/" +  id));
         storageService.deleteAll();
         demandeModifDao.deleteById(id);
     }

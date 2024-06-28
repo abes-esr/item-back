@@ -44,7 +44,7 @@ public class DownloadFichierRestService {
 		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString(), type);
 
 		if (numDemande != null && numDemande != 0) {
-			storageService.changePath(Paths.get(uploadPath + numDemande));
+			storageService.changePath(Paths.get(uploadPath + type.toString().toLowerCase() + "/" + numDemande));
 			storageService.init();
 		}
 		Resource file = storageService.loadAsResource(filename);
