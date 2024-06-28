@@ -87,6 +87,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     @Override
     public void deleteById(Integer id) {
+        //suppression des fichiers et du répertoire
+        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.deleteAll();
         demandeRecouvDao.deleteById(id);
     }
 

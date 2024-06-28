@@ -126,6 +126,9 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
 
     @Override
     public void deleteById(Integer id) {
+        //suppression des fichiers et du répertoire
+        storageService.changePath(Paths.get(uploadPath + id));
+        storageService.deleteAll();
         demandeExempDao.deleteById(id);
     }
 
