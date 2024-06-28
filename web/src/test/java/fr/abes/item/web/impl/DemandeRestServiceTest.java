@@ -299,7 +299,7 @@ class DemandeRestServiceTest {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.when(demandeExempService.findById(Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
         Mockito.when(ligneFichierExempService.getNbLigneFichierTotalByDemande(Mockito.any())).thenReturn(30);
-        this.mockMvc.perform(get("/api/v1/getNbLigneFichier/EXEMP/1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(get("/api/v1/nbLignesFichier/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(30));
     }
