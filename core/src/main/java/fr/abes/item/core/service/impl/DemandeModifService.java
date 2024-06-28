@@ -245,15 +245,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         /*Préparation du fichier initial rattaché à la demandeModif*/
         fichierInit = (FichierInitial) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.MODIF);
         fichierInit.generateFileName(numDemande);
-        fichierInit.setPath(Paths.get(uploadPath + numDemande));
+        fichierInit.setPath(Paths.get(uploadPath + "modif/" + numDemande));
         /*Préparation du fichier résultat d'appel de la fonction Oracle*/
         fichierPrepare = (FichierPrepare) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.MODIF);
         fichierPrepare.generateFileName(numDemande);
-        fichierPrepare.setPath(Paths.get(uploadPath + numDemande));
+        fichierPrepare.setPath(Paths.get(uploadPath + "modif/" + numDemande));
         /*Préparation du fichier enrichi par l'utilisateur*/
         FichierEnrichiModif fichierEnrichiModif = (FichierEnrichiModif) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.MODIF);
         fichierEnrichiModif.generateFileName(numDemande);
-        fichierEnrichiModif.setPath(Paths.get(uploadPath + numDemande));
+        fichierEnrichiModif.setPath(Paths.get(uploadPath + "modif/" + numDemande));
     }
 
     /**

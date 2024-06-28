@@ -129,8 +129,8 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         Integer numDemande = demande.getId();
         fichierEnrichiRecouv = (FichierEnrichiRecouv) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.RECOUV);
         fichierEnrichiRecouv.generateFileName(numDemande);
-        fichierEnrichiRecouv.setPath(Paths.get(uploadPath + numDemande));
-        log.debug("Dépot du fichier dans : " + uploadPath + numDemande);
+        fichierEnrichiRecouv.setPath(Paths.get(uploadPath + "recouv/" + numDemande));
+        log.debug("Dépot du fichier dans : " + uploadPath + "recouv/" + numDemande);
     }
 
     @Override

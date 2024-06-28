@@ -246,7 +246,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         // préparation du fichier envoyé par l'utilisateur
         fichierEnrichiExemp = (FichierEnrichiExemp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.EXEMP); //création d'un objet fichier
         fichierEnrichiExemp.generateFileName(numDemande);  //creation du nom du fichier (fichierenrichi)
-        fichierEnrichiExemp.setPath(Paths.get(uploadPath + numDemande)); //emplacement du dossier ou sera crée le fichier
+        fichierEnrichiExemp.setPath(Paths.get(uploadPath + "exemp/" + numDemande)); //emplacement du dossier ou sera crée le fichier
     }
 
     /**
