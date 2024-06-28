@@ -248,7 +248,7 @@ class DemandeRestServiceTest {
         DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.changeState(Mockito.any(), Mockito.anyInt())).thenReturn(demande);
-        this.mockMvc.perform(get("/api/v1/passerEnAttente/EXEMP/1").requestAttr("userNum", "1"))
+        this.mockMvc.perform(patch("/api/v1/passerEnAttente/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.etatDemande").value("En attente"))

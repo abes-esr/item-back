@@ -232,7 +232,7 @@ public class DemandeRestService {
      * @throws UserExistException       : erreur sur l'utilisateur accédant à la méthode
      * @throws ForbiddenException       : erreur d'accès à la méthode
      */
-    @GetMapping("/passerEnAttente/{type}/{id}")
+    @PatchMapping("/passerEnAttente/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de modifier le statut de la demande pour la passer à : en attente")
     public DemandeWebDto passerEnAttente(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws DemandeCheckingException, UserExistException, ForbiddenException {
