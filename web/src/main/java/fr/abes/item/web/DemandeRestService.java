@@ -274,7 +274,7 @@ public class DemandeRestService {
      * @throws UserExistException       utilisateur non trouvé
      * @throws ForbiddenException       controle d'accès échoué
      */
-    @GetMapping("/etapePrecedente/{type}/{id}")
+    @PatchMapping("/etapePrecedente/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à l'étape précédente dans le workflow de création d'une demande")
     public DemandeWebDto previousStep(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws
@@ -293,7 +293,7 @@ public class DemandeRestService {
      * @throws UserExistException       utilisateur non trouvé
      * @throws ForbiddenException       controle d'accès échoué
      */
-    @GetMapping("/etapeChoisie/{type}/{id}")
+    @PatchMapping("/etapeChoisie/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de revenir à une étape bien précise dans le workflow de création d'une demande")
     public DemandeWebDto chosenStep(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("etape") Integer etape, HttpServletRequest request) throws
