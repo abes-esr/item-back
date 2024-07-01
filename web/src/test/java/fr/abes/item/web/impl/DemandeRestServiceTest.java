@@ -6,6 +6,7 @@ import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.service.impl.DemandeExempService;
+import fr.abes.item.core.service.impl.DemandeModifService;
 import fr.abes.item.core.service.impl.LigneFichierExempService;
 import fr.abes.item.dto.DtoBuilder;
 import fr.abes.item.exception.RestResponseEntityExceptionHandler;
@@ -40,6 +41,8 @@ class DemandeRestServiceTest {
     DemandeRestService controller;
     @MockBean
     DemandeExempService demandeExempService;
+    @MockBean
+    DemandeModifService demandeModifService;
     @MockBean
     LigneFichierExempService ligneFichierExempService;
     @MockBean
@@ -202,7 +205,28 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$.rcr").value("341725201"))
                 .andExpect(jsonPath("$.etatDemande").value("A compléter"))
                 .andExpect(jsonPath("$.typeExemp").value("Monographies Electroniques"));
+    }
 
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testModifDemandeTraitement() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.MODIF);
+        Mockito.when(demandeModifService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        EtatDemande etat = new EtatDemande(1, "A compléter");
+        Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
+        Traitement traitement = new Traitement(1, "Créer nouvelle zone", "creerNouvelleZone");
+        DemandeModif demandeIn = new DemandeModif(1, "341720001", cal.getTime(), cal.getTime(), "930", "$j", "", etat, utilisateur, traitement);
+        Mockito.when(demandeModifService.findById(1)).thenReturn(demandeIn);
+        DemandeModif demandeOut = new DemandeModif(1, "341720001", cal.getTime(), cal.getTime(), "930", "$j", "", etat, utilisateur, traitement);
+        demandeOut.setTraitement(new Traitement(2, "Supprimer zone", "supprimerZone"));
+        Mockito.when(demandeModifService.majTraitement(1, 2)).thenReturn(demandeOut);
+        var result = this.mockMvc.perform(patch("/api/v1/demandes/MODIF/1?traitement=2").requestAttr("userNum", "1"));
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("341720001"))
+                .andExpect(jsonPath("$.etatDemande").value("A compléter"))
+                .andExpect(jsonPath("$.traitement").value("Supprimer zone"));
     }
 
     @Test

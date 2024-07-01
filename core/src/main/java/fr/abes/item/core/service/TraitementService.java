@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -202,6 +203,11 @@ public class TraitementService {
      */
     public List<Traitement> findAll() {
         return traitementDao.findAllByOrderByNumTraitementAsc();
+    }
+
+    public Traitement findTraitementById(Integer id) {
+        Optional<Traitement> traitement = traitementDao.findById(id);
+        return traitement.orElseThrow();
     }
 
     public Integer findTraitementByDemandeId(Integer id) {

@@ -578,4 +578,16 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         //not implemented
         return null;
     }
+
+    public Demande majTraitement(Integer demandeId, Integer traitementId) {
+        DemandeModif demandeModif = this.findById(demandeId);
+        Traitement traitement = traitementService.findTraitementById(traitementId);
+        if (demandeModif != null) {
+            demandeModif.setDateModification(Calendar.getInstance().getTime());
+            demandeModif.setTraitement(traitement);
+            demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
+            return this.save(demandeModif);
+        }
+        return null;
+    }
 }
