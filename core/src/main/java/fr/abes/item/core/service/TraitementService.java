@@ -201,7 +201,7 @@ public class TraitementService {
      * @return liste de tous les traitements
      */
     public List<Traitement> findAll() {
-        return traitementDao.findAll();
+        return traitementDao.findAllByOrderByNumTraitementAsc();
     }
 
     public Integer findTraitementByDemandeId(Integer id) {
