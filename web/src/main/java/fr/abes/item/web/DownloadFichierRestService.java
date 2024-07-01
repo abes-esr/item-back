@@ -11,7 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.Paths;
 
@@ -36,10 +39,10 @@ public class DownloadFichierRestService {
 	 * @param type : type de la demande concernée
 	 * @return : Ressource correspondant au fichier à télécharger
 	 */
-	@GetMapping(value="/files/{filename:.+}")
+	@GetMapping(value="/files/{type}/{id}/{filename:.+}")
 	@Operation(summary = "permet de récupérer les fichiers relatifs à une demande")
 	public ResponseEntity<Resource> downloadFile(
-			@PathVariable("filename") String filename, @RequestParam("id") Integer numDemande, @RequestParam("type") TYPE_DEMANDE type, HttpServletRequest request
+			@PathVariable("filename") String filename, @PathVariable("id") Integer numDemande, @PathVariable("type") TYPE_DEMANDE type, HttpServletRequest request
 	) throws UserExistException, ForbiddenException {
 		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString(), type);
 
