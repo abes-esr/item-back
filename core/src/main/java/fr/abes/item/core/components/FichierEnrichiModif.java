@@ -56,7 +56,6 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
                 throw new FileCheckingException(Constant.ERR_FILE_NOTRAIT);
             }
             String ligne = Utilitaires.checkBom(bufLecteur.readLine());
-
             check3Cols(ligne);
             String tagSubTag = ligne.split(";")[3];
             if (tagSubTag.matches("e\\d{2}\\$a")) {
@@ -92,6 +91,9 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      * @throws FileCheckingException : erreur dans le format de la ligne
      */
     private void check3Cols(String ligne) throws FileCheckingException {
+        if (ligne.split(";").length < 4) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL);
+        }
         if (ligne.length() < 12) {
             throw new FileCheckingException(Constant.ERR_FILE_3COL);
         }

@@ -20,6 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("Test pour FichierEnrichi")
 class TestFichierEnrichiModif {
 
+	@DisplayName("checkNok3Cols")
+	@Test
+	void checkNok3Cols() {
+		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
+		FichierEnrichiModif fic = new FichierEnrichiModif("Nok3Cols.csv");
+		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
+
+		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone)."))
+				.isTrue();
+	}
+
 	@DisplayName("checkIsSubfieldValid1")
 	@Test
 	void checkIsSubfieldValid1() {

@@ -15,7 +15,6 @@ import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.DemandeExemp;
 import fr.abes.item.core.entities.item.DemandeModif;
 import fr.abes.item.core.entities.item.DemandeRecouv;
-import fr.abes.item.core.entities.item.LigneFichierModif;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.service.TraitementService;
 import fr.abes.item.core.service.impl.DemandeExempService;
@@ -81,7 +80,7 @@ public class ProxyRetry {
             //récupération de la exemplaire correpondant à la ligne du fichier en cours
             String exemplaire = traitementService.getNoticeFromEPN(ligneFichierDtoModif.getEpn());
             //modification de la exemplaire d'exemplaire
-            Exemplaire noticeTraitee = demandeModifService.getNoticeTraitee(demande, exemplaire, (LigneFichierModif) ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
+            Exemplaire noticeTraitee = demandeModifService.getNoticeTraitee(demande, exemplaire, ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
             traitementService.saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());
         } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande modif " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoModif.getNumLigneFichier() + " / epn : " + ligneFichierDtoModif.getEpn());
