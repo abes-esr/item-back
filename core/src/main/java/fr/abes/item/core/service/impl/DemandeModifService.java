@@ -283,7 +283,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         try {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
-            return traitementService.getNoticeFromEPN(epn);
+            String notice =  traitementService.getNoticeFromEPN(epn);
+            return notice.substring(1, notice.length() - 1);
         } finally {
             // déconnexion du CBS après avoir lancé la requête
             traitementService.disconnect();
