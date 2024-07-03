@@ -400,12 +400,11 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String noticeInit = getNoticeInitiale(this.findById(demande.getId()), ligneFichierModif.getEpn());
-        String noticeInitStr = noticeInit.replace("\r", "\r\n");
         Exemplaire noticeTraitee = getNoticeTraitee(findById(demande.getId()), noticeInit, ligneFichier);
 
         return new String[]{
                 traitementService.getCbs().getPpnEncours(),
-                noticeInitStr,
+                noticeInit.replace("\r", "\r\n"),
                 noticeTraitee.toString().replace("\r", "\r\n")
         };
     }

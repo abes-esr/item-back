@@ -114,7 +114,7 @@ public class DemandeRestService {
 
     @PatchMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("traitement") Optional<Integer> traitement, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("traitement") Optional<Integer> traitement, @RequestParam("commentaire") Optional<String> commentaire, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(id);
@@ -128,6 +128,10 @@ public class DemandeRestService {
             }
             if (type.equals(TYPE_DEMANDE.MODIF) && traitement.isPresent()) {
                 return builder.buildDemandeDto(demandeModifService.majTraitement(id, traitement.get()), type);
+            }
+            if (commentaire.isPresent()) {
+                demande.setCommentaire(commentaire.get());
+                return builder.buildDemandeDto(service.save(demande), type);
             }
         }
         throw new UnknownDemandeException("Demande inconnue");

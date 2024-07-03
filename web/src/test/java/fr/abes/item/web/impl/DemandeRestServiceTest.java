@@ -209,6 +209,27 @@ class DemandeRestServiceTest {
 
     @Test
     @WithMockUser(authorities = {"USER"})
+    void testModifDemandeCommentaire() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        EtatDemande etat = new EtatDemande(1, "A compléter");
+        Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
+        DemandeExemp demandeIn = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
+        Mockito.when(demandeExempService.findById(1)).thenReturn(demandeIn);
+        DemandeExemp demandeOut = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
+        demandeOut.setCommentaire("commentaire test");
+        Mockito.when(demandeExempService.save(Mockito.any())).thenReturn(demandeOut);
+        var result = this.mockMvc.perform(patch("/api/v1/demandes/EXEMP/1?commentaire=commentaire test").requestAttr("userNum", "1"));
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.rcr").value("341720001"))
+                .andExpect(jsonPath("$.etatDemande").value("A compléter"))
+                .andExpect(jsonPath("$.commentaire").value("commentaire test"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
     void testModifDemandeTraitement() throws Exception {
         Calendar cal = Calendar.getInstance();
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.MODIF);
