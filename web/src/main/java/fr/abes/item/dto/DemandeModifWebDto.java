@@ -40,7 +40,12 @@ public class DemandeModifWebDto extends DemandeWebDto {
         this.pourcentageProgressionTraitement = demande.getPourcentageProgressionTraitement();
         this.dateCreation = dateCreation;
         this.dateModification = dateModification;
-        this.zoneEtSousZone = demande.getZone() + " " + demande.getSousZone();
+        if (demande.getZone() != null) {
+            this.zoneEtSousZone = demande.getZone();
+            if (demande.getSousZone() != null) {
+                this.zoneEtSousZone += " " + demande.getSousZone();
+            }
+        }
         if (demande.getTraitement() != null)
             this.traitement = demande.getTraitement().getLibelle();
     }
