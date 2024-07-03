@@ -751,7 +751,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        ligneFichierExempDao.deleteByDemandeExemp(demandeExemp);
+        ligneFichierService.deleteByDemande(demandeExemp);
         return changeState(demandeExemp, Constant.ETATDEM_ARCHIVEE);
     }
 }

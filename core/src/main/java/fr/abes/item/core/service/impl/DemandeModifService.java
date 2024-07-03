@@ -527,7 +527,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
-        ligneFichierService.deleteByDemande(demande);
+        ligneFichierService.deleteByDemande(demandeModif);
         return changeState(demandeModif, Constant.ETATDEM_ARCHIVEE);
     }
 

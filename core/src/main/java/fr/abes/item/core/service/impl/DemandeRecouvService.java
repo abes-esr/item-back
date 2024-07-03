@@ -322,7 +322,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        ligneFichierService.deleteByDemande(demande);
+        ligneFichierService.deleteByDemande(demandeRecouv);
         return changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
     }
 
