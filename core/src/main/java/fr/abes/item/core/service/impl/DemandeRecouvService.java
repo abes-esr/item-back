@@ -96,7 +96,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public DemandeRecouv creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
-        DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
+        DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), null, utilisateurService.findById(userNum));
         demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeRecouv);
         return (DemandeRecouv) save(demandeRecouv);

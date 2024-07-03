@@ -366,7 +366,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public Demande creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
-        DemandeModif demandeModif = new DemandeModif(rcr, calendar.getTime(), calendar.getTime(), "", "", "", referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum), null);
+        DemandeModif demandeModif = new DemandeModif(rcr, calendar.getTime(), calendar.getTime(), null, null, null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum), null);
         demandeModif.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeModif);
         DemandeModif demToReturn = (DemandeModif) save(demandeModif);

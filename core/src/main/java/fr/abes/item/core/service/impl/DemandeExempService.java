@@ -497,7 +497,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Override
     public DemandeExemp creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
-        DemandeExemp demandeExemp = new DemandeExemp(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), "", utilisateurService.findById(userNum));
+        DemandeExemp demandeExemp = new DemandeExemp(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), null, utilisateurService.findById(userNum));
         demandeExemp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeExemp);
         DemandeExemp demToReturn = (DemandeExemp) save(demandeExemp);
