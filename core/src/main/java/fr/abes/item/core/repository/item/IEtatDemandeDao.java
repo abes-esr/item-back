@@ -18,6 +18,6 @@ public interface IEtatDemandeDao extends JpaRepository<EtatDemande, Integer> {
     /**
      * @return La liste des états que peux avoir une demande (table ETAT_DEMANDE), excepté l'état préparé
      */
-    @Query("select e from EtatDemande e where e.numEtat != 2")
+    @Query("select e from EtatDemande e where e.numEtat != 2 order by e.numEtat")
     List<EtatDemande> findAllForDisplay();
 }
