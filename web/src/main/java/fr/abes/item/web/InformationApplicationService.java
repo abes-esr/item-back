@@ -14,10 +14,8 @@ import java.util.Map;
 @RequestMapping("/api/v1")
 public class InformationApplicationService {
     private final StatusService statusService;
-    @Value("${application.version.back}")
+    @Value("${app.version}")
     private String applicationVersionBack;
-    @Value("${application.version.front}")
-    private String applicationVersionFront;
 
     public InformationApplicationService(StatusService statusService) {
         this.statusService = statusService;
@@ -27,7 +25,6 @@ public class InformationApplicationService {
     @GetMapping(value = "/applicationDetails")
     public Map<String, String> getApplicationDetails() {
         Map<String, String> map = new HashMap<>();
-        map.put("FRONTVERSION", this.applicationVersionFront);
         map.put("BACKVERSION", this.applicationVersionBack);
         return map;
     }
@@ -38,7 +35,7 @@ public class InformationApplicationService {
         Map<String, Boolean> map = new HashMap<>();
         map.put("STATUT CBS", statusService.getCbsConnectionStatus());
         map.put("STATUT BASE_XML", statusService.getXmlConnectionStatus());
-        map.put("STATUT BASE_ITEM", statusService.getKopyaDataBaseStatus());
+        map.put("STATUT BASE_ITEM", statusService.getItemDataBaseStatus());
         return map;
     }
 }
