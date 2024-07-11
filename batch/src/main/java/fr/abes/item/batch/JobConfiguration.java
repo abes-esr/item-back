@@ -288,7 +288,7 @@ public class JobConfiguration {
 
     // Job de lancement d'un traitement de modification
     @Bean
-    public Job jobTraiterLigneFichier(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeModif") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
+    public Job jobTraiterLigneFichier(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeModif") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierModif", jobRepository ).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
@@ -304,7 +304,7 @@ public class JobConfiguration {
 
     //job de lancement d'un traitement d'exemplarisation
     @Bean
-    public Job jobTraiterLigneFichierExemp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeExemp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
+    public Job jobTraiterLigneFichierExemp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeExemp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierExemp", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
@@ -320,7 +320,7 @@ public class JobConfiguration {
 
     //job de lancement d'un test de recouvrement
     @Bean
-    public Job jobTraiterLigneFichierRecouv(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeRecouv") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepGenererFichier") Step step4, @Qualifier("stepTraiterLigneFichier") Step step5) {
+    public Job jobTraiterLigneFichierRecouv(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeRecouv") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierRecouv", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()

@@ -430,8 +430,9 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
 
     @Override
     public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
-        if (!demandeModifDao.getNextDemandeToProceed().isEmpty())
-            return this.demandeModifDao.getNextDemandeToProceed().get(0);
+        List<DemandeModif> demandes = demandeModifDao.getNextDemandeToProceed();
+        if (!demandes.isEmpty())
+            return demandes.get(0);
         return null;
     }
 

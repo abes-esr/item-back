@@ -52,7 +52,7 @@ public class GetNextDemandeModifTasklet implements Tasklet, StepExecutionListene
     public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTASKLET);
         try {
-            IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.RECOUV);
+            IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.MODIF);
             this.demande = (DemandeModif) service.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
                 log.warn(Constant.NO_DEMANDE_TO_PROCESS);
