@@ -87,7 +87,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
             mailer.mailFinTraitement(
                     this.email, //EMAIL UTULISATEUR
                     demande,
-                    Paths.get(uploadPath + demande.getId() //uploadPath = applis kopya retourne FILE de la demandeModif
+                    Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +   demande.getId() //uploadPath = applis kopya retourne FILE de la demandeModif
                             + "/" + nomFichier).toFile(), dateDebut, LocalDateTime.now());
         } catch (Exception e) {
             log.error(Constant.ERROR_WHILE_GENERATING_THE_FILE_OR_WHILE_SENDING_MAIL + e);
@@ -115,7 +115,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
 
         fichierResultat = (FichierResultat) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
         fichierResultat.generateFileName(demande.getId());
-        fichierResultat.setPath(Paths.get(uploadPath + demande.getId()));
+        fichierResultat.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
 
         try (FileWriter fw = new FileWriter(fichierResultat.getPath().resolve(fichierResultat.getFilename()).toString(), false);
              BufferedWriter bw = new BufferedWriter(fw);

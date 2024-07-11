@@ -52,7 +52,7 @@ public class DeleteDemandesExempTasklet implements Tasklet, StepExecutionListene
         for (Demande demande : this.demandes) {
             log.info("Suppression définitive de la demande d'exemplarisation " + demande.getNumDemande());
             service.deleteById(demande.getId());
-            storageService.changePath(Paths.get(uploadPath + demande.getId()));
+            storageService.changePath(Paths.get(uploadPath + "exemp/" + demande.getId()));
             storageService.deleteAll();
         }
         stepContribution.setExitStatus(ExitStatus.COMPLETED);

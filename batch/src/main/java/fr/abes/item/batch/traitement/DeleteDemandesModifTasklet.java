@@ -50,7 +50,7 @@ public class DeleteDemandesModifTasklet implements Tasklet, StepExecutionListene
         for (Demande demande : this.demandes) {
             log.info("Suppression définitive de la demande de modification " + demande.getNumDemande());
             service.deleteById(demande.getId());
-            storageService.changePath(Paths.get(uploadPath + demande.getId()));
+            storageService.changePath(Paths.get(uploadPath + "modif/" + demande.getId()));
             storageService.deleteAll();
         }
         stepContribution.setExitStatus(ExitStatus.COMPLETED);

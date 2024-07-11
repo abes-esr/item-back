@@ -49,7 +49,7 @@ public class DeleteDemandesRecouvTasklet implements Tasklet, StepExecutionListen
         for (Demande demande : this.demandes) {
             log.info("Suppression définitive de la demande de recouvrement " + demande.getNumDemande());
             service.deleteById(demande.getId());
-            storageService.changePath(Paths.get(uploadPath + demande.getId()));
+            storageService.changePath(Paths.get(uploadPath + "recouv/" + demande.getId()));
             storageService.deleteAll();
         }
         stepContribution.setExitStatus(ExitStatus.COMPLETED);
