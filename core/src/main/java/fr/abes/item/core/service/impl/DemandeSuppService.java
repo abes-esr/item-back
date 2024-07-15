@@ -19,8 +19,7 @@ import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
-import fr.abes.item.core.service.FileSystemStorageService;
-import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,30 +29,36 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.SUPP})
 public class DemandeSuppService extends DemandeService implements IDemandeService {
     private final IDemandeSuppDao demandeSuppDao;
+    private final ReferenceService referenceService;
+    private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
+
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
+        this.referenceService = referenceService;
+        this.utilisateurService = utilisateurService;
     }
 
     @Override
     public Demande save(Demande entity) {
-        return null;
+        DemandeSupp demande = (DemandeSupp) entity;
+        entity.setDateModification(Calendar.getInstance().getTime());
+        DemandeSupp demandeOut = demandeSuppDao.save(demande);
+        demandeOut.setShortname(entity.getShortname());
+        return demandeOut;
     }
 
     @Override
@@ -65,7 +70,12 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande creerDemande(String rcr, Integer userNum) {
-        return null;
+        Calendar calendar = Calendar.getInstance();
+        DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(),null,null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
+        demandeSupp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
+        setIlnShortNameOnDemande(demandeSupp);
+        DemandeSupp demToReturn = (DemandeSupp) save(demandeSupp);
+        return demToReturn;
     }
 
     @Override
