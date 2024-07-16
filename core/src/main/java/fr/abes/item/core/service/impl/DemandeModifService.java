@@ -221,8 +221,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
             fichier.checkFileContent(demandeModif); //Controle de l'adequation des entêtes
             //Cas d'un fichier initial pouvant contenir des lignes vides à supprimer
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitial = (FichierInitial) fichier;
-                fichierInitial.supprimerRetourChariot();
+                FichierInitial fichierInitialModif = (FichierInitial) fichier;
+                fichierInitialModif.supprimerRetourChariot();
             }
             checkEtatDemande(demandeModif);
         } catch (FileCheckingException e) {

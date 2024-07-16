@@ -2,10 +2,7 @@ package fr.abes.item.core.service.impl;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
-import fr.abes.item.core.components.Fichier;
-import fr.abes.item.core.components.FichierEnrichiSupp;
-import fr.abes.item.core.components.FichierInitial;
-import fr.abes.item.core.components.FichierPrepare;
+import fr.abes.item.core.components.*;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
@@ -92,17 +89,21 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public void initFiles(Demande demande) throws FileTypeException {
         Integer numDemande = demande.getId();
         /*Préparation du fichier initial rattaché à la demande de suppression */
-        FichierInitial fichierInit = (FichierInitial) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.SUPP);
+        FichierInitial fichierInit = (FichierInitialSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.SUPP);
         fichierInit.generateFileName(numDemande);
         fichierInit.setPath(Paths.get(uploadPath + "supp/" + numDemande));
         /*Préparation du fichier enrichi suite l'appel à la fonction oracle */
+        /*
         FichierPrepare fichierPrepare = (FichierPrepare) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
         fichierPrepare.generateFileName(numDemande);
         fichierPrepare.setPath(Paths.get(uploadPath + "supp/" + numDemande));
+         */
         /*Préparation du fichier enrichi par l'utilisateur */
+        /*
         FichierEnrichiSupp fichierEnrichiSupp = (FichierEnrichiSupp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.SUPP);
         fichierEnrichiSupp.generateFileName(numDemande);
         fichierEnrichiSupp.setPath(Paths.get(uploadPath + "supp/" + numDemande));
+        */
 
     }
 
@@ -129,8 +130,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichier.checkFileContent(demande);
             //suppression des lignes vides d'un fichier initial de ppn / epn
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitial = (FichierInitial) fichier;
-                fichierInitial.supprimerRetourChariot();
+                FichierInitial fichierInitialModif = (FichierInitial) fichier;
+                fichierInitialModif.supprimerRetourChariot();
             }
             checkEtatDemande(demande);
         } catch (FileCheckingException e) {
