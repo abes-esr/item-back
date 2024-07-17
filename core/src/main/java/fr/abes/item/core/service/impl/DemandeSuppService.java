@@ -93,11 +93,11 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         fichierInit.generateFileName(numDemande);
         fichierInit.setPath(Paths.get(uploadPath + "supp/" + numDemande));
         /*Préparation du fichier enrichi suite l'appel à la fonction oracle */
-        /*
-        FichierPrepare fichierPrepare = (FichierPrepare) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
+
+        FichierPrepare fichierPrepare = (FichierPrepareSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
         fichierPrepare.generateFileName(numDemande);
         fichierPrepare.setPath(Paths.get(uploadPath + "supp/" + numDemande));
-         */
+
         /*Préparation du fichier enrichi par l'utilisateur */
         /*
         FichierEnrichiSupp fichierEnrichiSupp = (FichierEnrichiSupp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.SUPP);
@@ -130,8 +130,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichier.checkFileContent(demande);
             //suppression des lignes vides d'un fichier initial de ppn / epn
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitialModif = (FichierInitial) fichier;
-                fichierInitialModif.supprimerRetourChariot();
+                FichierInitial fichierInitialSupp = (FichierInitialSupp) fichier;
+                fichierInitialSupp.supprimerRetourChariot();
             }
             checkEtatDemande(demande);
         } catch (FileCheckingException e) {
