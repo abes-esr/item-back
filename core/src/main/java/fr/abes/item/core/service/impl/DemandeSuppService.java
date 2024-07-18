@@ -63,7 +63,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public Demande findById(Integer id) {
+    public DemandeSupp findById(Integer id) {
         Optional<DemandeSupp> demandeSupp = demandeSuppDao.findById(id);
         demandeSupp.ifPresent(this::setIlnShortNameOnDemande);
         return demandeSupp.orElse(null);
@@ -293,6 +293,17 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+        return null;
+    }
+
+    public Demande majTypeSuppression(Integer demandeId, String typeSuppression) {
+        DemandeSupp demandeSupp = this.findById(demandeId);
+        if (demandeSupp != null) {
+            demandeSupp.setDateModification(Calendar.getInstance().getTime());
+            demandeSupp.setTypeSuppression(TYPE_SUPPRESSION.valueOf(typeSuppression));
+            demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
+            return this.save(demandeSupp);
+        }
         return null;
     }
 }

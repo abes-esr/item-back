@@ -12,6 +12,7 @@ import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.ILigneFichierService;
 import fr.abes.item.core.service.impl.DemandeExempService;
 import fr.abes.item.core.service.impl.DemandeModifService;
+import fr.abes.item.core.service.impl.DemandeSuppService;
 import fr.abes.item.dto.DemandeWebDto;
 import fr.abes.item.dto.DtoBuilder;
 import fr.abes.item.security.CheckAccessToServices;
@@ -38,13 +39,15 @@ public class DemandeRestService {
     private static final String LOGIN_MANAGER_INCONNU = "Pas de login rattaché au RCR de la demande, veuillez contacter l'assistance";
     private final DemandeExempService demandeExempService;
     private final DemandeModifService demandeModifService;
+    private final DemandeSuppService demandeSuppService;
     private final CheckAccessToServices checkAccessToServices;
     private final DtoBuilder builder;
     private final StrategyFactory strategy;
 
-    public DemandeRestService(DemandeExempService demandeExempService, DemandeModifService demandeModifService, CheckAccessToServices checkAccessToServices, DtoBuilder builder, StrategyFactory strategy) {
+    public DemandeRestService(DemandeExempService demandeExempService, DemandeModifService demandeModifService, DemandeSuppService demandeSuppService, CheckAccessToServices checkAccessToServices, DtoBuilder builder, StrategyFactory strategy) {
         this.demandeExempService = demandeExempService;
         this.demandeModifService = demandeModifService;
+        this.demandeSuppService = demandeSuppService;
         this.checkAccessToServices = checkAccessToServices;
         this.builder = builder;
         this.strategy = strategy;
@@ -114,7 +117,7 @@ public class DemandeRestService {
 
     @PatchMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("traitement") Optional<Integer> traitement, @RequestParam("commentaire") Optional<String> commentaire, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("traitement") Optional<Integer> traitement, @RequestParam("commentaire") Optional<String> commentaire, @RequestParam("typeSuppression") Optional<String> typeSuppression, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(id);
@@ -132,6 +135,9 @@ public class DemandeRestService {
             if (commentaire.isPresent()) {
                 demande.setCommentaire(commentaire.get());
                 return builder.buildDemandeDto(service.save(demande), type);
+            }
+            if (type.equals(TYPE_DEMANDE.SUPP) && typeSuppression.isPresent()) {
+                return builder.buildDemandeDto(demandeSuppService.majTypeSuppression(id, typeSuppression.get()), type);
             }
         }
         throw new UnknownDemandeException("Demande inconnue");
