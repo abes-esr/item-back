@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("Test pour FichierInitial")
-public class TestFichierInitial {
+public class TestFichierInitialModif {
 
 
 

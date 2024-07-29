@@ -26,11 +26,11 @@ public class FichierInitial extends AbstractFichier implements Fichier {
         return Constant.ETATDEM_PREPARATION;
     }
 
-
     @Override
     public TYPE_DEMANDE getDemandeType() {
         return TYPE_DEMANDE.MODIF;
     }
+
 
     @Override
     public void checkFileContent(Demande demandeModif) throws FileCheckingException, IOException {

@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "DEMANDE_SUPP")
 @NoArgsConstructor
@@ -19,5 +21,11 @@ public class DemandeSupp extends Demande {
     @Override
     public TYPE_DEMANDE getTypeDemande() {
         return TYPE_DEMANDE.SUPP;
+    }
+
+    public DemandeSupp(String rcr, Date dateCreation, Date dateModification, TYPE_SUPPRESSION typeSuppression,
+                        String comment, EtatDemande etatDemande, Utilisateur utilisateur) {
+        super(rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
+        this.typeSuppression = typeSuppression;
     }
 }
