@@ -23,10 +23,8 @@ public class InformationApplicationService {
 
     @Operation(description = "Connaître : Version du front, back, quel application-localhost.properties est actuellement utilisé, url des serveurs sudoc, item, base xml branchés")
     @GetMapping(value = "/applicationDetails")
-    public Map<String, String> getApplicationDetails() {
-        Map<String, String> map = new HashMap<>();
-        map.put("BACKVERSION", this.applicationVersionBack);
-        return map;
+    public String getApplicationDetails() {
+        return this.applicationVersionBack;
     }
 
     @Operation(summary = "Connaitre : Statut base xml, Statut base item, Statut CBS")
