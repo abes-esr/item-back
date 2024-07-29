@@ -7,8 +7,10 @@ import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
@@ -37,16 +39,21 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
 
+    private FichierInitialSupp fichierInit;
+    private FichierPrepareSupp fichierPrepare;
+
+    private final Ppntoepn procStockee;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
+        this.procStockee = procStockee;
     }
 
     @Override
@@ -89,21 +96,19 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public void initFiles(Demande demande) throws FileTypeException {
         Integer numDemande = demande.getId();
         /*Préparation du fichier initial rattaché à la demande de suppression */
-        FichierInitial fichierInit = (FichierInitialSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.SUPP);
+        fichierInit = (FichierInitialSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.SUPP);
         fichierInit.generateFileName(numDemande);
         fichierInit.setPath(Paths.get(uploadPath + "supp/" + numDemande));
+
         /*Préparation du fichier enrichi suite l'appel à la fonction oracle */
-        /*
-        FichierPrepare fichierPrepare = (FichierPrepare) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
+        fichierPrepare = (FichierPrepareSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
         fichierPrepare.generateFileName(numDemande);
         fichierPrepare.setPath(Paths.get(uploadPath + "supp/" + numDemande));
-         */
+
         /*Préparation du fichier enrichi par l'utilisateur */
-        /*
         FichierEnrichiSupp fichierEnrichiSupp = (FichierEnrichiSupp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.SUPP);
         fichierEnrichiSupp.generateFileName(numDemande);
         fichierEnrichiSupp.setPath(Paths.get(uploadPath + "supp/" + numDemande));
-        */
 
     }
 
@@ -142,7 +147,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException {
+    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException {
         int etat = demande.getEtatDemande().getNumEtat();
         switch (etat) {
             case Constant.ETATDEM_PREPARATION -> preparerFichierEnPrep(demande);
@@ -153,8 +158,31 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void preparerFichierEnPrep(DemandeSupp demande) {
+    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException {
+        //Suppression d'un éventuel fichier existant sur le disque
+        storageService.delete(fichierPrepare.getFilename());
+        //Ecriture ligne d'en-tête dans FichierApresWS
+        fichierPrepare.ecrireEnTete();
+        //Alimentation du fichier par appel à la procédure Oracle ppntoepn
+        appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
+        demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+        save(demande);
+        checkEtatDemande(demande);    //todo ajouter le check etat demande
+    }
 
+    /**
+     * Méthode de découpage du fichier initial, d'appel de la fonction Oracle et
+     * d'alimentation du FichierApresWS
+     *
+     * @param rcr : rcr de la demandeSupp
+     * @throws IOException fichier illisible
+     */
+    private void appelProcStockee(String rcr, TYPE_SUPPRESSION type) throws IOException {
+        List<String> listppn = fichierInit.cutFile();
+        for (String listeppn : listppn) {
+            String resultProcStockee = procStockee.callFunction(listeppn, rcr);
+            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+        }
     }
 
     @Override
