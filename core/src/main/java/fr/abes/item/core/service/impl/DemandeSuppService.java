@@ -135,7 +135,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichier.checkFileContent(demande);
             //suppression des lignes vides d'un fichier initial de ppn / epn
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitialSupp = (FichierInitialSupp) fichier;
+                FichierInitialSupp fichierInitialSupp = (FichierInitialSupp) fichier;
                 fichierInitialSupp.supprimerRetourChariot();
             }
             checkEtatDemande(demande);
