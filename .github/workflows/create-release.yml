@@ -29,6 +29,8 @@ jobs:
           echo "${snapshotVersion}"
           echo "version=${snapshotVersion}" >> $GITHUB_OUTPUT
           echo "version : ${{env.version}}"
+          echo "content :"
+          cat "$GITHUB_OUTPUT"
   create-release:
     needs: calculate_versions
     runs-on: ubuntu-latest
