@@ -9,12 +9,12 @@ on:
         default: 'x.x.x'
 
 jobs:
-  calculate_versions:
+  create-release:
+    needs: calculate_versions
     runs-on: ubuntu-latest
-    outputs:
-      snapshot_version: ${{ steps.calculate.outputs.version }}
+
     steps:
-      - name: Calculate versions
+      - name: "Calculate versions"
         id: calculate
         run: |
           releaseVersion=${{ inputs.releaseVersion }}
@@ -28,17 +28,6 @@ jobs:
           snapshotVersion="${major}.${minor}.${patch}-SNAPSHOT"
           echo "${snapshotVersion}"
           echo "version=${snapshotVersion}" >> $GITHUB_OUTPUT
-          echo "version : ${{env.version}}"
-          echo "content :"
-          cat "$GITHUB_OUTPUT"
-  create-release:
-    needs: calculate_versions
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Use output
-        run: |
-          echo "version : ${{env.version}}"
           echo "content :"
           cat "$GITHUB_OUTPUT"
       - uses: 'actions/checkout@v3'
