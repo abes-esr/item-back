@@ -26,21 +26,16 @@ jobs:
           # Reconstituer la version snapshot
           snapshotVersion="${major}.${minor}.${patch}-SNAPSHOT"
           echo "${snapshotVersion}"
-          echo "version=${snapshotVersion}" >> $GITHUB_OUTPUT
+          echo "snapshotVersion=${snapshotVersion}" >> $GITHUB_OUTPUT
           echo "content :"
           cat "$GITHUB_OUTPUT"
       - uses: 'actions/checkout@v3'
-      - name: 'set variable for snapshot release'
-        run: |
-          echo "Snapshot version : ${{ steps.calculate-version.outputs.version }}"
-
       - name: 'Checkout source code'
         uses: 'actions/checkout@v3'
         with:
           fetch-depth: '0' # to get all the tags locally
           # https://stackoverflow.com/questions/67550727/push-event-doesnt-trigger-workflow-on-push-paths-github-actions
           token: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
-
 
       - name: 'Verify release is created only on "main" or "master" git branch'
         run: |
@@ -52,7 +47,7 @@ jobs:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
         run: |
           echo $NEW_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
-          echo $snapshot_version | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
+          echo ${{ steps.calculate-version.outputs.snapshotVersion }} | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
       - name: 'Verify version is not already used as a git tag'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
@@ -93,15 +88,15 @@ jobs:
           git push
           
           # switch version to snapshot version
-          echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset $snapshot_version\nsave" \
+          echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset ${{ steps.calculate-version.outputs.snapshotVersion }}"\nsave" \
             | xmllint --shell ./pom.xml
           for POM_FILE in $(ls */pom.xml)
           do
-            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:parent/x:version\nset $snapshot_version\nsave" \
+            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:parent/x:version\nset ${{ steps.calculate-version.outputs.snapshotVersion }}"\nsave" \
               | xmllint --shell $POM_FILE
           done
           git add .
-          git commit -m "Version $snapshot_version [skip ci]"
+          git commit -m "Version ${{ steps.calculate-version.outputs.snapshotVersion }}" [skip ci]"
           git push
 
       - name: 'Create the github release'
