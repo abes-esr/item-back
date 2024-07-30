@@ -51,7 +51,6 @@ jobs:
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
         run: |
-          snapshot_version=$(grep -oP 'version=\K.*' $GITHUB_OUTPUT)
           echo $NEW_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
           echo $snapshot_version | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
       - name: 'Verify version is not already used as a git tag'
@@ -65,7 +64,6 @@ jobs:
           NEW_TAG: ${{ github.event.inputs.releaseVersion }}
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
         run: |
-          snapshot_version=$(grep -oP 'version=\K.*' $GITHUB_OUTPUT)
           # préparation de la release qui va :
           # - modifier le numéro de version dans les pom.xml du projet
           # - créer un tag git du numéro de version en question
