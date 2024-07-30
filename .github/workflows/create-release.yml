@@ -26,7 +26,7 @@ jobs:
           patch=$((patch + 1))
           # Reconstituer la version snapshot
           snapshotVersion="${major}.${minor}.${patch}-SNAPSHOT"
-          echo "${snapshotVersion}
+          echo "${snapshotVersion}"
           echo "version=${snapshotVersion}" >> $GITHUB_OUTPUT
           echo "version : ${{env.version}}"
   create-release:
