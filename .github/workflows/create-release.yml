@@ -35,7 +35,7 @@ jobs:
       - uses: 'actions/checkout@v3'
       - name: 'set variable for snapshot release'
         run: |
-          snapshot_version=${{ jobs.calculate_versions.outputs.snapshot_version }}
+          snapshot_version=${{ fromJson(needs.calculate_versions.outputs.snapshot_version) }}
           echo "Snapshot version: ${snapshot_version}"
 
       - name: 'Checkout source code'
