@@ -54,7 +54,7 @@ jobs:
       - name: 'Verify version is semver formatted (X.X.X)'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
-          NEW_TAG_SNAPSHOT: ${{ snapshot_version }}
+          NEW_TAG_SNAPSHOT: ${{ fromJson(needs.calculate_versions.outputs.snapshot_version) }}
         run: |
           echo $NEW_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
           echo $NEW_TAG_SNAPSHOT | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
@@ -67,7 +67,7 @@ jobs:
       - name: 'Generate the new version (patch few files + git tag)'
         env:
           NEW_TAG: ${{ github.event.inputs.releaseVersion }}
-          NEW_TAG_SNAPSHOT: ${{ snapshot_version }}
+          NEW_TAG_SNAPSHOT: ${{ fromJson(needs.calculate_versions.outputs.snapshot_version) }}
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
         run: |
           # préparation de la release qui va :
