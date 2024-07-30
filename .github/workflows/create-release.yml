@@ -7,13 +7,28 @@ on:
         description: 'Version de la release (semver)'
         required: true
         default: 'x.x.x'
-      snapshotVersion:
-        description: 'Version de la Snapshot (semver)'
-        required: true
-        default: 'x.x.x-SNAPSHOT'
 
 jobs:
+  calculate_versions:
+    runs-on: ubuntu-latest
+    outputs:
+      snapshot_version: ${{ steps.calculate.outputs.version }}
+    steps:
+      - name: Calculate versions
+        id: calculate
+        run: |
+          releaseVersion=${{ inputs.releaseVersion }}
+          # Séparer les parties de la version
+          major=$(echo "${releaseVersion}" | cut -d. -f1)
+          minor=$(echo "${releaseVersion}" | cut -d. -f2)
+          patch=$(echo "${releaseVersion}" | cut -d. -f3)
+          # Incrémenter la partie patch
+          patch=$((patch + 1))
+          # Reconstituer la version snapshot
+          snapshotVersion="${major}.${minor}.${patch}-SNAPSHOT"
+          echo "::set-output name=version::${snapshotVersion}"
   create-release:
+    needs: calculate_versions
     runs-on: ubuntu-latest
 
     steps:
@@ -33,7 +48,7 @@ jobs:
       - name: 'Verify version is semver formatted (X.X.X)'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
-          NEW_TAG_SNAPSHOT: ${{ github.event.inputs.snapshotVersion }}
+          NEW_TAG_SNAPSHOT: ${{ outputs.snapshot_version }}
         run: |
           echo $NEW_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
           echo $NEW_TAG_SNAPSHOT | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
@@ -46,7 +61,7 @@ jobs:
       - name: 'Generate the new version (patch few files + git tag)'
         env:
           NEW_TAG: ${{ github.event.inputs.releaseVersion }}
-          NEW_TAG_SNAPSHOT: ${{ github.event.inputs.snapshotVersion }}
+          NEW_TAG_SNAPSHOT: ${{ outputs.snapshot_version }}
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
         run: |
           # préparation de la release qui va :
