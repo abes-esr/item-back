@@ -35,7 +35,7 @@ jobs:
       - name: 'Print GITHUB_OUTPUT'
         run: |
           echo "GITHUB_OUTPUT contents:"
-          cat $GITHUB_OUTPUT
+          cat "$GITHUB_OUTPUT" || echo "ca marche po"
           if [ $? -ne 0 ]; then
           echo "Error reading GITHUB_OUTPUT"
           fi
