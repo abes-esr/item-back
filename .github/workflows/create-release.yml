@@ -29,7 +29,6 @@ jobs:
           echo "snapshotVersion=${snapshotVersion}" >> $GITHUB_OUTPUT
           echo "content :"
           cat "$GITHUB_OUTPUT"
-      - uses: 'actions/checkout@v3'
       - name: 'Checkout source code'
         uses: 'actions/checkout@v3'
         with:
@@ -45,9 +44,10 @@ jobs:
       - name: 'Verify version is semver formatted (X.X.X)'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
+          NEW_SNAPSHOT_TAG: ${{ steps.calculate-version.outputs.snapshotVersion }}
         run: |
           echo $NEW_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'
-          echo ${{ steps.calculate-version.outputs.snapshotVersion }} | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
+          echo $NEW_SNAPSHOT_TAG | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$'
       - name: 'Verify version is not already used as a git tag'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
@@ -57,6 +57,7 @@ jobs:
       - name: 'Generate the new version (patch few files + git tag)'
         env:
           NEW_TAG: ${{ github.event.inputs.releaseVersion }}
+          NEW_SNAPSHOT_TAG: ${{ steps.calculate-version.outputs.snapshotVersion }}
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_FOR_GITHUB_ACTION }}
         run: |
           # préparation de la release qui va :
@@ -88,15 +89,15 @@ jobs:
           git push
           
           # switch version to snapshot version
-          echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset ${{ steps.calculate-version.outputs.snapshotVersion }}"\nsave" \
+          echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset $NEW_SNAPSHOT_TAG\nsave" \
             | xmllint --shell ./pom.xml
           for POM_FILE in $(ls */pom.xml)
           do
-            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:parent/x:version\nset ${{ steps.calculate-version.outputs.snapshotVersion }}"\nsave" \
+            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:parent/x:version\nset $NEW_SNAPSHOT_TAG\nsave" \
               | xmllint --shell $POM_FILE
           done
           git add .
-          git commit -m "Version ${{ steps.calculate-version.outputs.snapshotVersion }}" [skip ci]"
+          git commit -m "Version $NEW_SNAPSHOT_TAG [skip ci]"
           git push
 
       - name: 'Create the github release'
