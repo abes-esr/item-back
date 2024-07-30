@@ -36,6 +36,7 @@ jobs:
         run: |
           set -x
           echo "GITHUB_OUTPUT contents:"
+          echo "the version is : ${{ env.version }}"
           cat "$GITHUB_OUTPUT" || echo "ca marche po"
           if [ $? -ne 0 ]; then
           echo "Error reading GITHUB_OUTPUT"
