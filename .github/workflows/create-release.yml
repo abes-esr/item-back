@@ -32,6 +32,7 @@ jobs:
       - name: 'set variable for snapshot release'
         run: |
           echo "Snapshot version: $snapshotVersion"
+          echo "Snapshot version: ${snapshotVersion}"
 
       - name: 'Checkout source code'
         uses: 'actions/checkout@v3'
