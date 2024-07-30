@@ -32,15 +32,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 'Print GITHUB_OUTPUT'
+      - name: Use output
         run: |
-          set -x
-          echo "GITHUB_OUTPUT contents:"
-          echo "the version is : ${{ env.version }}"
-          cat "$GITHUB_OUTPUT" || echo "ca marche po"
-          if [ $? -ne 0 ]; then
-          echo "Error reading GITHUB_OUTPUT"
-          fi
+          echo "The version is: ${{ env.version }}"
       - uses: 'actions/checkout@v3'
       - name: 'set variable for snapshot release'
         run: |
