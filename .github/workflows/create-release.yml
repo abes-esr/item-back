@@ -32,6 +32,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 'Print GITHUB_OUTPUT'
+        run: cat $GITHUB_OUTPUT
+
       - uses: 'actions/checkout@v3'
       - name: 'set variable for snapshot release'
         run: |
