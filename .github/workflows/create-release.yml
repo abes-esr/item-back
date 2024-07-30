@@ -38,7 +38,9 @@ jobs:
     steps:
       - name: Use output
         run: |
-          echo "The version is: ${{ env.version }}"
+          echo "version : ${{env.version}}"
+          echo "content :"
+          cat "$GITHUB_OUTPUT"
       - uses: 'actions/checkout@v3'
       - name: 'set variable for snapshot release'
         run: |
