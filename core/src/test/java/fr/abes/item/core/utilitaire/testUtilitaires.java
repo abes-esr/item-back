@@ -176,7 +176,7 @@ class TestUtilitaires {
         Multimap<String, String> map = ArrayListMultimap.create();
         map.put("231927401", "621956651");
 
-        Assertions.assertThat(Utilitaires.parseJson(json)).isEqualTo(map);
+        Assertions.assertThat(Utilitaires.parseJson(json, false)).isEqualTo(map);
     }
 
     @Test
@@ -187,7 +187,7 @@ class TestUtilitaires {
         map.put("231927401", "621956651");
         map.put("111111111", "999999999");
 
-        Assertions.assertThat(Utilitaires.parseJson(json)).isEqualTo(map);
+        Assertions.assertThat(Utilitaires.parseJson(json, false)).isEqualTo(map);
     }
 
     @Test
