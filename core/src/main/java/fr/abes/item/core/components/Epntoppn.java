@@ -1,5 +1,6 @@
 package fr.abes.item.core.components;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -7,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class Epntoppn {
     private final JdbcTemplate baseXmlJdbcTemplate;
 
-    public Epntoppn(JdbcTemplate baseXmlJdbcTemplate) {
+    public Epntoppn(@Qualifier("baseXmlJdbcTemplate") JdbcTemplate baseXmlJdbcTemplate) {
         this.baseXmlJdbcTemplate = baseXmlJdbcTemplate;
     }
 
