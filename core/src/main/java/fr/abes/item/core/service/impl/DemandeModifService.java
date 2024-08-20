@@ -267,7 +267,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         List<String> listppn = fichierInit.cutFile();
         for (String listeppn : listppn) {
             String resultProcStockee = procStockee.callFunction(listeppn, rcr);
-            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+            fichierPrepare.alimenterEpn(resultProcStockee, listeppn, rcr);
         }
     }
 

@@ -69,11 +69,11 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	}
 	
 	/**
-	 * Méthode permetant d'alimenter le fichier à partir d'une chaine correspondant à un appel de la fonction Oracle
+	 * Méthode permetant d'alimenter le fichier à partir d'une chaine correspondant à une liste d'epn
 	 * @param input résultat de l'appel à la fonction Oracle
 	 * @param rcr rcr de la demandeModif à insérer dans le second champ du fichier
 	 */
-	public void alimenter(String input, String listeppn, String rcr) {
+	public void alimenterEpn(String input, String listeppn, String rcr) {
 		try (FileWriter fw = new FileWriter(path.resolve(filename).toString(), true);
 				 BufferedWriter bw = new BufferedWriter(fw);
 				 PrintWriter out = new PrintWriter(bw)) {
@@ -92,7 +92,31 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		} 
 		
 	}
-	
+
+	/**
+	 * Méthode permetant d'alimenter le fichier à partir d'une chaine correspondant à une liste de PPN
+	 * @param input résultat de l'appel à la fonction Oracle
+	 * @param rcr rcr de la demandeModif à insérer dans le second champ du fichier
+	 */
+	public void alimenterPpn(String input, String listeEpn, String rcr) {
+		try (FileWriter fw = new FileWriter(path.resolve(filename).toString(), true);
+			 BufferedWriter bw = new BufferedWriter(fw);
+			 PrintWriter out = new PrintWriter(bw)) {
+			String[] tabEpn = listeEpn.split(",");
+			Multimap<String, String> resJson = Utilitaires.parseJson(input);
+			for (String epn : tabEpn) {
+				if (resJson.containsKey(epn)) {
+					for (String ppn : resJson.get(epn)) {
+						out.println(ppn + ";" + rcr + ";" + epn + ";");
+					}
+				} else
+					out.println(";" + rcr + ";" + epn + ";");
+			}
+		} catch (IOException ex) {
+			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
+		}
+
+	}
 	
 
 }

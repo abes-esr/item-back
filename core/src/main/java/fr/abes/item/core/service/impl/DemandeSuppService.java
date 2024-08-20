@@ -37,6 +37,8 @@ import java.util.*;
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.SUPP})
 public class DemandeSuppService extends DemandeService implements IDemandeService {
+    private static final Integer nbIdMaxPerRequest = 300;
+
     private final IDemandeSuppDao demandeSuppDao;
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
@@ -44,19 +46,20 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
-
-    private final Ppntoepn procStockee;
+    private final Ppntoepn procStockeePpnToEpn;
+    private final Epntoppn procStockeeEpnToPpn;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
-        this.procStockee = procStockee;
+        this.procStockeePpnToEpn = procStockeePpnToEpn;
+        this.procStockeeEpnToPpn = procStockeeEpnToPpn;
     }
 
     @Override
@@ -78,7 +81,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public Demande creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
-        DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(),null,null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
+        DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(), null, null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
         demandeSupp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeSupp);
         DemandeSupp demToReturn = (DemandeSupp) save(demandeSupp);
@@ -155,9 +158,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         switch (etat) {
             case Constant.ETATDEM_PREPARATION -> preparerFichierEnPrep(demande);
             case Constant.ETATDEM_PREPAREE -> changeState(demande, Constant.ETATDEM_ACOMPLETER);
-            case Constant.ETATDEM_ACOMPLETER -> {
-                changeState(demande, Constant.ETATDEM_SIMULATION);
-            }
+            case Constant.ETATDEM_ACOMPLETER -> changeState(demande, Constant.ETATDEM_SIMULATION);
         }
     }
 
@@ -181,10 +182,18 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
      * @throws IOException fichier illisible
      */
     private void appelProcStockee(String rcr, TYPE_SUPPRESSION type) throws IOException {
-        List<String> listppn = fichierInit.cutFile();
-        for (String listeppn : listppn) {
-            String resultProcStockee = procStockee.callFunction(listeppn, rcr);
-            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+        if (type.equals(TYPE_SUPPRESSION.PPN)) {
+            List<String> listppn = fichierInit.cutFile();
+            for (String listePpn : listppn) {
+                String resultProcStockee = procStockeePpnToEpn.callFunction(listePpn, rcr);
+                fichierPrepare.alimenterEpn(resultProcStockee, listePpn, rcr);
+            }
+        } else {
+            List<String> listEpn = fichierInit.cutFile();
+            for (String listeepn : listEpn) {
+                String resultProcStockee = procStockeeEpnToPpn.callFunction(listeepn, rcr);
+                fichierPrepare.alimenterPpn(resultProcStockee, listeepn, rcr);
+            }
         }
     }
 
@@ -252,7 +261,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException {
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws
+            CBSException, ZoneException, IOException {
         return new String[0];
     }
 
