@@ -259,7 +259,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
         switch (etape) {
-            case 1, 2 -> {
+            //étape choix du RCR et choix du type de fichier de suppression
+            case 2 -> {
                 demandeSupp.setTypeSuppression(null); //On repasse TYPE_SUPPRESSION à null : obtenu ETAPE 3
                 demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
                 //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
@@ -267,8 +268,9 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
                 return save(demandeSupp);
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
             }
+            //etape upload du fichier initial
             case 3 -> {
-                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 return save(demandeSupp);
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
             }
