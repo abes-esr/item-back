@@ -257,7 +257,23 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
-        return null;
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        switch (etape) {
+            case 1, 2 -> {
+                demandeSupp.setTypeSuppression(null); //On repasse TYPE_SUPPRESSION à null : obtenu ETAPE 3
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
+                //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
+                //Suppression des lignes de la table LIGNE_FICHIER_SUPP crées à ETAPE 5
+                return save(demandeSupp);
+                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
+            }
+            case 3 -> {
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+                return save(demandeSupp);
+                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
+            }
+            default -> throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
+        }
     }
 
     @Override
@@ -291,6 +307,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         if (demandeSupp != null) {
             demandeSupp.setDateModification(Calendar.getInstance().getTime());
             demandeSupp.setTypeSuppression(typeSuppression);
+            demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
             return this.save(demandeSupp);
         }
         return null;
