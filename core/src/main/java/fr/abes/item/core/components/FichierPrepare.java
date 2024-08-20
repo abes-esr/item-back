@@ -78,7 +78,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 				 BufferedWriter bw = new BufferedWriter(fw);
 				 PrintWriter out = new PrintWriter(bw)) {
 			String[] tabppn = listeppn.split(",");
-			Multimap<String, String> resJson = Utilitaires.parseJson(input);
+			Multimap<String, String> resJson = Utilitaires.parseJson(input, false);
             for (String ppn : tabppn) {
                 if (resJson.containsKey(ppn)) {
                     for (String epn : resJson.get(ppn)) {
@@ -103,7 +103,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 			 BufferedWriter bw = new BufferedWriter(fw);
 			 PrintWriter out = new PrintWriter(bw)) {
 			String[] tabEpn = listeEpn.split(",");
-			Multimap<String, String> resJson = Utilitaires.parseJson(input);
+			Multimap<String, String> resJson = Utilitaires.parseJson(input, true);
 			for (String epn : tabEpn) {
 				if (resJson.containsKey(epn)) {
 					for (String ppn : resJson.get(epn)) {
