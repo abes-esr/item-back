@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.service.impl.DemandeExempService;
 import fr.abes.item.core.service.impl.DemandeModifService;
+import fr.abes.item.core.service.impl.DemandeSuppService;
 import fr.abes.item.core.service.impl.LigneFichierExempService;
 import fr.abes.item.dto.DtoBuilder;
 import fr.abes.item.exception.RestResponseEntityExceptionHandler;
@@ -43,6 +45,8 @@ class DemandeRestServiceTest {
     DemandeExempService demandeExempService;
     @MockBean
     DemandeModifService demandeModifService;
+    @MockBean
+    DemandeSuppService demandeSuppService;
     @MockBean
     LigneFichierExempService ligneFichierExempService;
     @MockBean
@@ -205,6 +209,23 @@ class DemandeRestServiceTest {
                 .andExpect(jsonPath("$.rcr").value("341725201"))
                 .andExpect(jsonPath("$.etatDemande").value("A compléter"))
                 .andExpect(jsonPath("$.typeExemp").value("Monographies Electroniques"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"USER"})
+    void testModifDemandeTypeSuppression() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.SUPP);
+        EtatDemande etat = new EtatDemande(1, "A compléter");
+        Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
+        DemandeSupp demandeIn = new DemandeSupp(1, "341725201", cal.getTime(), cal.getTime(), "", etat, utilisateur);
+        Mockito.when(demandeSuppService.findById(1)).thenReturn(demandeIn);
+        demandeIn.setTypeSuppression(TYPE_SUPPRESSION.EPN);
+        Mockito.when(demandeSuppService.majTypeSupp(1, TYPE_SUPPRESSION.EPN)).thenReturn(demandeIn);
+        this.mockMvc.perform(patch("/api/v1/demandes/SUPP/1?typeSupp=EPN").requestAttr("userNum", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.typeSuppression").value("EPN"));
     }
 
     @Test

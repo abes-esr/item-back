@@ -18,7 +18,10 @@ import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
-import fr.abes.item.core.service.*;
+import fr.abes.item.core.service.FileSystemStorageService;
+import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.ReferenceService;
+import fr.abes.item.core.service.UtilisateurService;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +69,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public Demande findById(Integer id) {
+    public DemandeSupp findById(Integer id) {
         Optional<DemandeSupp> demandeSupp = demandeSuppDao.findById(id);
         demandeSupp.ifPresent(this::setIlnShortNameOnDemande);
         return demandeSupp.orElse(null);
@@ -270,6 +273,16 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+        return null;
+    }
+
+    public Demande majTypeSupp(Integer demandeId, TYPE_SUPPRESSION typeSuppression) {
+        DemandeSupp demandeSupp = this.findById(demandeId);
+        if (demandeSupp != null) {
+            demandeSupp.setDateModification(Calendar.getInstance().getTime());
+            demandeSupp.setTypeSuppression(typeSuppression);
+            return this.save(demandeSupp);
+        }
         return null;
     }
 }
