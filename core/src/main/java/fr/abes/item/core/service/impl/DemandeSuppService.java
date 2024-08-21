@@ -373,6 +373,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             demandeSupp.setTypeSuppression(typeSuppression);
             return this.save(demandeSupp);
         }
-        return null;
+        return demandeSupp;
     }
 }
