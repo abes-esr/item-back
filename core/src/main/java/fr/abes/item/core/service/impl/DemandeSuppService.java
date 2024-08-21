@@ -8,20 +8,15 @@ import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
-import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeSupp;
-import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.LigneFichier;
+import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
-import fr.abes.item.core.service.FileSystemStorageService;
-import fr.abes.item.core.service.IDemandeService;
-import fr.abes.item.core.service.ReferenceService;
-import fr.abes.item.core.service.UtilisateurService;
+import fr.abes.item.core.repository.item.ILigneFichierSuppDao;
+import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +35,9 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private static final Integer nbIdMaxPerRequest = 300;
 
     private final IDemandeSuppDao demandeSuppDao;
+
+    private final ILigneFichierService ligneFichierService;
+
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
@@ -52,7 +50,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
@@ -60,6 +58,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         this.utilisateurService = utilisateurService;
         this.procStockeePpnToEpn = procStockeePpnToEpn;
         this.procStockeeEpnToPpn = procStockeeEpnToPpn;
+        this.ligneFichierService = ligneFichierSuppService;
     }
 
     @Override
@@ -131,7 +130,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeSupp demande) throws IOException, FileCheckingException, DemandeCheckingException {
+    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeSupp demande) throws IOException, FileCheckingException, DemandeCheckingException, FileTypeException {
         Integer numDemande = demande.getNumDemande();
         try {
             storageService.changePath(Paths.get(uploadPath + "supp/" + numDemande));
@@ -153,16 +152,24 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException {
+    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException, FileTypeException {
         int etat = demande.getEtatDemande().getNumEtat();
         switch (etat) {
             case Constant.ETATDEM_PREPARATION -> preparerFichierEnPrep(demande);
             case Constant.ETATDEM_PREPAREE -> changeState(demande, Constant.ETATDEM_ACOMPLETER);
-            case Constant.ETATDEM_ACOMPLETER -> changeState(demande, Constant.ETATDEM_SIMULATION);
+            case Constant.ETATDEM_ACOMPLETER -> {
+                //Etat après procédure Oracle, traitement du fichier enrichi
+                //appel méthode d'alimentation de la base avec les lignes du fichier
+                FichierEnrichiSupp fichier = (FichierEnrichiSupp) FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.SUPP);
+
+                ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demande);
+
+                changeState(demande, Constant.ETATDEM_ATTENTE);
+            }
         }
     }
 
-    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException {
+    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException, FileTypeException {
         if (demande.getTypeSuppression() != null) {
             //Suppression d'un éventuel fichier existant sur le disque
             storageService.delete(fichierPrepare.getFilename());
@@ -226,7 +233,29 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        return null;
+        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+            EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
+            demande.setEtatDemande(etat);
+            return save(demande);
+        } else {
+            throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
+        }
+    }
+
+    /**
+     * Retourne l'état précédent d'une demande dans le déroulement normal du processus
+     *
+     * @param etatDemande : etat dont on souhaite connaitre l'état précédent
+     * @return : l'état précédent dans le processus
+     */
+    private int getPreviousState(int etatDemande) {
+        return switch (etatDemande) {
+            case Constant.ETATDEM_PREPAREE -> Constant.ETATDEM_PREPARATION;
+            case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPAREE;
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_ACOMPLETER;
+            //todo à completer
+            default -> 0;
+        };
     }
 
     @Override

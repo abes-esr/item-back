@@ -10,9 +10,9 @@ import java.io.Serializable;
 
 @Entity
 @NoArgsConstructor
-@Table(name= "LIGNE_FICHIER_MODIF")
+@Table(name= "LIGNE_FICHIER_SUPP")
 @Getter @Setter
-public class LigneFichierModif extends LigneFichier implements Serializable, ILigneFichier {
+public class LigneFichierSupp extends LigneFichier implements Serializable, ILigneFichier {
     @Column(name="PPN")
     private String ppn;
     @Column(name="RCR")
@@ -21,22 +21,22 @@ public class LigneFichierModif extends LigneFichier implements Serializable, ILi
     private String epn;
     @ManyToOne
     @JoinColumn(name = "REF_DEMANDE") @NotNull
-    private DemandeModif demandeModif;
+    private DemandeSupp demandeSupp;
 
-    public LigneFichierModif(String ppn,
-                             String rcr, String epn, String valeurZone, Integer position,
-                             Integer traitee, String retourSudoc, DemandeModif demandeModif) {
+    public LigneFichierSupp(String ppn,
+                            String rcr, String epn, String valeurZone, Integer position,
+                            Integer traitee, String retourSudoc, DemandeSupp demandeSupp) {
         super(valeurZone, traitee, position, retourSudoc);
         this.ppn = ppn;
         this.rcr = rcr;
         this.epn = epn;
-        this.demandeModif = demandeModif;
+        this.demandeSupp = demandeSupp;
     }
 
     @Override
     public void setEntityAfterBatch(LigneFichier ligneFichier) {
-        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
-        this.setRetourSudoc(ligneFichierModif.getRetourSudoc());
+        LigneFichierSupp ligneFichierSupp = (LigneFichierSupp) ligneFichier;
+        this.setRetourSudoc(ligneFichierSupp.getRetourSudoc());
         this.setTraitee(1);
     }
 }
