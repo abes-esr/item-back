@@ -163,15 +163,17 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException {
-        //Suppression d'un éventuel fichier existant sur le disque
-        storageService.delete(fichierPrepare.getFilename());
-        //Ecriture ligne d'en-tête dans FichierApresWS
-        fichierPrepare.ecrireEnTete();
-        //Alimentation du fichier par appel à la procédure Oracle ppntoepn
-        appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
-        demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
-        save(demande);
-        checkEtatDemande(demande);    //todo ajouter le check etat demande
+        if (demande.getTypeSuppression() != null) {
+            //Suppression d'un éventuel fichier existant sur le disque
+            storageService.delete(fichierPrepare.getFilename());
+            //Ecriture ligne d'en-tête dans FichierApresWS
+            fichierPrepare.ecrireEnTete();
+            //Alimentation du fichier par appel à la procédure Oracle ppntoepn
+            appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
+            demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+            save(demande);
+            checkEtatDemande(demande);
+        }
     }
 
     /**
@@ -259,7 +261,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
         switch (etape) {
-            //étape choix du RCR et choix du type de fichier de suppression
+            //étape choix du type de suppression
             case 2 -> {
                 demandeSupp.setTypeSuppression(null); //On repasse TYPE_SUPPRESSION à null : obtenu ETAPE 3
                 demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
@@ -309,7 +311,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         if (demandeSupp != null) {
             demandeSupp.setDateModification(Calendar.getInstance().getTime());
             demandeSupp.setTypeSuppression(typeSuppression);
-            demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
             return this.save(demandeSupp);
         }
         return null;
