@@ -216,9 +216,19 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return null;
     }
 
+
+    /**
+     * Méthode permettant de chercher les demandesSupp d'un utilisateur
+     *
+     * @param iln numéro de l'utilisateur propriétaire des demandesSupp
+     * @return liste des demandesSupp de l'utilisateur (hors demandesSupp archivées)
+     */
     @Override
     public List<Demande> getActiveDemandesForUser(String iln) {
-        return null;
+        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getActiveDemandesSuppForUserExceptedPreparedStatus(iln);
+        List<Demande> listeDemande = new ArrayList<>(demandesSupp);
+        setIlnShortNameOnList(listeDemande);
+        return listeDemande;
     }
 
     @Override
@@ -265,25 +275,42 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public List<Demande> getAllArchivedDemandes(String iln) {
-        return null;
+        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getAllArchivedDemandesSupp(iln);
+        List<Demande> listeDemandes = new ArrayList<>(demandesSupp);
+        setIlnShortNameOnList(listeDemandes);
+        return listeDemandes;
     }
 
     @Override
     public List<Demande> getAllArchivedDemandesAllIln() {
-        return null;
+        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getAllArchivedDemandesSuppExtended();
+        List<Demande> listeDemandes = new ArrayList<>(demandesSupp);
+        setIlnShortNameOnList(listeDemandes);
+        return listeDemandes;
     }
 
     @Override
     public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeSupp> demandeSupps = demandeSuppDao.getAllActiveDemandesModifForAdminExtended();
+        List<DemandeSupp> demandeSupps = demandeSuppDao.getAllActiveDemandesSuppForAdminExtended();
         List<Demande> demandesList = new ArrayList<>(demandeSupps);
         setIlnShortNameOnList(demandesList);
         return demandesList;
     }
 
+    /**
+     * Lance une requête pour récupérer l'ensemble des demandesSupp
+     * Lance une requête pour récupérer :
+     * Les demandesSupp Terminées / En Erreur de tout le monde
+     * ET toutes les demandesSupp créées par cet admin
+     *
+     * @return la liste de toutes les demandesSupp
+     */
     @Override
     public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        return null;
+        List<DemandeSupp> demandesSupp = demandeSuppDao.getAllActiveDemandesSuppForAdmin(iln);
+        List<Demande> demandeList = new ArrayList<>(demandesSupp);
+        setIlnShortNameOnList(demandeList);
+        return demandeList;
     }
 
     @Override
@@ -346,6 +373,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             demandeSupp.setTypeSuppression(typeSuppression);
             return this.save(demandeSupp);
         }
-        return null;
+        return demandeSupp;
     }
 }

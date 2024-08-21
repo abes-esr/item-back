@@ -1,12 +1,20 @@
 package fr.abes.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.DemandeSupp;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+@Getter
+@Setter
+@JsonTypeName("SUPP")
+@NoArgsConstructor
 public class DemandeSuppWebDto extends DemandeWebDto {
     @JsonProperty("typeSuppression")
     private String typeSuppression;
