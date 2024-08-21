@@ -28,4 +28,9 @@ public class DemandeSupp extends Demande {
         super(rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
         this.typeSuppression = typeSuppression;
     }
+
+    public DemandeSupp(Integer id, String rcr, Date dateCreation, Date dateModification,
+                       String comment, EtatDemande etatDemande, Utilisateur utilisateur) {
+        super(id, rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
+    }
 }

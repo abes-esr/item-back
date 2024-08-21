@@ -15,6 +15,7 @@ import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
+import fr.abes.item.core.repository.item.ILigneFichierSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
@@ -31,26 +32,33 @@ import java.util.*;
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.SUPP})
 public class DemandeSuppService extends DemandeService implements IDemandeService {
+    private static final Integer nbIdMaxPerRequest = 300;
+
     private final IDemandeSuppDao demandeSuppDao;
+
+    private final ILigneFichierService ligneFichierService;
+
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
 
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
-
-    private final Ppntoepn procStockee;
+    private final Ppntoepn procStockeePpnToEpn;
+    private final Epntoppn procStockeeEpnToPpn;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
-        this.procStockee = procStockee;
+        this.procStockeePpnToEpn = procStockeePpnToEpn;
+        this.procStockeeEpnToPpn = procStockeeEpnToPpn;
+        this.ligneFichierService = ligneFichierSuppService;
     }
 
     @Override
@@ -72,7 +80,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public Demande creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
-        DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(),null,null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
+        DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(), null, null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
         demandeSupp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeSupp);
         DemandeSupp demToReturn = (DemandeSupp) save(demandeSupp);
@@ -122,7 +130,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeSupp demande) throws IOException, FileCheckingException, DemandeCheckingException {
+    private void stockerFichierOnDisk(MultipartFile file, Fichier fichier, DemandeSupp demande) throws IOException, FileCheckingException, DemandeCheckingException, FileTypeException {
         Integer numDemande = demande.getNumDemande();
         try {
             storageService.changePath(Paths.get(uploadPath + "supp/" + numDemande));
@@ -132,7 +140,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichier.checkFileContent(demande);
             //suppression des lignes vides d'un fichier initial de ppn / epn
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitialSupp = (FichierInitialSupp) fichier;
+                FichierInitialSupp fichierInitialSupp = (FichierInitialSupp) fichier;
                 fichierInitialSupp.supprimerRetourChariot();
             }
             checkEtatDemande(demande);
@@ -144,27 +152,35 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException {
+    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException, FileTypeException {
         int etat = demande.getEtatDemande().getNumEtat();
         switch (etat) {
             case Constant.ETATDEM_PREPARATION -> preparerFichierEnPrep(demande);
             case Constant.ETATDEM_PREPAREE -> changeState(demande, Constant.ETATDEM_ACOMPLETER);
             case Constant.ETATDEM_ACOMPLETER -> {
-                changeState(demande, Constant.ETATDEM_SIMULATION);
+                //Etat après procédure Oracle, traitement du fichier enrichi
+                //appel méthode d'alimentation de la base avec les lignes du fichier
+                FichierEnrichiSupp fichier = (FichierEnrichiSupp) FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.SUPP);
+
+                ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demande);
+
+                changeState(demande, Constant.ETATDEM_ATTENTE);
             }
         }
     }
 
-    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException {
-        //Suppression d'un éventuel fichier existant sur le disque
-        storageService.delete(fichierPrepare.getFilename());
-        //Ecriture ligne d'en-tête dans FichierApresWS
-        fichierPrepare.ecrireEnTete();
-        //Alimentation du fichier par appel à la procédure Oracle ppntoepn
-        appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
-        demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
-        save(demande);
-        checkEtatDemande(demande);    //todo ajouter le check etat demande
+    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException, FileTypeException {
+        if (demande.getTypeSuppression() != null) {
+            //Suppression d'un éventuel fichier existant sur le disque
+            storageService.delete(fichierPrepare.getFilename());
+            //Ecriture ligne d'en-tête dans FichierApresWS
+            fichierPrepare.ecrireEnTete();
+            //Alimentation du fichier par appel à la procédure Oracle ppntoepn
+            appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
+            demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+            save(demande);
+            checkEtatDemande(demande);
+        }
     }
 
     /**
@@ -175,10 +191,18 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
      * @throws IOException fichier illisible
      */
     private void appelProcStockee(String rcr, TYPE_SUPPRESSION type) throws IOException {
-        List<String> listppn = fichierInit.cutFile();
-        for (String listeppn : listppn) {
-            String resultProcStockee = procStockee.callFunction(listeppn, rcr);
-            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+        if (type.equals(TYPE_SUPPRESSION.PPN)) {
+            List<String> listppn = fichierInit.cutFile();
+            for (String listePpn : listppn) {
+                String resultProcStockee = procStockeePpnToEpn.callFunction(listePpn, rcr);
+                fichierPrepare.alimenterEpn(resultProcStockee, listePpn, rcr);
+            }
+        } else {
+            List<String> listEpn = fichierInit.cutFile();
+            for (String listeepn : listEpn) {
+                String resultProcStockee = procStockeeEpnToPpn.callFunction(listeepn, rcr);
+                fichierPrepare.alimenterPpn(resultProcStockee, listeepn, rcr);
+            }
         }
     }
 
@@ -206,6 +230,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         setIlnShortNameOnList(listeDemande);
         return listeDemande;
     }
+
     @Override
     public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
         return null;
@@ -218,7 +243,29 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        return null;
+        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+            EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
+            demande.setEtatDemande(etat);
+            return save(demande);
+        } else {
+            throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
+        }
+    }
+
+    /**
+     * Retourne l'état précédent d'une demande dans le déroulement normal du processus
+     *
+     * @param etatDemande : etat dont on souhaite connaitre l'état précédent
+     * @return : l'état précédent dans le processus
+     */
+    private int getPreviousState(int etatDemande) {
+        return switch (etatDemande) {
+            case Constant.ETATDEM_PREPAREE -> Constant.ETATDEM_PREPARATION;
+            case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPAREE;
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_ACOMPLETER;
+            //todo à completer
+            default -> 0;
+        };
     }
 
     @Override
@@ -268,11 +315,34 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
-        return null;
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        switch (etape) {
+            //étape sélection du type de fichier de suppression
+            case 1 -> {
+                demandeSupp.setTypeSuppression(null);
+                return save(demandeSupp);
+            }
+            //étape upload du fichier
+            case 2 -> {
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
+                //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
+                //Suppression des lignes de la table LIGNE_FICHIER_SUPP crées à ETAPE 5
+                return save(demandeSupp);
+                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
+            }
+            //etape upload du fichier initial
+            case 3 -> {
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
+                return save(demandeSupp);
+                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
+            }
+            default -> throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
+        }
     }
 
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException {
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws
+            CBSException, ZoneException, IOException {
         return new String[0];
     }
 
@@ -296,12 +366,11 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return null;
     }
 
-    public Demande majTypeSuppression(Integer demandeId, String typeSuppression) {
+    public Demande majTypeSupp(Integer demandeId, TYPE_SUPPRESSION typeSuppression) {
         DemandeSupp demandeSupp = this.findById(demandeId);
         if (demandeSupp != null) {
             demandeSupp.setDateModification(Calendar.getInstance().getTime());
-            demandeSupp.setTypeSuppression(TYPE_SUPPRESSION.valueOf(typeSuppression));
-            demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
+            demandeSupp.setTypeSuppression(typeSuppression);
             return this.save(demandeSupp);
         }
         return null;

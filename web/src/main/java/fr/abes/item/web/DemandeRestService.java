@@ -5,6 +5,7 @@ import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.*;
@@ -117,7 +118,7 @@ public class DemandeRestService {
 
     @PatchMapping(value = "/demandes/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
-    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("traitement") Optional<Integer> traitement, @RequestParam("commentaire") Optional<String> commentaire, @RequestParam("typeSuppression") Optional<String> typeSuppression, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
+    public DemandeWebDto modifDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, @RequestParam("rcr") Optional<String> rcr, @RequestParam("typeExemp") Optional<Integer> typeExemp, @RequestParam("typeSupp") Optional<TYPE_SUPPRESSION> typeSupp, @RequestParam("traitement") Optional<Integer> traitement, @RequestParam("commentaire") Optional<String> commentaire, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(id);
@@ -132,12 +133,12 @@ public class DemandeRestService {
             if (type.equals(TYPE_DEMANDE.MODIF) && traitement.isPresent()) {
                 return builder.buildDemandeDto(demandeModifService.majTraitement(id, traitement.get()), type);
             }
+            if (type.equals(TYPE_DEMANDE.SUPP) && typeSupp.isPresent()) {
+                return builder.buildDemandeDto(demandeSuppService.majTypeSupp(id, typeSupp.get()), type);
+            }
             if (commentaire.isPresent()) {
                 demande.setCommentaire(commentaire.get());
                 return builder.buildDemandeDto(service.save(demande), type);
-            }
-            if (type.equals(TYPE_DEMANDE.SUPP) && typeSuppression.isPresent()) {
-                return builder.buildDemandeDto(demandeSuppService.majTypeSuppression(id, typeSuppression.get()), type);
             }
         }
         throw new UnknownDemandeException("Demande inconnue");
