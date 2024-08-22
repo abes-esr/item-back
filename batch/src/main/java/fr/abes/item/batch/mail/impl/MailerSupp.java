@@ -62,8 +62,8 @@ public class MailerSupp extends Mailer implements IMailer {
      */
     @Override
     public void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut){
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_SUPPRESSION_START + demande.getId() + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
-                "Bonjour,<br />Votre demande de suppression d'exemplaires -  N°" + demande.getId() + "n'a pas pu être exécutée. Une erreur vient de se produire sur ITEM. Dès que l'incident sera résolu vous recevrez un message vous indiquant la reprise du traitement. Cela ne nécessite aucune intervention de votre part." +
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_SUPPRESSION_START + demande.getId() + "-" + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
+                "Bonjour,<br />Votre demande de suppression d'exemplaires -  N°" + demande.getId() + " n'a pas pu être exécutée. Une erreur vient de se produire sur ITEM. Dès que l'incident sera résolu vous recevrez un message vous indiquant la reprise du traitement. Cela ne nécessite aucune intervention de votre part." +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro/\" target=\"_blank\"> https://stp.abes.fr</a>"+
                         "<br />Cordialement.<br/>L'équipe ITEM.");
         sendMail(requestJson);

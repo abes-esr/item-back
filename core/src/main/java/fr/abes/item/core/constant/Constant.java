@@ -218,7 +218,7 @@ public class Constant implements Serializable {
 	public static final String ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET = "entrée dans execute de LireLigneFichierTasklet...";
 	public static final String ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE = "erreur lors de la requête au Sudoc ou du saveExemplaire";
 	public static final String ERROR_FROM_RECUP_NOTICETRAITEE =	"erreur lors de la recup de la noticetraitee : ";
-	public static final String ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE = "erreur dans traitement ligne fichier lors de la maj de l'état de la demande : ";
+	public static final String ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE = "erreur lors du passage de la demande en etat TERMINEE : ";
 	public static final String ERROR_CAUGHT = "error caught: ";
 	public static final String ERROR_MAJ_LIGNE_FICHIER_WRITE = "erreur lors de majLigneFichier dans write : ";
 	public static final String LIGNE_TRAITEE = "ligne traitee pour ";

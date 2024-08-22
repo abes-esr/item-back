@@ -513,7 +513,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         DemandeModif demandeModif = (DemandeModif) demande;
         String zone = demandeModif.getZone();
         if (demandeModif.getSousZone() != null) zone += demandeModif.getSousZone();
-        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le" + dateDebut;
+        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le " + dateDebut;
     }
 
 

@@ -6,7 +6,7 @@ import fr.abes.item.batch.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoSupp;
-import fr.abes.item.core.components.FichierResultat;
+import fr.abes.item.core.components.FichierResultatModif;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
@@ -81,7 +81,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      */
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) throws Exception {
-        log.warn(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
+        log.info(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
 
         try {
             String nomFichier = this.genererFichier(); //NOM FICHIER DEMANDE GENERE
@@ -112,13 +112,13 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      * @throws FileTypeException : erreur de type de fichier
      */
     private String genererFichier() throws IOException, FileTypeException, QueryToSudocException {
-        FichierResultat fichierResultat;
+        FichierResultatModif fichierResultatModif;
 
-        fichierResultat = (FichierResultat) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
-        fichierResultat.generateFileName(demande.getId());
-        fichierResultat.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
+        fichierResultatModif = (FichierResultatModif) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
+        fichierResultatModif.generateFileName(demande.getId());
+        fichierResultatModif.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
 
-        try (FileWriter fw = new FileWriter(fichierResultat.getPath().resolve(fichierResultat.getFilename()).toString(), false);
+        try (FileWriter fw = new FileWriter(fichierResultatModif.getPath().resolve(fichierResultatModif.getFilename()).toString(), false);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             // en tête du fichier
@@ -149,7 +149,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                 }
                 //ligne correspondant au résultat du traitement de chaque ligne du fichier d'origine
             }
-            return fichierResultat.getFilename();
+            return fichierResultatModif.getFilename();
         } catch (IOException | QueryToSudocException | DataAccessException ex) {
             log.error(Constant.ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE + ex);
             throw ex;

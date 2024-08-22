@@ -242,7 +242,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut) {
-        return "PPN;RCR;EPN;RESULTAT;Demande lancée le" + dateDebut;
+        return "PPN;RCR;EPN;RESULTAT;Demande lancée le " + dateDebut;
     }
 
     @Override
