@@ -55,7 +55,7 @@ public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListe
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.RECOUV);
             this.demande = (DemandeRecouv) service.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }

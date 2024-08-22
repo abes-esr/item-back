@@ -24,4 +24,6 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     List<DemandeSupp> getActiveDemandesSuppForUserExceptedPreparedStatus(@Param("iln") String iln);
     @Query("select d from DemandeSupp d where d.etatDemande.numEtat = 9")
     List<DemandeSupp> getAllArchivedDemandesSuppExtended();
+
+    List<DemandeSupp> findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Integer id);
 }

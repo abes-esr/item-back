@@ -5,17 +5,11 @@ import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.batch.traitement.ProxyRetry;
-import fr.abes.item.batch.traitement.model.LigneFichierDto;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoExemp;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
+import fr.abes.item.batch.traitement.model.*;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
-import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeExemp;
-import fr.abes.item.core.entities.item.DemandeModif;
-import fr.abes.item.core.entities.item.DemandeRecouv;
+import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.service.IDemandeService;
 import lombok.NonNull;
@@ -69,6 +63,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
             return switch (ligneFichierDto.getTypeDemande()) {
                 case MODIF -> processDemandeModif(ligneFichierDto);
                 case EXEMP -> processDemandeExemp(ligneFichierDto);
+                case SUPP -> processDemandeSupp(ligneFichierDto);
                 default -> processDemandeRecouv(ligneFichierDto);
             };
         } catch (CBSException | ZoneException | QueryToSudocException | IOException e) {
@@ -121,6 +116,24 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         LigneFichierDtoExemp ligneFichierDtoExemp = (LigneFichierDtoExemp) ligneFichierDto;
         this.proxyRetry.newExemplaire(demandeExemp, ligneFichierDtoExemp);
         return ligneFichierDtoExemp;
+    }
+
+
+    /**
+     * Méthode permettant de lancer la suppression sur une ligne du fichier
+     *
+     * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement de suppression
+     * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
+     * @throws CBSException  : erreur CBS
+     * @throws IOException : erreur de communication avec le CBS
+     */
+    private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException {
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
+        //sauvegarde la notice modifiée
+        this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
+        ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
+        return ligneFichierDtoSupp;
     }
 
     private String getL035fromDonneesLocales(String donneeLocale) throws ZoneException {

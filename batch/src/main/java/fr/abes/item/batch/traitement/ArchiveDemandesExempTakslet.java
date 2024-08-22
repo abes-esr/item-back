@@ -40,7 +40,7 @@ public class ArchiveDemandesExempTakslet implements Tasklet, StepExecutionListen
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.EXEMP);
             this.demandes = (List<DemandeExemp>) service.getIdNextDemandeToArchive();
             if (this.demandes == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }

@@ -37,7 +37,7 @@ public class ArchiveDemandesRecouvTasklet implements Tasklet, StepExecutionListe
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.RECOUV);
             this.demandes = (List<DemandeRecouv>) service.getIdNextDemandeToArchive();
             if (this.demandes == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }

@@ -37,6 +37,7 @@ public class Constant implements Serializable {
 	public static final String BLOCKED = "blocked";
 	public static final String EXEMPLAIRE_CREE = "exemplaire créé";
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
+	public static final String EXEMPLAIRE_SUPPRIME = "exemplaire supprimé";
 	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
 	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
@@ -115,6 +116,8 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_SEARCH_INDEX_NOT_COMPLIANT = "Impossible de générer la requête, l'index de recherche n'est pas conforme";
 	public static final String ERR_FILE_SEARCH_INDEX_NOT_RECOGNIZED_FOR_DEMANDE = "Index non reconnu pour ce type de demande";
 	public static final String ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT = "Le codeIndex de recherche n'est pas valide";
+	public static final String WARN_NOTICE_EPN_INEXISTANT = "Exemplaire inexistant";
+
 
 	/**Specific errors on storage file*/
 	public static final String ERR_FILE_STORAGE_EMPTY_FILE = "Echec de stockage du fichier car fichier vide : ";
@@ -144,7 +147,8 @@ public class Constant implements Serializable {
 	/**Specific messages on mails sents and stats*/
 	public static final String STAT_NBDEMANDESTRAITEES_FILENAME = "demandesTraiteesRCR";
 	public static final String STAT_NBEXEMPLAIRESTRAITES_FILENAME = "exemplairesTraitesTraitementRCR";
-	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaire ";
+	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires ";
+	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires ";
 	public static final String DEMANDE_EXEMPLARISATION_START = "Votre exemplarisation - ";
 	public static final String DEMANDE_EXEMPLARISATION_END = "Résultat de votre exemplarisation - ";
 	public static final String DEMANDE_RECOUVREMENT_START = "Votre taux de recouvrement - N°";
@@ -187,6 +191,7 @@ public class Constant implements Serializable {
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_MODIF = "debut du job jobTraiterLigneFichier pour demandes de modification...";
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_EXEMP = "debut du job jobTraiterLigneFichier pour demandes d'exemplarisation...";
 	public static final String JOB_TRAITER_LIGNE_FICHIER_START_RECOU = "debut du job jobTraiterLigneFichier pour demandes de recouvrement...";
+	public static final String JOB_TRAITER_LIGNE_FICHIER_START_SUPP = "debut du job jobTraiterLigneFichier pour demandes de suppression...";
 	public static final String JOB_EXPORT_STATISTIQUES_START = "debut du job jobExportStatistiques...";
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MILLISECONDS = "temps total execution (ms) = ";
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MINUTES = "temps total execution (minutes) = ";
@@ -205,6 +210,7 @@ public class Constant implements Serializable {
 	public static final String ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEMODIFTASKLET = "erreur lors du passerEnCours de GetNextDemandeModifTasklets = ";
 	public static final String ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDERECOUVTASKLET = "erreur lors du passerEnCours de GetNextDemandeRecouvTasklets = ";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET = "entrée dans execute de GetNextDemandeRecouvTasklets...";
+	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDESUPPTASKLET = "entrée dans execute de GetNextDemandeSuppTasklets...";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTASKLET = "entrée dans execute de GetNextDemandeModifTasklets...";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTASKLET = "entrée dans execute de GetNextDemandeExempTasklets...";
 	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTOARCHIVETASKLET = "entrée dans execute de ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet...";

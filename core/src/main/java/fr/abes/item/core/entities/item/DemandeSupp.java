@@ -18,6 +18,11 @@ public class DemandeSupp extends Demande {
     @Column(name = "TYPE_SUPPRESSION")
     @Enumerated(EnumType.STRING)
     private TYPE_SUPPRESSION typeSuppression;
+
+    public DemandeSupp(Integer refDemande) {
+        super(refDemande);
+    }
+
     @Override
     public TYPE_DEMANDE getTypeDemande() {
         return TYPE_DEMANDE.SUPP;

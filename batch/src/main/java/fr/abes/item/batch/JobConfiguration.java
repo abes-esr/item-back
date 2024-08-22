@@ -82,7 +82,7 @@ public class JobConfiguration {
     // ----- CHUNK ------
     @Bean
     public LignesFichierReader reader() {
-        return new LignesFichierReader(proxyRetry);
+        return new LignesFichierReader();
     }
     @Bean
     public LignesFichierProcessor processor() {
@@ -100,6 +100,8 @@ public class JobConfiguration {
     public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(strategyFactory, minHour, maxHour); }
     @Bean
     public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(strategyFactory, minHour, maxHour); }
+    @Bean
+    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeSuppTasklet(strategyFactory, minHour, maxHour); }
     @Bean
     public Tasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(strategyFactory, mailAdmin); }
     @Bean
@@ -176,6 +178,12 @@ public class JobConfiguration {
     @Bean
     public Step stepRecupererNextDemandeRecouv(JobRepository jobRepository, @Qualifier("getNextDemandeRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeRecouv", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+    @Bean
+    public Step stepRecupererNextDemandeSupp(JobRepository jobRepository, @Qualifier("getNextDemandeSuppTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("stepRecupererNextDemandeSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
@@ -334,6 +342,21 @@ public class JobConfiguration {
                 .build().build();
     }
 
+    //job de lancement d'une demande de suppression
+    @Bean
+    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
+        return new JobBuilder("traiterLigneFichierSupp", jobRepository).incrementer(incrementer())
+                .start(step1).on(Constant.FAILED).end()
+                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
+                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step2).on(Constant.FAILED).end()
+                .from(step2).on(Constant.COMPLETED).to(step3)
+                .from(step3).on(Constant.FAILED).end()
+                .from(step3).on(Constant.COMPLETED).to(step4)
+                .from(step4).on(Constant.FAILED).end()
+                .from(step4).on(Constant.COMPLETED).to(step5)
+                .build().build();
+    }
 
     // Job d'export des statistiques mensuelles
     @Bean

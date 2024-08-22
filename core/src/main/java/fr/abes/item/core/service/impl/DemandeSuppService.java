@@ -213,7 +213,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande closeDemande(Demande demande) throws DemandeCheckingException {
-        return null;
+        if (ligneFichierService.getNbLigneFichierNonTraitee(demande) != 0) {
+            throw new DemandeCheckingException(Constant.LINES_TO_BE_PROCESSED_REMAIN);
+        }
+        return changeState(demande, Constant.ETATDEM_TERMINEE);
     }
 
 
@@ -233,17 +236,18 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
-        return null;
+        List<DemandeSupp> demandesSupp = this.demandeSuppDao.findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Constant.ETATDEM_ATTENTE);
+        return demandesSupp.isEmpty() ? null : demandesSupp.get(0);
     }
 
     @Override
     public String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut) {
-        return null;
+        return "PPN;RCR;EPN;RESULTAT;Demande lancée le" + dateDebut;
     }
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             return save(demande);
@@ -263,7 +267,11 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             case Constant.ETATDEM_PREPAREE -> Constant.ETATDEM_PREPARATION;
             case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPAREE;
             case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_ACOMPLETER;
-            //todo à completer
+            case Constant.ETATDEM_ENCOURS -> Constant.ETATDEM_ATTENTE;
+            case Constant.ETATDEM_TERMINEE -> Constant.ETATDEM_ENCOURS;
+            case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
+            case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
+            case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
             default -> 0;
         };
     }

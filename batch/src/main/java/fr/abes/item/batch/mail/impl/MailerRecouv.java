@@ -81,7 +81,7 @@ public class MailerRecouv extends Mailer implements IMailer {
 
     @Override
     public void mailAlertAdmin(String mailUtilisateur, Demande demande) {
-        String requestJson = mailToJSON(mailAdmin, "Erreur dans Item / Recouvrement " + " - ILN " + demande.getIln() + " / " + ((env.getActiveProfiles().length>0)?env.getActiveProfiles()[0]:"Local"), "Une erreur vient de se produire sur Item sur la demande" + demande.getId());
+        String requestJson = mailToJSON(mailAdmin, "Erreur dans Item / Recouvrement - ILN " + demande.getIln() + " / " + ((env.getActiveProfiles().length>0)?env.getActiveProfiles()[0]:"Local"), "Une erreur vient de se produire sur Item sur la demande " + demande.getId());
         sendMail(requestJson);
     }
 

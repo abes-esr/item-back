@@ -259,7 +259,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      */
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeExemp) demande, etat);
