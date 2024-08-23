@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 @ItemConfiguration
 public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
-    @Query("select d from DemandeSupp d where d.etatDemande.numEtat not in (9, 2, 10)")
+    @Query("select d from DemandeSupp d where d.etatDemande.numEtat not in (9, 10)")
     List<DemandeSupp> getAllActiveDemandesSuppForAdminExtended();
     @Query("select d from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)")
     List<DemandeSupp> getAllActiveDemandesSuppForAdmin(@Param("iln") String iln);
