@@ -25,6 +25,8 @@ if [ "$ITEM_BATCH_AT_STARTUP" = "1" ]; then
   /scripts/itemBatchTraiterLigneFichierModif.sh
   echo "-> Lancement de itemBatchTraiterLigneFichierRecouv.sh au démarrage du conteneur"
   /scripts/itemBatchTraiterLigneFichierRecouv.sh
+  echo "-> Lancement de itemBatchTraiterLigneFichierSupp.sh au démarrage du conteneur"
+  /scripts/itemBatchTraiterLigneFichierSupp.sh
 fi
 
 # execute CMD (crond)

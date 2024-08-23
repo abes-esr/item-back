@@ -65,6 +65,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
 # gettext: pour avoir envsubst qui permet de gérer le template tasks.tmpl
+RUN yum install -y procps
 RUN dnf install -y cronie gettext && \
     crond -V && rm -rf /etc/cron.*/*
 COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
@@ -89,6 +90,8 @@ COPY ./docker/batch/itemBatchTraiterLigneFichierModif.sh /scripts/itemBatchTrait
 RUN chmod +x /scripts/itemBatchTraiterLigneFichierModif.sh
 COPY ./docker/batch/itemBatchTraiterLigneFichierRecouv.sh /scripts/itemBatchTraiterLigneFichierRecouv.sh
 RUN chmod +x /scripts/itemBatchTraiterLigneFichierRecouv.sh
+COPY ./docker/batch/itemBatchTraiterLigneFichierSupp.sh /scripts/itemBatchTraiterLigneFichierSupp.sh
+RUN chmod +x /scripts/itemBatchTraiterLigneFichierSupp.sh
 
 COPY --from=build-image /build/batch/target/*.jar /scripts/item-batch.jar
 RUN chmod +x /scripts/item-batch.jar

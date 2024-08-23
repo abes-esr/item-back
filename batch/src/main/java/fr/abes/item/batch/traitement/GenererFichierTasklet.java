@@ -5,7 +5,8 @@ import fr.abes.item.batch.mail.IMailer;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoExemp;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
-import fr.abes.item.core.components.FichierResultat;
+import fr.abes.item.batch.traitement.model.LigneFichierDtoSupp;
+import fr.abes.item.core.components.FichierResultatModif;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
@@ -80,7 +81,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      */
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) throws Exception {
-        log.warn(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
+        log.info(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
 
         try {
             String nomFichier = this.genererFichier(); //NOM FICHIER DEMANDE GENERE
@@ -111,40 +112,44 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      * @throws FileTypeException : erreur de type de fichier
      */
     private String genererFichier() throws IOException, FileTypeException, QueryToSudocException {
-        FichierResultat fichierResultat;
+        FichierResultatModif fichierResultatModif;
 
-        fichierResultat = (FichierResultat) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
-        fichierResultat.generateFileName(demande.getId());
-        fichierResultat.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
+        fichierResultatModif = (FichierResultatModif) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
+        fichierResultatModif.generateFileName(demande.getId());
+        fichierResultatModif.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
 
-        try (FileWriter fw = new FileWriter(fichierResultat.getPath().resolve(fichierResultat.getFilename()).toString(), false);
+        try (FileWriter fw = new FileWriter(fichierResultatModif.getPath().resolve(fichierResultatModif.getFilename()).toString(), false);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             // en tête du fichier
             out.println(demandeService.getInfoHeaderFichierResultat(demande, dateDebut));
             for (LigneFichier ligne : this.ligneFichierService.getLigneFichierTraiteeByDemande(demande)) {
                 switch (demande.getTypeDemande()) {
-                    case EXEMP:
+                    case EXEMP -> {
                         DemandeExemp demandeExemp = (DemandeExemp) demande;
                         LigneFichierDtoExemp ligneFichierDtoExemp = new LigneFichierDtoExemp((LigneFichierExemp) ligne);
                         log.warn(ligneFichierDtoExemp.getIndexRecherche());
                         ligneFichierDtoExemp.setRequete(demandeService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoExemp.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
-                        break;
-                    case MODIF:
+                    }
+                    case MODIF -> {
                         LigneFichierDtoModif ligneFichierDtoModif = new LigneFichierDtoModif((LigneFichierModif) ligne);
                         out.println(ligneFichierDtoModif.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
-                        break;
-                    default:
-                        DemandeRecouv demandeRecouv = (DemandeRecouv)demande;
+                    }
+                    case SUPP -> {
+                        LigneFichierDtoSupp ligneFichierDtoSupp = new LigneFichierDtoSupp((LigneFichierSupp) ligne);
+                        out.println(ligneFichierDtoSupp.getValeurToWriteInFichierResultat(demande,nbPpnInFileResult));
+                    }
+                    default -> {
+                        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
                         LigneFichierDtoRecouv ligneFichierDtoRecouv = new LigneFichierDtoRecouv((LigneFichierRecouv) ligne);
                         ligneFichierDtoRecouv.setRequete(demandeService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoRecouv.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
-                        break;
+                    }
                 }
                 //ligne correspondant au résultat du traitement de chaque ligne du fichier d'origine
             }
-            return fichierResultat.getFilename();
+            return fichierResultatModif.getFilename();
         } catch (IOException | QueryToSudocException | DataAccessException ex) {
             log.error(Constant.ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE + ex);
             throw ex;

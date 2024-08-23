@@ -31,7 +31,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
-        	log.debug(Constant.ENTER_DOFILTERINTERNAL);
             final String ip = getClientIP(request);
             if (loginAttemptService.isBlocked(ip)) {
                 throw new RuntimeException(Constant.IP_BLOCKED);

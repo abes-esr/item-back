@@ -191,7 +191,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if (demande.getEtatDemande().getId() == getPreviousState(etatDemande) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             return this.save(demande);

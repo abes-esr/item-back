@@ -23,7 +23,6 @@ public class LigneFichierModif extends LigneFichier implements Serializable, ILi
     @JoinColumn(name = "REF_DEMANDE") @NotNull
     private DemandeModif demandeModif;
 
-    @SuppressWarnings("squid:S00107")
     public LigneFichierModif(String ppn,
                              String rcr, String epn, String valeurZone, Integer position,
                              Integer traitee, String retourSudoc, DemandeModif demandeModif) {

@@ -49,7 +49,6 @@ public class LoginAttemptService {
 
     public boolean isBlocked(final String key) {
         try {
-            log.info(Constant.ERROR_BLOCKED_IP + attemptsCache.get(key));
             int maxAttempt = 10;
             return attemptsCache.get(key) >= maxAttempt;
         } catch (final ExecutionException e) {

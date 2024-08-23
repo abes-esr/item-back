@@ -55,7 +55,7 @@ public class GetNextDemandeExempTasklet implements Tasklet, StepExecutionListene
             IDemandeService service = factory.getStrategy(IDemandeService.class, TYPE_DEMANDE.EXEMP);
             this.demande = (DemandeExemp) service.getIdNextDemandeToProceed(this.minHour, this.maxHour);
             if (this.demande == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }

@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @NoArgsConstructor
-public class FichierResultat extends AbstractFichier implements Fichier {
-	
+public class FichierResultatModif extends AbstractFichier implements Fichier {
+
 	@Autowired
-	public FichierResultat(@Value("") final String filename){
+	public FichierResultatModif(@Value("") final String filename){
 		this.filename = filename;
 	}
- 
+
 	@Override
 	public int getType() {
 		return Constant.ETATDEM_ENCOURS;
@@ -34,7 +34,7 @@ public class FichierResultat extends AbstractFichier implements Fichier {
 	@Override
 	public void generateFileName(Integer numDemande) {
 		this.filename = Constant.FIC_RESULTAT_NAME + numDemande + Constant.EXTENSIONCSV;
-		
+
 	}
 
 }

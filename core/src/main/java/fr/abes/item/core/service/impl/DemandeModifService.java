@@ -221,8 +221,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
             fichier.checkFileContent(demandeModif); //Controle de l'adequation des entêtes
             //Cas d'un fichier initial pouvant contenir des lignes vides à supprimer
             if (fichier.getType() == Constant.ETATDEM_PREPARATION) {
-                FichierInitial fichierInitial = (FichierInitial) fichier;
-                fichierInitial.supprimerRetourChariot();
+                FichierInitial fichierInitialModif = (FichierInitial) fichier;
+                fichierInitialModif.supprimerRetourChariot();
             }
             checkEtatDemande(demandeModif);
         } catch (FileCheckingException e) {
@@ -267,7 +267,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         List<String> listppn = fichierInit.cutFile();
         for (String listeppn : listppn) {
             String resultProcStockee = procStockee.callFunction(listeppn, rcr);
-            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+            fichierPrepare.alimenterEpn(resultProcStockee, listeppn, rcr);
         }
     }
 
@@ -418,7 +418,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      */
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeModif) demande, etat);
@@ -472,7 +472,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 demandeModif.setTraitement(null); //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
                 demandeModif.setZone(null); //On repasse ZONE à null : obtenu ETAPE 5
                 demandeModif.setSousZone(null); //On repasse SOUS_ZONE à null : obtenu ETAPE 5
-                demandeModif.setEtatDemande(new EtatDemande(1)); //On repasse DEM_ETAT_ID à 1
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
                 //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
                 /*Suppression des lignes de la table LIGNE_FICHIER_MODIF crées à ETAPE 5*/
                 ligneFichierService.deleteByDemande(demandeModif);
@@ -481,7 +481,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
                 return demandeModif;
             case 3:
-                demandeModif.setEtatDemande(new EtatDemande(3));
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 demandeModif.setTraitement(null);
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
@@ -489,7 +489,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 save(demandeModif);
                 return demandeModif;
             case 4:
-                demandeModif.setEtatDemande(new EtatDemande(3));
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 //On ne modifie pas le traitement obtenu a etape 3
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
@@ -513,7 +513,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         DemandeModif demandeModif = (DemandeModif) demande;
         String zone = demandeModif.getZone();
         if (demandeModif.getSousZone() != null) zone += demandeModif.getSousZone();
-        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le" + dateDebut;
+        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le " + dateDebut;
     }
 
 

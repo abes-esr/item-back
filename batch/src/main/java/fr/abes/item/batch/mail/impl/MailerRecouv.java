@@ -16,12 +16,10 @@ import java.time.LocalDateTime;
 @Slf4j
 @Strategy(type = IMailer.class, typeDemande = TYPE_DEMANDE.RECOUV)
 public class MailerRecouv extends Mailer implements IMailer {
-
-    private final Environment env;
     private final LigneFichierRecouvService service;
 
     public MailerRecouv(Environment env, LigneFichierRecouvService service) {
-        this.env = env;
+        super(env);
         this.service = service;
     }
 
@@ -32,7 +30,7 @@ public class MailerRecouv extends Mailer implements IMailer {
      */
     @Override
     public void mailDebutTraitement(String mailDestinataire, Demande demande) {
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_START + demande.getId() + Constant.DEMANDE_MAIL_DEBUT + " - ILN " + demande.getIln()
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_START + demande.getId() + Constant.DEMANDE_MAIL_DEBUT + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution()
                 , "Bonjour, <br/>votre taux de recouvrement - Recouvrement N°" + demande.getId() + " est en cours de traitement.<br />" +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro\" target=\"_blank\">https://stp.abes.fr/</a>" +
                 "<br />Cordialement,<br/>L'équipe ITEM");
@@ -50,7 +48,7 @@ public class MailerRecouv extends Mailer implements IMailer {
         double tauxRecouv = ((double)nbNoticesTrouvees / (double)nbRechercheTotal) * 100;
         double tauxExemp = ((double)nbUneReponse / (double)nbRechercheTotal) * 100;
         DecimalFormat df = new DecimalFormat("0.00");
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_END + numDemande + " - ILN " + demande.getIln(),
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_END + numDemande + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution(),
                 "Bonjour," + Constant.HTML_BALISE_BR +
                         "Votre taux de recouvrement N°" + numDemande + " est terminé." + Constant.HTML_BALISE_BR +
                         "Bilan : " + Constant.HTML_BALISE_BR +
@@ -72,7 +70,7 @@ public class MailerRecouv extends Mailer implements IMailer {
 
     @Override
     public void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut) {
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_START + demande.getId() + " - " + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_RECOUVREMENT_START + demande.getId() + " - " + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution(),
                 "Votre taux de recouvrement - N°" + demande.getId() + " - n'a pas pu être exécuté. Une erreur vient de se produire sur ITEM. Dès que l'incident sera résolu vous recevrez un message vous indiquant la reprise du traitement. Cela ne nécessite aucune intervention de votre part.<br />" +
                         "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href=\"https://stp.abes.fr/node/3?origine=sudocpro/\" target=\"_blank\"> https://stp.abes.fr</a><br />" +
                         "<br />Cordialement,<br /> L'équipe ITEM");
@@ -81,7 +79,7 @@ public class MailerRecouv extends Mailer implements IMailer {
 
     @Override
     public void mailAlertAdmin(String mailUtilisateur, Demande demande) {
-        String requestJson = mailToJSON(mailAdmin, "Erreur dans Item / Recouvrement " + " - ILN " + demande.getIln() + " / " + ((env.getActiveProfiles().length>0)?env.getActiveProfiles()[0]:"Local"), "Une erreur vient de se produire sur Item sur la demande" + demande.getId());
+        String requestJson = mailToJSON(mailAdmin, "Erreur dans Item / Recouvrement - ILN " + demande.getIln() + " / " + getEnvironnementExecution(), "Une erreur vient de se produire sur Item sur la demande " + demande.getId());
         sendMail(requestJson);
     }
 

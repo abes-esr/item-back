@@ -13,6 +13,7 @@ import fr.abes.item.core.repository.item.ITraitementDao;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -187,6 +188,18 @@ public class TraitementService {
         return cbs.modifierExemp(noticeModifiee, numEx);
     }
 
+    public String deleteExemplaire(String epn) throws IOException, CBSException {
+        log.debug(epn + " suppression exemplaire");
+        cbs.search("che epn " + epn);
+        if(cbs.getNbNotices() == 1){
+            String notice = cbs.getClientCBS().mod("1",String.valueOf(cbs.getLotEncours()));
+            String numExemplaire = "E" + Utilitaires.getNumExFromExemp(Utilitaires.getExempFromNotice(notice, epn));
+            return cbs.supExemplaire(numExemplaire);
+        } else {
+            log.warn(epn + " " + Constant.WARN_NOTICE_EPN_INEXISTANT);
+            throw new CBSException(Level.WARN,Constant.WARN_NOTICE_EPN_INEXISTANT);
+        }
+    }
 
     /**
      * Deconnexion du client CBS (sudoc)

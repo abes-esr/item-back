@@ -2,10 +2,7 @@ package fr.abes.item.batch.traitement;
 
 import fr.abes.item.batch.LogTime;
 import fr.abes.item.batch.mail.IMailer;
-import fr.abes.item.batch.traitement.model.LigneFichierDto;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoExemp;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
+import fr.abes.item.batch.traitement.model.*;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
@@ -49,7 +46,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
     public LireLigneFichierTasklet(StrategyFactory factory, String mailAdmin) {
         this.factory = factory;
         this.mailAdmin = mailAdmin;
-        lignesFichier = new ArrayList<>();
+        this.lignesFichier = new ArrayList<>();
     }
 
     @Override
@@ -60,31 +57,26 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
                 .getExecutionContext();
         this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
         this.demandeId = (Integer) executionContext.get("demandeId");
-        demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
+        this.demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
         this.demande = demandeService.findById(demandeId);
-        ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
+        this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
         this.email = demande.getUtilisateur().getEmail() + ";" + mailAdmin;
-        mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
+        this.mailer = factory.getStrategy(IMailer.class, demande.getTypeDemande());
         this.dateDebut = stepExecution.getJobExecution().getCreateTime();
     }
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception{
-        log.warn(Constant.ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET);
+        log.info(Constant.ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET);
         try {
             for (LigneFichier localLigne : ligneFichierService.getLigneFichierbyDemande(demande)) {
                 if (localLigne.getTraitee().equals(0)) {
-                    switch (demande.getTypeDemande()){
-                        case EXEMP:
-                            this.lignesFichier.add(new LigneFichierDtoExemp((LigneFichierExemp) localLigne));
-                            break;
-                        case MODIF:
-                            this.lignesFichier.add(new LigneFichierDtoModif((LigneFichierModif) localLigne));
-                            break;
-                        case RECOUV:
-                            this.lignesFichier.add(new LigneFichierDtoRecouv((LigneFichierRecouv) localLigne));
-                            break;
-                        default:
+                    switch (demande.getTypeDemande()) {
+                        case EXEMP -> this.lignesFichier.add(new LigneFichierDtoExemp((LigneFichierExemp) localLigne));
+                        case MODIF -> this.lignesFichier.add(new LigneFichierDtoModif((LigneFichierModif) localLigne));
+                        case RECOUV -> this.lignesFichier.add(new LigneFichierDtoRecouv((LigneFichierRecouv) localLigne));
+                        case SUPP -> this.lignesFichier.add(new LigneFichierDtoSupp((LigneFichierSupp) localLigne));
+                        default -> {}
                     }
                 }
             }
@@ -103,6 +95,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
                     this.demande,
                     this.dateDebut);
             mailer.mailAlertAdmin(this.mailAdmin, demande);
+            //todo Voir si le changement d'etat est vraiment nescessaire (on peut pas modifier l'etat vu que c'est dans la bdd justement)
             demandeService.changeState(demande, Constant.ETATDEM_ERREUR);
             stepContribution.setExitStatus(ExitStatus.FAILED);
 

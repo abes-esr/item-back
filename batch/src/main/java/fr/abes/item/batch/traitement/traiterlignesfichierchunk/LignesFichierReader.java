@@ -1,7 +1,7 @@
 package fr.abes.item.batch.traitement.traiterlignesfichierchunk;
 
-import fr.abes.item.batch.traitement.ProxyRetry;
 import fr.abes.item.batch.traitement.model.LigneFichierDto;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -13,15 +13,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
+@NoArgsConstructor
 public class LignesFichierReader implements ItemReader<LigneFichierDto>, StepExecutionListener {
 
     private List<LigneFichierDto> lignesFichier;
     AtomicInteger i = new AtomicInteger();
-    private final ProxyRetry proxyRetry;
-
-    public LignesFichierReader(ProxyRetry proxyRetry) {
-        this.proxyRetry = proxyRetry;
-    }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {

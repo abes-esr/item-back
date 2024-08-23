@@ -40,7 +40,7 @@ public class DeleteStatusDemandesExempTasklet implements Tasklet, StepExecutionL
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.EXEMP);
             this.demandes = (List<DemandeExemp>) service.getIdNextDemandeToPlaceInDeletedStatus();
             if (this.demandes == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }

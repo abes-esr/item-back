@@ -20,6 +20,7 @@ public class DtoBuilder {
         dtoList.add(DemandeExempWebDto.class);
         dtoList.add(DemandeModifWebDto.class);
         dtoList.add(DemandeRecouvWebDto.class);
+        dtoList.add(DemandeSuppWebDto.class);
     }
 
     public DemandeWebDto buildDemandeDto(Demande demande, TYPE_DEMANDE type) {
@@ -27,6 +28,7 @@ public class DtoBuilder {
             case EXEMP -> new DemandeExempWebDto((DemandeExemp) demande);
             case MODIF -> new DemandeModifWebDto((DemandeModif) demande);
             case RECOUV -> new DemandeRecouvWebDto((DemandeRecouv) demande);
+            case SUPP -> new DemandeSuppWebDto((DemandeSupp) demande);
         };
     }
 
