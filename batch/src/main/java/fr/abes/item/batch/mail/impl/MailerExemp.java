@@ -18,12 +18,11 @@ import java.time.LocalDateTime;
 @Service
 @Strategy(type = IMailer.class, typeDemande = TYPE_DEMANDE.EXEMP)
 public class MailerExemp extends Mailer implements IMailer {
-    private final Environment env;
     private final LigneFichierExempService service;
 
 
     public MailerExemp(Environment env, LigneFichierExempService service) {
-        this.env = env;
+        super(env);
         this.service = service;
     }
 
@@ -35,7 +34,7 @@ public class MailerExemp extends Mailer implements IMailer {
     @Override
     public void mailDebutTraitement(String mailDestinataire, Demande demande){
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_START + ((DemandeExemp) demande).getTypeExemp().getLibelle() + " N°" + demande.getId() + Constant.DEMANDE_MAIL_DEBUT + " - ILN " + demande.getIln()
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_START + ((DemandeExemp) demande).getTypeExemp().getLibelle() + " N°" + demande.getId() + Constant.DEMANDE_MAIL_DEBUT + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution()
                 , "Bonjour, <br/>Votre exemplarisation - " + demandeExemp.getTypeExemp().getLibelle() + " N° " + demande.getId() + " - est en cours de traitement.<br/>"
                 + "Pour toute information complémentaire, merci de bien vouloir déposer une demande sur le guichet d'assistance : <a href='https://stp.abes.fr/node/3?origine=sudocpro' target='_blank'>https://stp.abes.fr/</a><br/>"
                 + "<br/>Cordialement,<br/>L'équipe ITEM.");
@@ -48,7 +47,7 @@ public class MailerExemp extends Mailer implements IMailer {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         int nbExempCree = service.getNbLigneFichierSuccessByDemande(demandeExemp);
         int nbRechercheTotal = service.getNbLigneFichierTotalByDemande(demandeExemp);
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_END + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + " - ILN " + demande.getIln(),
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_END + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution(),
                 "Bonjour,<br/>Votre exemplarisation - " + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + " - est terminée." + Constant.HTML_BALISE_BR +
                         "Bilan :" + Constant.HTML_BALISE_BR +
                         "Exemplarisation démarrée le : " + Constant.formatDate.format(dateDebut) + Constant.HTML_BALISE_BR +
@@ -76,7 +75,7 @@ public class MailerExemp extends Mailer implements IMailer {
     @Override
     public void mailEchecTraitement(String mailDestinataire, Demande demande, LocalDateTime dateDebut){
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_START + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + "-" + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln(),
+        String requestJson = mailToJSON(mailDestinataire, Constant.DEMANDE_EXEMPLARISATION_START + demandeExemp.getTypeExemp().getLibelle() + " N°" + demandeExemp.getId() + "-" + Constant.DEMANDE_MAIL_ECHEC + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution(),
                 "Bonjour,<br/><br/>" +
                      "votre exemplarisation - " + demandeExemp.getTypeExemp().getLibelle() +" N°" + demandeExemp.getId() + " lancée le " + dateDebut + "n'a pas pu être traitée.<br/><br/>" +
                      "Il convient de ne pas relancer l’exemplarisation. Le traitement reprendra à l’endroit où l’erreur s’est produite : c’est-à-dire que le programme se relancera automatiquement dès que le dysfonctionnement sera résolu, sans intervention manuelle de votre part." +
@@ -88,7 +87,7 @@ public class MailerExemp extends Mailer implements IMailer {
 
     @Override
     public void mailAlertAdmin(String mailDestinataire, Demande demande) {
-        String requestJson = mailToJSON(mailDestinataire+";"+mailAdmin, "Erreur dans Item / Exemplarisation" + " - ILN " + demande.getIln() + " / " + ((env.getActiveProfiles().length>0)?env.getActiveProfiles()[0]:"Local"), "Une erreur vient de se produire sur Item sur la demande" + demande.getId());
+        String requestJson = mailToJSON(mailDestinataire+";"+mailAdmin, "Erreur dans Item / Exemplarisation" + " - ILN " + demande.getIln() + " / " + getEnvironnementExecution(), "Une erreur vient de se produire sur Item sur la demande" + demande.getId());
         sendMail(requestJson);
     }
 }
