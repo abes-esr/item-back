@@ -89,12 +89,13 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
+        //todo
         return null;
     }
 
     @Override
     public void deleteById(Integer id) {
-
+        //todo
     }
 
     @Override
@@ -208,6 +209,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande previousState(Demande demande) throws DemandeCheckingException, IOException {
+        //todo
         return null;
     }
 
@@ -278,6 +280,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
+        //todo
         return null;
     }
 
@@ -351,21 +354,25 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws
             CBSException, ZoneException, IOException {
+        //todo
         return new String[0];
     }
 
     @Override
     public List<? extends Demande> getIdNextDemandeToArchive() {
+        //todo
         return null;
     }
 
     @Override
     public List<? extends Demande> getIdNextDemandeToPlaceInDeletedStatus() {
+        //todo
         return null;
     }
 
     @Override
     public List<? extends Demande> getIdNextDemandeToDelete() {
+        //todo
         return null;
     }
 
