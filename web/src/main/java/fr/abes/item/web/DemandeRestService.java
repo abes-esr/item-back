@@ -233,7 +233,7 @@ public class DemandeRestService {
             if (e.getMessage().equals("Code d'accès non reconnu"))
                 throw new CBSException(Level.ERROR, LOGIN_MANAGER_INCONNU);
         } catch (IOException e) {
-            throw new NullPointerException(Constant.FILE_END);
+            throw new CBSException(Level.ERROR, Constant.FILE_END);
         }
         return new String[]{};
     }
