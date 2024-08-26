@@ -8,14 +8,16 @@ import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.EtatDemande;
+import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
-import fr.abes.item.core.repository.item.ILigneFichierSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +34,8 @@ import java.util.*;
 @Service
 @Strategy(type = IDemandeService.class, typeDemande = {TYPE_DEMANDE.SUPP})
 public class DemandeSuppService extends DemandeService implements IDemandeService {
-    private static final Integer nbIdMaxPerRequest = 300;
-
     private final IDemandeSuppDao demandeSuppDao;
-
     private final ILigneFichierService ligneFichierService;
-
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
@@ -83,19 +81,22 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         DemandeSupp demandeSupp = new DemandeSupp(rcr, calendar.getTime(), calendar.getTime(), null, null, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), utilisateurService.findById(userNum));
         demandeSupp.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeSupp);
-        DemandeSupp demToReturn = (DemandeSupp) save(demandeSupp);
-        return demToReturn;
+        return save(demandeSupp);
     }
 
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
-        //todo
-        return null;
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        ligneFichierService.deleteByDemande(demandeSupp);
+        return changeState(demandeSupp, Constant.ETATDEM_ARCHIVEE);
     }
 
     @Override
     public void deleteById(Integer id) {
-        //todo
+        //suppression des fichiers et du répertoire
+        storageService.changePath(Paths.get(uploadPath + "supp/" +  id));
+        storageService.deleteAll();
+        demandeSuppDao.deleteById(id);
     }
 
     @Override
