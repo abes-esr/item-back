@@ -327,9 +327,8 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public List<DemandeRecouv> getIdNextDemandeToArchive() {
-        List<DemandeRecouv> listeDemandes;
-        listeDemandes = demandeRecouvDao.getNextDemandeToArchive();
+    public List<DemandeRecouv> getDemandesToArchive() {
+        List<DemandeRecouv> listeDemandes = demandeRecouvDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -340,9 +339,8 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeRecouv> getIdNextDemandeToPlaceInDeletedStatus() {
-        List<DemandeRecouv> listeDemandes;
-        listeDemandes = demandeRecouvDao.getNextDemandeToPlaceInDeletedStatus();
+    public List<DemandeRecouv> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeRecouv> listeDemandes = demandeRecouvDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -353,9 +351,8 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeRecouv> getIdNextDemandeToDelete() {
-        List<DemandeRecouv> listeDemandes;
-        listeDemandes = demandeRecouvDao.getNextDemandeToDelete();
+    public List<DemandeRecouv> getDemandesToDelete() {
+        List<DemandeRecouv> listeDemandes = demandeRecouvDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;

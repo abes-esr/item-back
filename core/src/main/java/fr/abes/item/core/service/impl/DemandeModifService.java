@@ -538,9 +538,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToArchive() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToArchive();
+    public List<DemandeModif> getDemandesToArchive() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -552,9 +551,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToPlaceInDeletedStatus() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
+    public List<? extends Demande> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -566,9 +564,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToDelete() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToDelete();
+    public List<DemandeModif> getDemandesToDelete() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
