@@ -438,7 +438,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public DemandeExemp getIdNextDemandeToProceed(int minHour, int maxHour) {
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
         List<DemandeExemp> listeDemandes;
@@ -458,9 +458,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeExemp> getIdNextDemandeToArchive() {
-        List<DemandeExemp> listeDemandes;
-        listeDemandes = demandeExempDao.getNextDemandeToArchive();
+    public List<DemandeExemp> getDemandesToArchive() {
+        List<DemandeExemp> listeDemandes = demandeExempDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -472,9 +471,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeExemp> getIdNextDemandeToPlaceInDeletedStatus() {
-        List<DemandeExemp> listeDemandes;
-        listeDemandes = demandeExempDao.getNextDemandeToPlaceInDeletedStatus();
+    public List<DemandeExemp> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeExemp> listeDemandes = demandeExempDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -486,9 +484,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeExemp> getIdNextDemandeToDelete() {
-        List<DemandeExemp> listeDemandes;
-        listeDemandes = demandeExempDao.getNextDemandeToDelete();
+    public List<DemandeExemp> getDemandesToDelete() {
+        List<DemandeExemp> listeDemandes = demandeExempDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;

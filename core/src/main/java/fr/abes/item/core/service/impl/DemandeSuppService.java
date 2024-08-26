@@ -360,20 +360,26 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public List<? extends Demande> getIdNextDemandeToArchive() {
-        //todo
+    public List<? extends Demande> getDemandesToArchive() {
+        List<DemandeSupp> listeDemandes = demandeSuppDao.getNextDemandeToArchive();
+        if (!listeDemandes.isEmpty())
+            return listeDemandes;
         return null;
     }
 
     @Override
-    public List<? extends Demande> getIdNextDemandeToPlaceInDeletedStatus() {
-        //todo
+    public List<? extends Demande> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeSupp> listeDemandes = demandeSuppDao.getNextDemandeToPlaceInDeletedStatus();
+        if (!listeDemandes.isEmpty())
+            return listeDemandes;
         return null;
     }
 
     @Override
-    public List<? extends Demande> getIdNextDemandeToDelete() {
-        //todo
+    public List<? extends Demande> getDemandesToDelete() {
+        List<DemandeSupp> listeDemandes = demandeSuppDao.getNextDemandeToDelete();
+        if (!listeDemandes.isEmpty())
+            return listeDemandes;
         return null;
     }
 
@@ -389,6 +395,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             demandeSupp.setTypeSuppression(typeSuppression);
             return this.save(demandeSupp);
         }
-        return demandeSupp;
+        return null;
     }
 }
