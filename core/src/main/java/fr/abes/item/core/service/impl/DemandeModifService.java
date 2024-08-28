@@ -119,7 +119,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 //Etat après procédure Oracle, traitement du fichier enrichi
                 //appel méthode d'alimentation de la base avec les lignes du fichier
                 FichierEnrichiModif fichier = (FichierEnrichiModif) FichierFactory.getFichier(demandeModif.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
-
                 ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demandeModif);
 
                 String tagSubTab = fichier.getTagSubtag();
