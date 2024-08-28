@@ -2,6 +2,7 @@ package fr.abes.item.web;
 
 import fr.abes.item.core.service.StatusService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,7 @@ public class InformationApplicationService {
         return map;
     }
 
+    @SneakyThrows
     @Operation(summary = "Connaitre : Statut base xml, Statut base item, Statut CBS")
     @GetMapping(value = "/applicationStatutServices")
     public Map<String, Boolean> getStatutServices() {
