@@ -232,10 +232,12 @@ public class DemandeRestService {
             //adaptation du message en cas de login manager manquant
             if (e.getMessage().equals("Code d'accès non reconnu"))
                 throw new CBSException(Level.ERROR, LOGIN_MANAGER_INCONNU);
+            else
+                throw e;
         } catch (IOException e) {
+            log.error(e.getMessage());
             throw new CBSException(Level.ERROR, Constant.FILE_END);
         }
-        return new String[]{};
     }
 
     /**

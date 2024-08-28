@@ -384,7 +384,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
         return null;
     }
 

@@ -8,6 +8,12 @@ import java.time.format.DateTimeFormatter;
 public class Constant implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
+	//Type exemplarisation Monographie électronique
+	public static final int TYPEEXEMP_MONOELEC = 1;
+	//type exemplarisation Périodiques électroniques
+	public static final int TYPEEXEMP_PERIO = 2;
+	//type exemplarisation Autres ressoures (Monographies Imprimées)
+	public static final int TYPEEXEMP_AUTRE = 3;
 
 	//Etat initial de la demandeModif, attend un fichierInitial
 	public static final int ETATDEM_PREPARATION = 1;

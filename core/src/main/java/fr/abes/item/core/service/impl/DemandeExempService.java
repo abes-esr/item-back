@@ -26,6 +26,7 @@ import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -388,7 +389,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
             //Si l'utilisateur n'a pas autorisé la création d'exemplaires multiples sur les notices de cette demande associée à ce RCR en cas d'exemplaires déjà présents
 
         } catch (QueryToSudocException e) {
-            throw new IOException(e);
+            throw new CBSException(Level.ERROR, e.getMessage());
         } finally {
             traitementService.disconnect();
         }
@@ -401,7 +402,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      */
     public String launchQueryToSudoc(DemandeExemp demande, String valeurs) throws CBSException, QueryToSudocException, IOException {
         String[] tabvaleurs = valeurs.split(";");
-        String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), tabvaleurs);
+        String query = getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getNumTypeExemp(), tabvaleurs);
 
         if (!query.isEmpty()) {
             try {
@@ -698,9 +699,9 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return requête che prête à être lancée vers le CBS
      */
     @Override
-    public String getQueryToSudoc(String codeIndex, String typeExemp, String[] valeur) throws QueryToSudocException {
+    public String getQueryToSudoc(String codeIndex, Integer typeExemp, String[] valeur) throws QueryToSudocException {
         switch (typeExemp) {
-            case "Monographies électroniques":
+            case Constant.TYPEEXEMP_MONOELEC:
                 switch (codeIndex) {
                     case "ISBN":
                         return "tno t; tdo o; che isb " + valeur[0];
@@ -709,7 +710,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
                     case "SOU":
                         return "tno t; tdo o; che sou " + valeur[0];
                 }
-            case "Périodiques électroniques":
+            case Constant.TYPEEXEMP_PERIO:
                 switch (codeIndex) {
                     case "ISSN":
                         return "tno t; tdo t; che isn " + valeur[0];
@@ -718,7 +719,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
                     case "SOU":
                         return "tno t; tdo t; che sou " + valeur[0];
                 }
-            case "Autres ressources":
+            case Constant.TYPEEXEMP_AUTRE:
                 switch (codeIndex) {
                     case "ISBN":
                         return "tno t; tdo b; che isb " + valeur[0];

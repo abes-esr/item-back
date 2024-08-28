@@ -59,5 +59,5 @@ public interface IDemandeService {
     List<? extends Demande> getDemandesToPlaceInDeletedStatus();
     List<? extends Demande> getDemandesToDelete();
 
-    String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException;
+    String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException;
 }

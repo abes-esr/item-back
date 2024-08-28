@@ -297,7 +297,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
      * @return requête che prête à être lancée vers le CBS
      */
     @Override
-    public String getQueryToSudoc(String codeIndex, String type, String[] valeur) throws QueryToSudocException {
+    public String getQueryToSudoc(String codeIndex, Integer type, String[] valeur) throws QueryToSudocException {
         return switch (codeIndex) {
             case "ISBN" -> "che isb " + valeur[0];
             case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];
