@@ -233,8 +233,8 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
              BufferedReader bufLecteur = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
 
             String ligne = bufLecteur.readLine();
-
-            return ligne.split(";")[3];
+            //on renvoie la 4è colonne de l'en tête et on supprime les espaces éventuels entre la zone et la sous zone
+            return ligne.split(";")[3].replace(" ", "");
         }
     }
 
