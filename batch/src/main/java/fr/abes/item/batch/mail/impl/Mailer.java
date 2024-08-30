@@ -12,6 +12,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -25,12 +26,17 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class Mailer {
+    private final Environment env;
     @Value("${mail.ws.url}")
     protected String url;
 
 
     @Value("${mail.admin}")
     protected String mailAdmin;
+
+    public Mailer(Environment env) {
+        this.env = env;
+    }
 
 
     public void sendMail(String requestJson) {
@@ -92,5 +98,15 @@ public class Mailer {
             log.error(Constant.ERROR_CONVERSION_MAIL_TO_JSON + e);
         }
         return json;
+    }
+
+    protected String getEnvironnementExecution() {
+        if (env.getActiveProfiles().length>0)
+            if (!"prod".equalsIgnoreCase(env.getActiveProfiles()[0])) {
+                return env.getActiveProfiles()[0];
+            }
+            else
+                return "";
+        return "Local";
     }
 }

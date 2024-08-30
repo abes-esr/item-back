@@ -8,6 +8,12 @@ import java.time.format.DateTimeFormatter;
 public class Constant implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
+	//Type exemplarisation Monographie électronique
+	public static final int TYPEEXEMP_MONOELEC = 1;
+	//type exemplarisation Périodiques électroniques
+	public static final int TYPEEXEMP_PERIO = 2;
+	//type exemplarisation Autres ressoures (Monographies Imprimées)
+	public static final int TYPEEXEMP_AUTRE = 3;
 
 	//Etat initial de la demandeModif, attend un fichierInitial
 	public static final int ETATDEM_PREPARATION = 1;
@@ -37,6 +43,7 @@ public class Constant implements Serializable {
 	public static final String BLOCKED = "blocked";
 	public static final String EXEMPLAIRE_CREE = "exemplaire créé";
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
+	public static final String EXEMPLAIRE_SUPPRIME = "exemplaire supprimé";
 	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
 	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
@@ -115,6 +122,8 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_SEARCH_INDEX_NOT_COMPLIANT = "Impossible de générer la requête, l'index de recherche n'est pas conforme";
 	public static final String ERR_FILE_SEARCH_INDEX_NOT_RECOGNIZED_FOR_DEMANDE = "Index non reconnu pour ce type de demande";
 	public static final String ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT = "Le codeIndex de recherche n'est pas valide";
+	public static final String WARN_NOTICE_EPN_INEXISTANT = "Exemplaire inexistant";
+
 
 	/**Specific errors on storage file*/
 	public static final String ERR_FILE_STORAGE_EMPTY_FILE = "Echec de stockage du fichier car fichier vide : ";
@@ -144,7 +153,8 @@ public class Constant implements Serializable {
 	/**Specific messages on mails sents and stats*/
 	public static final String STAT_NBDEMANDESTRAITEES_FILENAME = "demandesTraiteesRCR";
 	public static final String STAT_NBEXEMPLAIRESTRAITES_FILENAME = "exemplairesTraitesTraitementRCR";
-	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaire ";
+	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires ";
+	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires ";
 	public static final String DEMANDE_EXEMPLARISATION_START = "Votre exemplarisation - ";
 	public static final String DEMANDE_EXEMPLARISATION_END = "Résultat de votre exemplarisation - ";
 	public static final String DEMANDE_RECOUVREMENT_START = "Votre taux de recouvrement - N°";
@@ -184,9 +194,7 @@ public class Constant implements Serializable {
 	public static final String ERROR_GENERIC_TECHNICAL_PROBLEMS = "Nous rencontrons actuellement des problèmes techniques.";
 	public static final String ERROR_ACCOUNT_BLOCKED = "Le compte est bloqué. Veuillez patienter 15 minutes.";
 	public static final String ERROR_ACCESS_RESSOURCE_NOT_ALLOWED = "Vous ne pouvez pas accéder à cette ressource.";
-	public static final String JOB_TRAITER_LIGNE_FICHIER_START_MODIF = "debut du job jobTraiterLigneFichier pour demandes de modification...";
-	public static final String JOB_TRAITER_LIGNE_FICHIER_START_EXEMP = "debut du job jobTraiterLigneFichier pour demandes d'exemplarisation...";
-	public static final String JOB_TRAITER_LIGNE_FICHIER_START_RECOU = "debut du job jobTraiterLigneFichier pour demandes de recouvrement...";
+	public static final String JOB_TRAITER_LIGNE_FICHIER_START = "debut du job jobTraiterLigneFichier pour demandes de ";
 	public static final String JOB_EXPORT_STATISTIQUES_START = "debut du job jobExportStatistiques...";
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MILLISECONDS = "temps total execution (ms) = ";
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MINUTES = "temps total execution (minutes) = ";
@@ -201,18 +209,12 @@ public class Constant implements Serializable {
 	public static final String ERROR_WHILE_GENERATING_THE_FILE_OR_WHILE_SENDING_MAIL = "erreur lors de la génération du fichier et / ou envoi de mail = ";
 	public static final String ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE = "impossible de créer le fichier resultat dans execute de tasklet : ";
 	public static final String NO_DEMANDE_TO_PROCESS = "aucune demande à traiter.";
-	public static final String ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEEXEMPTASKLET = "erreur lors du passerEnCours de GetNextDemandeExempTasklets = ";
-	public static final String ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDEMODIFTASKLET = "erreur lors du passerEnCours de GetNextDemandeModifTasklets = ";
-	public static final String ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDERECOUVTASKLET = "erreur lors du passerEnCours de GetNextDemandeRecouvTasklets = ";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET = "entrée dans execute de GetNextDemandeRecouvTasklets...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEMODIFTASKLET = "entrée dans execute de GetNextDemandeModifTasklets...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTASKLET = "entrée dans execute de GetNextDemandeExempTasklets...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTOARCHIVETASKLET = "entrée dans execute de ChangeInArchivedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet...";
-	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDEEXEMPTODELETEDSTATUSTASKLET = "entrée dans execute de ChangeInDeletedStatusAllDemandesExempFinishedForMoreThanThreeMonthsTasklet...";
+	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDETASKLET = "entrée dans execute de GetNextDemandeTasklet...";
+	public static final String ENTER_EXECUTE_FROM_GETNEXTDEMANDETODELETESTATUSTASKLET = "entrée dans execute de DeleteStatusDemandesTasklet";
 	public static final String ENTER_EXECUTE_FROM_LIRELIGNEFICHIERTASKLET = "entrée dans execute de LireLigneFichierTasklet...";
 	public static final String ERROR_FROM_SUDOC_REQUEST_OR_METHOD_SAVEXEMPLAIRE = "erreur lors de la requête au Sudoc ou du saveExemplaire";
 	public static final String ERROR_FROM_RECUP_NOTICETRAITEE =	"erreur lors de la recup de la noticetraitee : ";
-	public static final String ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE = "erreur dans traitement ligne fichier lors de la maj de l'état de la demande : ";
+	public static final String ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE = "erreur lors du passage de la demande en etat TERMINEE : ";
 	public static final String ERROR_CAUGHT = "error caught: ";
 	public static final String ERROR_MAJ_LIGNE_FICHIER_WRITE = "erreur lors de majLigneFichier dans write : ";
 	public static final String LIGNE_TRAITEE = "ligne traitee pour ";

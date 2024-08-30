@@ -90,6 +90,8 @@ COPY ./docker/batch/itemBatchTraiterLigneFichierModif.sh /scripts/itemBatchTrait
 RUN chmod +x /scripts/itemBatchTraiterLigneFichierModif.sh
 COPY ./docker/batch/itemBatchTraiterLigneFichierRecouv.sh /scripts/itemBatchTraiterLigneFichierRecouv.sh
 RUN chmod +x /scripts/itemBatchTraiterLigneFichierRecouv.sh
+COPY ./docker/batch/itemBatchTraiterLigneFichierSupp.sh /scripts/itemBatchTraiterLigneFichierSupp.sh
+RUN chmod +x /scripts/itemBatchTraiterLigneFichierSupp.sh
 
 COPY --from=build-image /build/batch/target/*.jar /scripts/item-batch.jar
 RUN chmod +x /scripts/item-batch.jar

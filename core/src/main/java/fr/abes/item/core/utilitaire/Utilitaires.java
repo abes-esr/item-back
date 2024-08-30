@@ -7,6 +7,7 @@ import com.google.common.collect.Multimap;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.exception.FileCheckingException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor
 public class Utilitaires {
 
-    public static Multimap<String, String> parseJson(String input) throws IOException {
+    public static Multimap<String, String> parseJson(String input, boolean revert) throws IOException {
         //la correspondance pouvant retourner plusieurs fois un ppn, on crée une multimap pour récupérer le résultat
         Multimap<String, String> resMap = ArrayListMultimap.create();
         //parse de l'input json
@@ -41,10 +42,16 @@ public class Utilitaires {
                     //si on a plusieurs valeurs dans le json elles sont sous forme de tableau
                     if (ppnepn.getClass().toString().contains("ArrayList")) {
                         record = ppnepn.next();
-                        resMap.put(record.path("ppn").asText(), record.path("epn").asText());
+                        if (revert)
+                            resMap.put(record.path("epn").asText(), record.path("ppn").asText());
+                        else
+                            resMap.put(record.path("ppn").asText(), record.path("epn").asText());
                     } else {
                         //cas avec une seule valeur, on injecte l'unique valeur dans la map et on sort
-                        resMap.put(liste.path("ppn").asText(), liste.path("epn").asText());
+                        if (revert)
+                            resMap.put(liste.path("epn").asText(), liste.path("ppn").asText());
+                        else
+                            resMap.put(liste.path("ppn").asText(), liste.path("epn").asText());
                         return resMap;
                     }
                 }
@@ -352,5 +359,14 @@ public class Utilitaires {
                 .replace("Ç", "C")
                 .replace("Ñ", "N")
                 .replace("Ø","oe");
+    }
+
+    public static String getLabelTypeDemande(TYPE_DEMANDE typeDemande) {
+        return switch (typeDemande){
+            case EXEMP -> "exemplarisation";
+            case RECOUV -> "recouvrement";
+            case MODIF -> "modification";
+            case SUPP -> "suppression";
+        };
     }
 }

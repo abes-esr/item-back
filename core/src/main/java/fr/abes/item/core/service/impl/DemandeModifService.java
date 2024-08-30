@@ -119,7 +119,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 //Etat après procédure Oracle, traitement du fichier enrichi
                 //appel méthode d'alimentation de la base avec les lignes du fichier
                 FichierEnrichiModif fichier = (FichierEnrichiModif) FichierFactory.getFichier(demandeModif.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
-
                 ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demandeModif);
 
                 String tagSubTab = fichier.getTagSubtag();
@@ -267,7 +266,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         List<String> listppn = fichierInit.cutFile();
         for (String listeppn : listppn) {
             String resultProcStockee = procStockee.callFunction(listeppn, rcr);
-            fichierPrepare.alimenter(resultProcStockee, listeppn, rcr);
+            fichierPrepare.alimenterEpn(resultProcStockee, listeppn, rcr);
         }
     }
 
@@ -418,7 +417,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      */
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande)) || (etatDemande == Constant.ETATDEM_ERREUR)) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeModif) demande, etat);
@@ -472,7 +471,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 demandeModif.setTraitement(null); //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
                 demandeModif.setZone(null); //On repasse ZONE à null : obtenu ETAPE 5
                 demandeModif.setSousZone(null); //On repasse SOUS_ZONE à null : obtenu ETAPE 5
-                demandeModif.setEtatDemande(new EtatDemande(1)); //On repasse DEM_ETAT_ID à 1
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
                 //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
                 /*Suppression des lignes de la table LIGNE_FICHIER_MODIF crées à ETAPE 5*/
                 ligneFichierService.deleteByDemande(demandeModif);
@@ -481,7 +480,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
                 return demandeModif;
             case 3:
-                demandeModif.setEtatDemande(new EtatDemande(3));
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 demandeModif.setTraitement(null);
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
@@ -489,7 +488,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 save(demandeModif);
                 return demandeModif;
             case 4:
-                demandeModif.setEtatDemande(new EtatDemande(3));
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 //On ne modifie pas le traitement obtenu a etape 3
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
@@ -513,7 +512,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         DemandeModif demandeModif = (DemandeModif) demande;
         String zone = demandeModif.getZone();
         if (demandeModif.getSousZone() != null) zone += demandeModif.getSousZone();
-        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le" + dateDebut;
+        return "PPN;RCR;EPN;" + zone + ";RESULTAT;Demande lancée le " + dateDebut;
     }
 
 
@@ -538,9 +537,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToArchive() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToArchive();
+    public List<DemandeModif> getDemandesToArchive() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -552,9 +550,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToPlaceInDeletedStatus() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
+    public List<? extends Demande> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -566,16 +563,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToDelete() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToDelete();
+    public List<DemandeModif> getDemandesToDelete() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
     }
 
     @Override
-    public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
         //not implemented
         return null;
     }

@@ -3,9 +3,9 @@ package fr.abes.item.batch.traitement;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
-import fr.abes.item.core.entities.item.DemandeRecouv;
-import fr.abes.item.core.exception.DemandeCheckingException;
+import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -22,59 +22,57 @@ import org.springframework.dao.DataAccessException;
 import java.sql.SQLException;
 
 @Slf4j
-public class GetNextDemandeRecouvTasklet  implements Tasklet, StepExecutionListener {
+public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     private final StrategyFactory strategyFactory;
-    private DemandeRecouv demande;
+    private Demande demande;
+    private final TYPE_DEMANDE typeDemande;
     private final int minHour;
     private final int maxHour;
 
-    public GetNextDemandeRecouvTasklet(StrategyFactory factory, int minHour, int maxHour) {
-        this.strategyFactory = factory;
+    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, TYPE_DEMANDE typeDemande) {
+        this.strategyFactory = strategyFactory;
         this.minHour = minHour;
         this.maxHour = maxHour;
+        this.typeDemande = typeDemande;
     }
 
     @Override
-    public void beforeStep(@NonNull StepExecution stepExecution) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START_RECOU);
-    }
-
-    @Override
-    public ExitStatus afterStep(StepExecution stepExecution) {
-        if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-            stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demande.getId());
-            stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.demande.getTypeDemande().toString());
-        }
-        return stepExecution.getExitStatus();
-    }
-
-    @Override
-    public RepeatStatus execute(@NonNull StepContribution stepContribution, @NonNull ChunkContext chunkContext) throws Exception {
-        log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDERECOUVTASKLET);
+    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+        log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDETASKLET);
         try {
-            IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.RECOUV);
-            this.demande = (DemandeRecouv) service.getIdNextDemandeToProceed(this.minHour, this.maxHour);
+            IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, this.typeDemande);
+            this.demande = service.getIdNextDemandeToProceed(minHour, maxHour);
             if (this.demande == null) {
-                log.warn(Constant.NO_DEMANDE_TO_PROCESS);
+                log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
                 return RepeatStatus.FINISHED;
             }
             service.changeState(this.demande, Constant.ETATDEM_ENCOURS);
-        } catch (DemandeCheckingException e) {
-            log.error(Constant.ERROR_PASSERENCOURS_FROM_GETNEXTDEMANDERECOUVTASKLET
-                    + e);
-            stepContribution.setExitStatus(ExitStatus.FAILED);
-            return RepeatStatus.FINISHED;
         } catch (JDBCConnectionException | ConstraintViolationException j){
             log.error("Erreur hibernate JDBC");
             log.error(j.toString());
         } catch (DataAccessException d){
-            log.error("GetNextDemandeRecouvTasklet : Erreur d'accès à la base de donnée");
+            log.error("GetNextDemandeTasklet : Erreur d'accès à la base de donnée");
             if(d.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
         }
         return RepeatStatus.FINISHED;
+    }
+
+    @Override
+    public void beforeStep(@NonNull StepExecution stepExecution) {
+        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
+    }
+
+
+    @Override
+    public ExitStatus afterStep(StepExecution stepExecution) {
+        if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
+            stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demande.getId());
+            stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.typeDemande);
+        }
+        return stepExecution.getExitStatus();
     }
 }

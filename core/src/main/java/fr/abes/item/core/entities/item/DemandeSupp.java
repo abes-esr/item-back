@@ -18,6 +18,11 @@ public class DemandeSupp extends Demande {
     @Column(name = "TYPE_SUPPRESSION")
     @Enumerated(EnumType.STRING)
     private TYPE_SUPPRESSION typeSuppression;
+
+    public DemandeSupp(Integer refDemande) {
+        super(refDemande);
+    }
+
     @Override
     public TYPE_DEMANDE getTypeDemande() {
         return TYPE_DEMANDE.SUPP;
@@ -27,5 +32,10 @@ public class DemandeSupp extends Demande {
                         String comment, EtatDemande etatDemande, Utilisateur utilisateur) {
         super(rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
         this.typeSuppression = typeSuppression;
+    }
+
+    public DemandeSupp(Integer id, String rcr, Date dateCreation, Date dateModification,
+                       String comment, EtatDemande etatDemande, Utilisateur utilisateur) {
+        super(id, rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
     }
 }

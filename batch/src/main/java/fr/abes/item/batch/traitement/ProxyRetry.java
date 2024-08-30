@@ -5,16 +5,14 @@ import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
-import fr.abes.item.batch.traitement.model.ILigneFichierDtoMapper;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoExemp;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
-import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
+import fr.abes.item.batch.traitement.model.*;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.DemandeExemp;
 import fr.abes.item.core.entities.item.DemandeModif;
 import fr.abes.item.core.entities.item.DemandeRecouv;
+import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.service.TraitementService;
 import fr.abes.item.core.service.impl.DemandeExempService;
@@ -103,7 +101,7 @@ public class ProxyRetry {
             noRetryFor = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void newExemplaire(DemandeExemp demande, LigneFichierDtoExemp ligneFichierDtoExemp) throws CBSException, ZoneException, IOException {
         try {
-            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
             //lancement de la requête de récupération de la notice dans le CBS
             String numEx = demandeExempService.launchQueryToSudoc(demande, ligneFichierDtoExemp.getIndexRecherche());
             ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
@@ -172,14 +170,10 @@ public class ProxyRetry {
         try {
             ligneFichierDtoRecouv.setNbReponses(demandeRecouvService.launchQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
             switch (ligneFichierDtoRecouv.getNbReponses()) {
-                case 0:
-                    ligneFichierDtoRecouv.setListePpn("");
-                    break;
-                case 1:
-                    ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getPpnEncours());
-                    break;
-                default:
-                    ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
+                case 0 -> ligneFichierDtoRecouv.setListePpn("");
+                case 1 -> ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getPpnEncours());
+                default ->
+                        ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
             }
         } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande recouv " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoRecouv.getNumLigneFichier());
@@ -189,5 +183,16 @@ public class ProxyRetry {
             throw ex;
         }
     }
-
+    @Retryable(maxAttempts = 4, retryFor = IOException.class,
+            noRetryFor = {CBSException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
+    public void deleteExemplaire(DemandeSupp demandeSupp, LigneFichierDtoSupp ligneFichierDtoSupp) throws IOException, CBSException {
+        try {
+            traitementService.deleteExemplaire(ligneFichierDtoSupp.getEpn());
+        } catch (IOException e) {
+            log.error("Erreur de communication avec le CBS sur demande de suppression " + demandeSupp.getId() + " / ligne fichier n°" + ligneFichierDtoSupp.getNumLigneFichier() + " / epn : " + ligneFichierDtoSupp.getEpn());
+            this.disconnect();
+            this.authenticate("M"+ demandeSupp.getRcr());
+            throw e;
+        }
+    }
 }
