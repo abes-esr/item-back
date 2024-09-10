@@ -55,9 +55,9 @@ public interface IDemandeService {
 
     String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException;
 
-    List<? extends Demande> getIdNextDemandeToArchive();
-    List<? extends Demande> getIdNextDemandeToPlaceInDeletedStatus();
-    List<? extends Demande> getIdNextDemandeToDelete();
+    List<? extends Demande> getDemandesToArchive();
+    List<? extends Demande> getDemandesToPlaceInDeletedStatus();
+    List<? extends Demande> getDemandesToDelete();
 
-    String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException;
+    String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException;
 }

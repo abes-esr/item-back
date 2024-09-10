@@ -119,7 +119,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
                 //Etat après procédure Oracle, traitement du fichier enrichi
                 //appel méthode d'alimentation de la base avec les lignes du fichier
                 FichierEnrichiModif fichier = (FichierEnrichiModif) FichierFactory.getFichier(demandeModif.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
-
                 ligneFichierService.saveFile(storageService.loadAsResource(fichier.getFilename()).getFile(), demandeModif);
 
                 String tagSubTab = fichier.getTagSubtag();
@@ -538,9 +537,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToArchive() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToArchive();
+    public List<DemandeModif> getDemandesToArchive() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToArchive();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -552,9 +550,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToPlaceInDeletedStatus() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
+    public List<? extends Demande> getDemandesToPlaceInDeletedStatus() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToPlaceInDeletedStatus();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
@@ -566,16 +563,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public List<DemandeModif> getIdNextDemandeToDelete() {
-        List<DemandeModif> listeDemandes;
-        listeDemandes = demandeModifDao.getNextDemandeToDelete();
+    public List<DemandeModif> getDemandesToDelete() {
+        List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
     }
 
     @Override
-    public String getQueryToSudoc(String code, String type, String[] valeurs) throws QueryToSudocException {
+    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
         //not implemented
         return null;
     }

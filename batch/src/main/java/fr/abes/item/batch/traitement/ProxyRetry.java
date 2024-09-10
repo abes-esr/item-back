@@ -101,7 +101,7 @@ public class ProxyRetry {
             noRetryFor = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void newExemplaire(DemandeExemp demande, LigneFichierDtoExemp ligneFichierDtoExemp) throws CBSException, ZoneException, IOException {
         try {
-            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getLibelle(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
             //lancement de la requête de récupération de la notice dans le CBS
             String numEx = demandeExempService.launchQueryToSudoc(demande, ligneFichierDtoExemp.getIndexRecherche());
             ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());

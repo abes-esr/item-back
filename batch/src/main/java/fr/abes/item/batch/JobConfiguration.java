@@ -12,7 +12,7 @@ import fr.abes.item.batch.webstats.ExportStatistiquesTasklet;
 import fr.abes.item.batch.webstats.VerifierParamsTasklet;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
-import fr.abes.item.core.service.FileSystemStorageService;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersIncrementer;
@@ -52,7 +52,6 @@ public class JobConfiguration {
 
     private final ProxyRetry proxyRetry;
 
-    private final FileSystemStorageService storageService;
 
     @Value("${batch.min.hour}")
     int minHour;
@@ -68,10 +67,9 @@ public class JobConfiguration {
     @Value("${batch.nbPpnInFileResult}")
     private Integer nbPpnInFileResult;
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, FileSystemStorageService storageService) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
-        this.storageService = storageService;
     }
 
     @Bean
@@ -95,13 +93,13 @@ public class JobConfiguration {
 
     // ------------- TASKLETS -----------------------
     @Bean
-    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeModifTasklet(strategyFactory, minHour, maxHour); }
+    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.MODIF); }
     @Bean
-    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeExempTasklet(strategyFactory, minHour, maxHour); }
+    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.EXEMP); }
     @Bean
-    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeRecouvTasklet(strategyFactory, minHour, maxHour); }
+    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.RECOUV); }
     @Bean
-    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeSuppTasklet(strategyFactory, minHour, maxHour); }
+    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.SUPP); }
     @Bean
     public Tasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(strategyFactory, mailAdmin); }
     @Bean
@@ -121,44 +119,40 @@ public class JobConfiguration {
 
     //Archivage automatique des demandes
     @Bean
-    Tasklet archiveDemandesExempTakslet(){
-        return new ArchiveDemandesExempTakslet(strategyFactory);
-    }
+    Tasklet archiveDemandesExempTakslet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.EXEMP); }
     @Bean
-    Tasklet archiveDemandesModifTasklet(){
-        return new ArchiveDemandesModifTasklet(strategyFactory);
-    }
+    Tasklet archiveDemandesModifTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.MODIF); }
     @Bean
-    Tasklet archiveDemandesRecouvTasklet(){
-        return new ArchiveDemandesRecouvTasklet(strategyFactory);
-    }
+    Tasklet archiveDemandesRecouvTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.RECOUV); }
+    @Bean
+    Tasklet archiveDemandesSuppTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.SUPP); }
 
     //Passage en statut supprimé automatique des demandes
     @Bean
-    Tasklet deleteStatusDemandesExempTasklet(){
-        return new DeleteStatusDemandesExempTasklet(strategyFactory);
-    }
+    Tasklet deleteStatusDemandesExempTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.EXEMP); }
     @Bean
-    Tasklet deleteStatusDemandesModifTasklet(){
-        return new DeleteStatusDemandesModifTasklet(strategyFactory);
-    }
+    Tasklet deleteStatusDemandesModifTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.MODIF); }
     @Bean
-    Tasklet deleteStatusDemandesRecouvTasklet(){
-        return new DeleteStatusDemandesRecouvTasklet(strategyFactory);
-    }
+    Tasklet deleteStatusDemandesRecouvTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.RECOUV); }
+    @Bean
+    Tasklet deleteStatusDemandesSuppTasklet() { return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.SUPP); }
 
     //Suppression définitive des demandes
     @Bean
     Tasklet deleteDemandesExempTasklet(){
-        return new DeleteDemandesExempTasklet(strategyFactory, storageService, uploadPath);
+        return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.EXEMP);
     }
     @Bean
     Tasklet deleteDemandesModifTasklet(){
-        return new DeleteDemandesModifTasklet(strategyFactory, storageService, uploadPath);
+        return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.MODIF);
     }
     @Bean
     Tasklet deleteDemandesRecouvTasklet(){
-        return new DeleteDemandesRecouvTasklet(strategyFactory, storageService, uploadPath);
+        return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.RECOUV);
+    }
+    @Bean
+    Tasklet deleteDemandesSuppTasklet() {
+        return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.SUPP);
     }
 
     // ---------- STEP --------------------------------------------
@@ -250,6 +244,12 @@ public class JobConfiguration {
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+    @Bean
+    public Step stepArchivageAutomatiqueDemandesSupp(JobRepository jobRepository, @Qualifier("archiveDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("stepArchivageAutomatiqueDemandesSupp", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
 
     //Steps de placement en statut supprimé automatique des demandes
     @Bean
@@ -271,6 +271,13 @@ public class JobConfiguration {
                 .build();
     }
 
+    @Bean
+    public Step stepChangementStatutSupprimeDemandesSupp(JobRepository jobRepository, @Qualifier("deleteStatusDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("stepChangementStatutSupprimeDemandesSupp", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
     //Steps de destruction en base de donnée des demandes
     @Bean
     public Step stepSuppresionDemandesExemp(JobRepository jobRepository, @Qualifier("deleteDemandesExempTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
@@ -287,6 +294,13 @@ public class JobConfiguration {
     @Bean
     public Step stepSuppresionDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesRecouv", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step stepSuppressionDemandesSupp(JobRepository jobRepository, @Qualifier("deleteDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("stepSuppressionDemandesSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
@@ -369,50 +383,26 @@ public class JobConfiguration {
 
     //Job d'archivage automatique de toutes les demandes en statut terminé dont la dernière modification à plus de trois mois
     @Bean
-    public Job jobArchivageDemandes(JobRepository jobRepository, @Qualifier("stepArchivageAutomatiqueDemandesExemp") Step step1, @Qualifier("stepArchivageAutomatiqueDemandesModif") Step step2, @Qualifier("stepArchivageAutomatiqueDemandesRecouv") Step step3) {
-        return new JobBuilder("archiverDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(step1).on(Constant.FAILED).end()
-                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step1).on(Constant.COMPLETED).end()
-                .from(step2).on(Constant.FAILED).end()
-                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step2).on(Constant.COMPLETED).end()
-                .from(step3).on(Constant.FAILED).end()
-                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step3).on(Constant.COMPLETED).end()
-                .build().build();
+    public Job jobArchivageDemandes(JobRepository jobRepository, @Qualifier("stepArchivageAutomatiqueDemandesExemp") Step step1, @Qualifier("stepArchivageAutomatiqueDemandesModif") Step step2, @Qualifier("stepArchivageAutomatiqueDemandesRecouv") Step step3, @Qualifier("stepArchivageAutomatiqueDemandesSupp") Step step4) {
+        return new JobBuilder("archivageDemandes", jobRepository).incrementer(incrementer())
+                .start(step1).next(step2).next(step3).next(step4)
+                .build();
     }
 
     //Job de placement en statut supprimé de toutes les demandes en statut archivé dont ce statut à plus de trois mois
     @Bean
-    public Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, @Qualifier("stepChangementStatutSupprimeDemandesExemp") Step step1, @Qualifier("stepChangementStatutSupprimeDemandesModif") Step step2, @Qualifier("stepChangementStatutSupprimeDemandesRecouv") Step step3) {
-        return new JobBuilder("statutSupprimeDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(step1).on(Constant.FAILED).end()
-                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step1).on(Constant.COMPLETED).end()
-                .from(step2).on(Constant.FAILED).end()
-                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step2).on(Constant.COMPLETED).end()
-                .from(step3).on(Constant.FAILED).end()
-                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step3).on(Constant.COMPLETED).end()
-                .build().build();
+    public Job jobSuppressionMaisConservationEnBaseDemandes(JobRepository jobRepository, @Qualifier("stepChangementStatutSupprimeDemandesExemp") Step step1, @Qualifier("stepChangementStatutSupprimeDemandesModif") Step step2, @Qualifier("stepChangementStatutSupprimeDemandesRecouv") Step step3, @Qualifier("stepChangementStatutSupprimeDemandesSupp") Step step4) {
+        return new JobBuilder("suppressionDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
+                .start(step1).next(step2).next(step3).next(step4)
+                .build();
     }
 
     //Job de suppression définitive en base de donnée de toutes les demandes en statut supprimé, dont ce statut à plus de trois mois
     @Bean
-    public Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, @Qualifier("stepSuppresionDemandesExemp") Step step1, @Qualifier("stepSuppresionDemandesModif") Step step2, @Qualifier("stepSuppresionDemandesRecouv") Step step3) {
-        return new JobBuilder("suppressionDemandesPlusDeTroisMois", jobRepository).incrementer(incrementer())
-                .start(step1).on(Constant.FAILED).end()
-                .from(step1).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step1).on(Constant.COMPLETED).end()
-                .from(step2).on(Constant.FAILED).end()
-                .from(step2).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step2).on(Constant.COMPLETED).end()
-                .from(step3).on(Constant.FAILED).end()
-                .from(step3).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step3).on(Constant.COMPLETED).end()
-                .build().build();
+    public Job jobSuppressionDefinitiveDemandes(JobRepository jobRepository, @Qualifier("stepSuppresionDemandesExemp") Step step1, @Qualifier("stepSuppresionDemandesModif") Step step2, @Qualifier("stepSuppresionDemandesRecouv") Step step3, @Qualifier("stepSuppressionDemandesSupp") Step step4) {
+        return new JobBuilder("suppressionDefinitiveDemandes", jobRepository).incrementer(incrementer())
+                .start(step1).next(step2).next(step3).next(step4)
+                .build();
     }
 
 

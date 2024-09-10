@@ -7,6 +7,7 @@ import com.google.common.collect.Multimap;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.core.constant.Constant;
+import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.exception.FileCheckingException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -358,5 +359,14 @@ public class Utilitaires {
                 .replace("Ç", "C")
                 .replace("Ñ", "N")
                 .replace("Ø","oe");
+    }
+
+    public static String getLabelTypeDemande(TYPE_DEMANDE typeDemande) {
+        return switch (typeDemande){
+            case EXEMP -> "exemplarisation";
+            case RECOUV -> "recouvrement";
+            case MODIF -> "modification";
+            case SUPP -> "suppression";
+        };
     }
 }

@@ -43,13 +43,15 @@ public class StatusService {
      * Service sondant le status de la connexion au CBS
      * @return true si le client CBS repond, false dans le cas contraire
      */
-    public Boolean getCbsConnectionStatus(){
+    public Boolean getCbsConnectionStatus() throws CBSException {
         try {
             cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
             return true;
         } catch (CBSException | IOException e) {
             log.error("serveur " + serveurSudoc + " : " + e.getMessage());
             return false;
+        } finally {
+            cbs.disconnect();
         }
     }
 
