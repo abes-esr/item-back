@@ -16,7 +16,6 @@ public class LigneFichierDtoRecouvMapper implements ILigneFichierDtoMapper {
         lf.setIndexRecherche(lfdRecouv.getIndexRecherche());
         lf.setListePpn(lfdRecouv.getListePpn());
         lf.setNbReponses(lfdRecouv.getNbReponses());
-        lf.setValeurZone(lfdRecouv.getValeurZone());
         lf.setTraitee(lfdRecouv.getTraitee());
         lf.setPosition(lfdRecouv.getPosition());
         lf.setRetourSudoc(lfdRecouv.getRetourSudoc());
