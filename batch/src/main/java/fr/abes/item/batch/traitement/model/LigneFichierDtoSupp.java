@@ -15,7 +15,7 @@ public class LigneFichierDtoSupp extends LigneFichierDto implements ILigneFichie
     private String epn;
 
     public LigneFichierDtoSupp(LigneFichierSupp ligneFichierSupp) {
-        super(ligneFichierSupp.getNumLigneFichier(), ligneFichierSupp.getTraitee(), ligneFichierSupp.getPosition(), ligneFichierSupp.getId(), ligneFichierSupp.getRetourSudoc(), ligneFichierSupp.getValeurZone());
+        super(ligneFichierSupp.getNumLigneFichier(), ligneFichierSupp.getTraitee(), ligneFichierSupp.getPosition(), ligneFichierSupp.getId(), ligneFichierSupp.getRetourSudoc());
         this.ppn = ligneFichierSupp.getPpn();
         this.rcr = ligneFichierSupp.getRcr();
         this.epn = ligneFichierSupp.getEpn();

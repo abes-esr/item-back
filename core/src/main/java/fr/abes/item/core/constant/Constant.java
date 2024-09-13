@@ -90,6 +90,8 @@ public class Constant implements Serializable {
 
     public static final String LIGNE_FICHIER_SERVICE_PATTERN = "^(?<ppn>\\d{1,9}X?);(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?);(?<valeur>.+)?";
 
+	public static final String LIGNE_FICHIER_SERVICE_PATTERN_SANS_VALEUR = "^(?<ppn>\\d{1,9}X?);(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?)?";
+
     /**Specific errors on file format*/
 	public static final String ERR_FILE_NOT_FOUND = "Fichier introuvable.";
 	public static final String ERR_FILE_NOINDEX = "L'en-tête du fichier est non conforme. Il ne contient pas d’index de recherche.";

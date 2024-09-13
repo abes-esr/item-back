@@ -49,12 +49,11 @@ public class LigneFichierSuppService implements ILigneFichierService {
             int position = 0;
 
             while ((line = reader.readLine()) != null){
-                Pattern regexp = Pattern.compile(Constant.LIGNE_FICHIER_SERVICE_PATTERN);
+                Pattern regexp = Pattern.compile(Constant.LIGNE_FICHIER_SERVICE_PATTERN_SANS_VALEUR);
                 Matcher colsFinded = regexp.matcher(line);
                 String ppn = "";
                 String rcr = "";
                 String epn = "";
-                String valeur = "";
                 while (colsFinded.find()) {
                     if (colsFinded.group("ppn") != null)
                         ppn = Utilitaires.addZeros(colsFinded.group("ppn"), Constant.TAILLEMAX);
@@ -62,11 +61,11 @@ public class LigneFichierSuppService implements ILigneFichierService {
                         rcr = Utilitaires.addZeros(colsFinded.group("rcr"), Constant.TAILLEMAX);
                     if (colsFinded.group("epn") != null)
                         epn = Utilitaires.addZeros(colsFinded.group("epn"), Constant.TAILLEMAX);
-                    if (colsFinded.group("valeur") != null)
-                        valeur = colsFinded.group("valeur");
                 }
-                LigneFichierSupp lf = new LigneFichierSupp(ppn, rcr, epn, valeur, position++, 0, "", demandeSupp);
-                dao.save(lf);
+                if (!epn.isEmpty()) {
+                    LigneFichierSupp lf = new LigneFichierSupp(ppn, rcr, epn, position++, 0, "", demandeSupp);
+                    dao.save(lf);
+                }
             }
         } catch (IOException e){
             log.error(e.getMessage());
