@@ -27,7 +27,7 @@ public class LigneFichierRecouv extends LigneFichier implements Serializable, IL
     private DemandeRecouv demandeRecouv;
 
     public LigneFichierRecouv(String indexRecherche, Integer traitee, Integer position, String retourSudoc, DemandeRecouv demandeRecouv) {
-        super("", traitee, position, retourSudoc);
+        super(traitee, position, retourSudoc);
         this.indexRecherche = indexRecherche;
         this.demandeRecouv = demandeRecouv;
     }

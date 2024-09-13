@@ -24,9 +24,9 @@ public class LigneFichierSupp extends LigneFichier implements Serializable, ILig
     private DemandeSupp demandeSupp;
 
     public LigneFichierSupp(String ppn,
-                            String rcr, String epn, String valeurZone, Integer position,
+                            String rcr, String epn, Integer position,
                             Integer traitee, String retourSudoc, DemandeSupp demandeSupp) {
-        super(valeurZone, traitee, position, retourSudoc);
+        super(traitee, position, retourSudoc);
         this.ppn = ppn;
         this.rcr = rcr;
         this.epn = epn;
