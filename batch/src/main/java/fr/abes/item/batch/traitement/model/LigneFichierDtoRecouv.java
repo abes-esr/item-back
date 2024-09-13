@@ -20,7 +20,7 @@ public class LigneFichierDtoRecouv extends LigneFichierDto implements ILigneFich
     private String listePpn;
 
     public LigneFichierDtoRecouv(LigneFichierRecouv ligneFichierRecouv) {
-        super(ligneFichierRecouv.getNumLigneFichier(), ligneFichierRecouv.getTraitee(), ligneFichierRecouv.getPosition(), ligneFichierRecouv.getId(), ligneFichierRecouv.getRetourSudoc(), ligneFichierRecouv.getValeurZone());
+        super(ligneFichierRecouv.getNumLigneFichier(), ligneFichierRecouv.getTraitee(), ligneFichierRecouv.getPosition(), ligneFichierRecouv.getId(), ligneFichierRecouv.getRetourSudoc());
         this.indexRecherche = ligneFichierRecouv.getIndexRecherche();
         this.nbReponses = ligneFichierRecouv.getNbReponses();
         this.listePpn = ligneFichierRecouv.getListePpn();
