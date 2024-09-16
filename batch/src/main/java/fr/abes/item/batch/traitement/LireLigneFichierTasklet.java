@@ -55,7 +55,7 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
         ExecutionContext executionContext = stepExecution
                 .getJobExecution()
                 .getExecutionContext();
-        this.typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
+        this.typeDemande = (TYPE_DEMANDE) executionContext.get("typeDemande");
         this.demandeId = (Integer) executionContext.get("demandeId");
         this.demandeService = factory.getStrategy(IDemandeService.class, this.typeDemande);
         this.demande = demandeService.findById(demandeId);
