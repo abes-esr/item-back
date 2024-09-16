@@ -16,7 +16,6 @@ public class LigneFichierDtoSuppMapper implements ILigneFichierDtoMapper {
         lf.setPpn(lfdSupp.getPpn());
         lf.setEpn(lfdSupp.getEpn());
         lf.setRcr(lfdSupp.getRcr());
-        lf.setValeurZone(lfdSupp.getValeurZone());
         lf.setTraitee(lfdSupp.getTraitee());
         lf.setPosition(lfdSupp.getPosition());
         lf.setRetourSudoc(lfdSupp.getRetourSudoc());

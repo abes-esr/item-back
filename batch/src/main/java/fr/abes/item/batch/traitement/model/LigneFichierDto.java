@@ -19,15 +19,13 @@ public abstract class LigneFichierDto implements Serializable, ILigneFichierDtoS
     private Integer position;
     private Integer refDemande;
     private String retourSudoc;
-    private String valeurZone;
 
-    LigneFichierDto(Integer numLigneFichier, Integer traitee, Integer position, Integer refDemande, String retourSudoc, String valeurZone) {
+    LigneFichierDto(Integer numLigneFichier, Integer traitee, Integer position, Integer refDemande, String retourSudoc) {
         this.numLigneFichier = numLigneFichier;
         this.traitee = traitee;
         this.position = position;
         this.refDemande = refDemande;
         this.retourSudoc = retourSudoc;
-        this.valeurZone = valeurZone;
     }
 
     public abstract TYPE_DEMANDE getTypeDemande();

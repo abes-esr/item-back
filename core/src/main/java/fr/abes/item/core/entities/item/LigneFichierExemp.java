@@ -13,6 +13,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Table(name="LIGNE_FICHIER_EXEMP")
 public class LigneFichierExemp extends LigneFichier implements Serializable, ILigneFichier {
+
+    @Column(name = "VALEUR_ZONE", length = 2000)
+    protected String valeurZone;
     @Column(name = "INDEX_RECHERCHE")
     private String indexRecherche;
 
@@ -34,7 +37,8 @@ public class LigneFichierExemp extends LigneFichier implements Serializable, ILi
 
 
     public LigneFichierExemp(String indexRecherche, String valeurZone, Integer traitee, Integer position, String retourSudoc, String numExemplaire, DemandeExemp demandeExemp, String listePpn) {
-        super(valeurZone, traitee, position, retourSudoc);
+        super(traitee, position, retourSudoc);
+        this.valeurZone = valeurZone;
         this.indexRecherche = indexRecherche;
         this.numExemplaire = numExemplaire;
         this.demandeExemp = demandeExemp;

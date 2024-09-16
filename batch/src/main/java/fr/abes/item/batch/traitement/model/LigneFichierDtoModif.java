@@ -14,8 +14,11 @@ public class LigneFichierDtoModif extends LigneFichierDto implements ILigneFichi
     private String rcr;
     private String epn;
 
+    private String valeurZone;
+
     public LigneFichierDtoModif(LigneFichierModif ligneFichierModif) {
-        super(ligneFichierModif.getNumLigneFichier(), ligneFichierModif.getTraitee(), ligneFichierModif.getPosition(), ligneFichierModif.getId(), ligneFichierModif.getRetourSudoc(), ligneFichierModif.getValeurZone());
+        super(ligneFichierModif.getNumLigneFichier(), ligneFichierModif.getTraitee(), ligneFichierModif.getPosition(), ligneFichierModif.getId(), ligneFichierModif.getRetourSudoc());
+        this.valeurZone = ligneFichierModif.getValeurZone();
         this.ppn = ligneFichierModif.getPpn();
         this.rcr = ligneFichierModif.getRcr();
         this.epn = ligneFichierModif.getEpn();

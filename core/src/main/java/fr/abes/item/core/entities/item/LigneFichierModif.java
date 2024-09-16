@@ -13,6 +13,9 @@ import java.io.Serializable;
 @Table(name= "LIGNE_FICHIER_MODIF")
 @Getter @Setter
 public class LigneFichierModif extends LigneFichier implements Serializable, ILigneFichier {
+
+    @Column(name = "VALEUR_ZONE", length = 2000)
+    protected String valeurZone;
     @Column(name="PPN")
     private String ppn;
     @Column(name="RCR")
@@ -26,7 +29,8 @@ public class LigneFichierModif extends LigneFichier implements Serializable, ILi
     public LigneFichierModif(String ppn,
                              String rcr, String epn, String valeurZone, Integer position,
                              Integer traitee, String retourSudoc, DemandeModif demandeModif) {
-        super(valeurZone, traitee, position, retourSudoc);
+        super(traitee, position, retourSudoc);
+        this.valeurZone = valeurZone;
         this.ppn = ppn;
         this.rcr = rcr;
         this.epn = epn;

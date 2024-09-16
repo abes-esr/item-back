@@ -8,28 +8,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Getter
+@Setter
 @NoArgsConstructor
 public class LigneFichierDtoExemp extends LigneFichierDto implements ILigneFichierDtoService {
-    @Getter @Setter
+
     private String requete;
 
-    @Getter @Setter
     private String indexRecherche;
 
-    @Getter @Setter
     private String listePpn;
 
-    @Getter @Setter
     private String numExemplaire;
 
-    @Getter @Setter
     private String L035;
 
-    @Setter
     private Integer nbReponses;
 
+    private String valeurZone;
+
     public LigneFichierDtoExemp(LigneFichierExemp ligneFichierExemp) {
-        super(ligneFichierExemp.getNumLigneFichier(), ligneFichierExemp.getTraitee(), ligneFichierExemp.getPosition(), ligneFichierExemp.getId(), ligneFichierExemp.getRetourSudoc(), ligneFichierExemp.getValeurZone());
+        super(ligneFichierExemp.getNumLigneFichier(), ligneFichierExemp.getTraitee(), ligneFichierExemp.getPosition(), ligneFichierExemp.getId(), ligneFichierExemp.getRetourSudoc());
+        this.valeurZone = ligneFichierExemp.getValeurZone();
         this.indexRecherche = ligneFichierExemp.getIndexRecherche();
         this.numExemplaire = ligneFichierExemp.getNumExemplaire();
         this.L035 = ligneFichierExemp.getL035();
