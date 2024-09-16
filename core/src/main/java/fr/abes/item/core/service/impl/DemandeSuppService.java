@@ -271,7 +271,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return switch (etatDemande) {
             case Constant.ETATDEM_PREPAREE -> Constant.ETATDEM_PREPARATION;
             case Constant.ETATDEM_ACOMPLETER -> Constant.ETATDEM_PREPAREE;
-            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_ACOMPLETER;
+            case Constant.ETATDEM_SIMULATION -> Constant.ETATDEM_ACOMPLETER;
+            case Constant.ETATDEM_ATTENTE -> Constant.ETATDEM_SIMULATION;
             case Constant.ETATDEM_ENCOURS -> Constant.ETATDEM_ATTENTE;
             case Constant.ETATDEM_TERMINEE -> Constant.ETATDEM_ENCOURS;
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
