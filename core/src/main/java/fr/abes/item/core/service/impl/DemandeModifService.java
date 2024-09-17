@@ -578,7 +578,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
 
     public Demande majTraitement(Integer demandeId, Integer traitementId) {
         DemandeModif demandeModif = this.findById(demandeId);
-        Traitement traitement = traitementService.findTraitementById(traitementId);
+        Traitement traitement = referenceService.findTraitementById(traitementId);
         if (demandeModif != null) {
             demandeModif.setDateModification(Calendar.getInstance().getTime());
             demandeModif.setTraitement(traitement);
