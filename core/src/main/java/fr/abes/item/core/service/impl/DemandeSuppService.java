@@ -373,8 +373,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
             return new String[]{
                     ligneFichierSupp.getPpn(),
-                    exemplairesExistants.stream().map(Exemplaire::toString).collect(Collectors.joining("\r\n")),
-                    exemplairesRestants.stream().map(Exemplaire::toString).collect(Collectors.joining("\r\n"))
+                    exemplairesExistants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n")),
+                    exemplairesRestants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n"))
             };
         }catch (QueryToSudocException ex) {
             throw new CBSException(Level.ERROR, ex.getMessage());
