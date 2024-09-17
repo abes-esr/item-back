@@ -8,8 +8,6 @@ import fr.abes.cbs.process.ProcessCBS;
 import fr.abes.cbs.utilitaire.Constants;
 import fr.abes.cbs.utilitaire.Utilitaire;
 import fr.abes.item.core.constant.Constant;
-import fr.abes.item.core.entities.item.Traitement;
-import fr.abes.item.core.repository.item.ITraitementDao;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +19,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
 public class TraitementService {
-	private final ITraitementDao traitementDao;
 
 	@Value("${sudoc.serveur}")
 	private String serveurSudoc;
@@ -39,8 +35,7 @@ public class TraitementService {
 	private ProcessCBS cbs;
 
 
-	public TraitementService(ITraitementDao traitementDao) {
-		this.traitementDao = traitementDao;
+	public TraitementService() {
 		cbs = new ProcessCBS();
     }
 
@@ -209,23 +204,7 @@ public class TraitementService {
     }
 
 
-    /**
-     * Retourner l'ensemble de la liste des traitements disponibles
-     *
-     * @return liste de tous les traitements
-     */
-    public List<Traitement> findAll() {
-        return traitementDao.findAllByOrderByNumTraitementAsc();
-    }
 
-    public Traitement findTraitementById(Integer id) {
-        Optional<Traitement> traitement = traitementDao.findById(id);
-        return traitement.orElseThrow();
-    }
-
-    public Integer findTraitementByDemandeId(Integer id) {
-        return traitementDao.findTraitementByDemandeModifId(id);
-    }
 
 
 }
