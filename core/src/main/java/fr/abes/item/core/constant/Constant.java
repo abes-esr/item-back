@@ -61,9 +61,11 @@ public class Constant implements Serializable {
 
 	/**Prefix name from files put on server*/
 	public static final String FIC_INITIAL_NAME = "fichier_initial_";
+	public static final String FIC_RESULTAT_NAME = "fichier_resultat_";
+	public static final String FIC_VALIDE_NAME = "fichier_valide_";
+	public static final String FIC_CORRESPONDANCE_NAME = "fichier_correspondance_";
 	public static final String FIC_ENRICHI_NAME = "fichier_enrichi_";
 	public static final String FIC_PREPARE_NAME = "fichier_prepare_";
-	public static final String FIC_RESULTAT_NAME = "fichier_resultat_";
 
 	/**Application services errors*/
 	public static final String STORAGE_SERVICE_INITIALIZATION_ERROR = "Ne peut pas initialiser le stockage, erreur au moment de la creation du repertoire : ";
