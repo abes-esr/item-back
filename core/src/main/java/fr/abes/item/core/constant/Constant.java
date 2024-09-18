@@ -82,6 +82,8 @@ public class Constant implements Serializable {
 	/**Maximum number of lines allowed in file sent*/
 	public static final int MAX_LIGNE_FICHIER_INIT_MODIF = 3000;
 	public static final int MAX_LIGNE_FICHIER_INIT_EXEMP = 5000;
+
+	public static final int MAX_LIGNE_FICHIER_INIT_SUPP = 15000;
 	public static final int MAX_LIGNE_APPELWS = 300;
 
 
