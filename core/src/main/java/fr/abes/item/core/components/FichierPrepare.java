@@ -51,7 +51,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 
 	@Override
 	public void generateFileName(Demande demande) {
-		this.filename = Constant.FIC_CORRESPONDANCE_NAME + demande.getId() + Constant.EXTENSIONCSV;
+		this.filename = Constant.FIC_PREPARE_NAME + demande.getId() + Constant.EXTENSIONCSV;
 	}
 	
 	/**
