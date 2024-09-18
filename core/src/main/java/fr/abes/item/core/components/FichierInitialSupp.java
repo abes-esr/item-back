@@ -31,11 +31,10 @@ public class FichierInitialSupp extends FichierInitial implements Fichier {
     public void checkFileContent(Demande demande) throws FileCheckingException, IOException {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader bufLecteur = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
-            String ligne;
             this.ligneCourante = 0;
 
-            while ((ligne = Utilitaires.checkBom(bufLecteur.readLine())) != null) {
-                checkBodyLine(ligne);
+            while ((bufLecteur.readLine()) != null) {
+                ligneCourante++;
             }
 
             //cas ou il y a trop de lignes dans le fichier
@@ -43,18 +42,5 @@ public class FichierInitialSupp extends FichierInitial implements Fichier {
                 throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_TOOMUCH_SUPP);
             }
         }
-    }
-
-    /**
-     * Méthode de vérification d'une ligne du corps du fichier initial
-     *
-     * @param ligne : ligne à vérifier
-     * @throws FileCheckingException : erreur dans la format de la ligne
-     */
-    private void checkBodyLine(String ligne) throws FileCheckingException {
-        if (ligne.length() != 9) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_ONLYONEPPN);
-        }
-        ligneCourante++;
     }
 }
