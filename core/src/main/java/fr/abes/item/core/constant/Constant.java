@@ -82,7 +82,6 @@ public class Constant implements Serializable {
 	/**Maximum number of lines allowed in file sent*/
 	public static final int MAX_LIGNE_FICHIER_INIT_MODIF = 3000;
 	public static final int MAX_LIGNE_FICHIER_INIT_EXEMP = 5000;
-
 	public static final int MAX_LIGNE_FICHIER_INIT_SUPP = 15000;
 	public static final int MAX_LIGNE_APPELWS = 300;
 
@@ -103,6 +102,7 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_TOOMUCH_END = " notices. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 	public static final String ERR_FILE_TOOMUCH_MODIF = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_MODIF + Constant.ERR_FILE_TOOMUCH_END;
 	public static final String ERR_FILE_TOOMUCH_EXEMP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_EXEMP + Constant.ERR_FILE_TOOMUCH_END;
+	public static final String ERR_FILE_TOOMUCH_SUPP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_SUPP + Constant.ERR_FILE_TOOMUCH_END;
 	public static final String ERR_FILE_3COL = "La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone).";
 	public static final String ERR_FILE_ERRLINE = "Erreur ligne ";
 	public static final String ERR_FILE_ONLYONEPPN = "la ligne ne doit contenir qu'un ppn (sur 9 caractères).";
