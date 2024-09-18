@@ -115,7 +115,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
         FichierResultatModif fichierResultatModif;
 
         fichierResultatModif = (FichierResultatModif) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
-        fichierResultatModif.generateFileName(demande.getId());
+        fichierResultatModif.generateFileName(demande);
         fichierResultatModif.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
 
         try (FileWriter fw = new FileWriter(fichierResultatModif.getPath().resolve(fichierResultatModif.getFilename()).toString(), false);

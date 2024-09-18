@@ -54,8 +54,8 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
     }
 
     @Override
-    public void generateFileName(Integer numDemande) {
-        this.filename = Constant.FIC_ENRICHI_NAME + numDemande + Constant.EXTENSIONCSV;
+    public void generateFileName(Demande demande) {
+        this.filename = Constant.FIC_VALIDE_NAME + demande.getId() + Constant.EXTENSIONCSV;
     }
 
     @Override

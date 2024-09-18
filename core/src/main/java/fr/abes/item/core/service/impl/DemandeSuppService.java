@@ -106,28 +106,27 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         Integer numDemande = demande.getId();
         /*Préparation du fichier initial rattaché à la demande de suppression */
         fichierInit = (FichierInitialSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.SUPP);
-        fichierInit.generateFileName(numDemande);
+        fichierInit.generateFileName(demande);
         fichierInit.setPath(Paths.get(uploadPath + "supp/" + numDemande));
 
         /*Préparation du fichier enrichi suite l'appel à la fonction oracle */
         fichierPrepare = (FichierPrepareSupp) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.SUPP);
-        fichierPrepare.generateFileName(numDemande);
+        fichierPrepare.generateFileName(demande);
         fichierPrepare.setPath(Paths.get(uploadPath + "supp/" + numDemande));
 
         /*Préparation du fichier enrichi par l'utilisateur */
         FichierEnrichiSupp fichierEnrichiSupp = (FichierEnrichiSupp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.SUPP);
-        fichierEnrichiSupp.generateFileName(numDemande);
+        fichierEnrichiSupp.generateFileName(demande);
         fichierEnrichiSupp.setPath(Paths.get(uploadPath + "supp/" + numDemande));
 
     }
 
     @Override
     public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
-        Integer numDemande = demande.getNumDemande();
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.SUPP);
-            fichier.generateFileName(numDemande);
+            fichier.generateFileName(demande);
             stockerFichierOnDisk(file, fichier, (DemandeSupp) demande);
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);

@@ -67,8 +67,8 @@ public class FichierInitial extends AbstractFichier implements Fichier {
     }
 
     @Override
-    public void generateFileName(Integer numDemande) {
-        this.filename = Constant.FIC_INITIAL_NAME + numDemande + Constant.EXTENSIONTXT;
+    public void generateFileName(Demande demande) {
+        this.filename = Constant.FIC_INITIAL_NAME + demande.getId() + Constant.EXTENSIONTXT;
     }
 
     public void supprimerRetourChariot() throws IOException {

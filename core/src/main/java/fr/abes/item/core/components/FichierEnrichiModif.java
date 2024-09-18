@@ -36,8 +36,8 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     public TYPE_DEMANDE getDemandeType() {return TYPE_DEMANDE.MODIF; }
 
     @Override
-    public void generateFileName(Integer numDemande) {
-        this.filename = Constant.FIC_ENRICHI_NAME + numDemande + Constant.EXTENSIONCSV;
+    public void generateFileName(Demande demande) {
+        this.filename = Constant.FIC_VALIDE_NAME + demande.getId() + Constant.EXTENSIONCSV;
     }
 
     /**

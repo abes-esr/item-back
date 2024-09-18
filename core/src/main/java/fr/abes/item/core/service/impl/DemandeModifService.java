@@ -188,11 +188,10 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      */
     @Override
     public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
-        Integer numDemande = demande.getNumDemande();
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.MODIF);
-            fichier.generateFileName(numDemande);
+            fichier.generateFileName(demande);
             stockerFichierOnDisk(file, fichier, (DemandeModif) demande);
         } catch (NullPointerException e) {
             throw new NullPointerException(Constant.ERR_FILE_NOT_FOUND);
@@ -243,15 +242,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         Integer numDemande = demande.getNumDemande();
         /*Préparation du fichier initial rattaché à la demandeModif*/
         fichierInit = (FichierInitial) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.MODIF);
-        fichierInit.generateFileName(numDemande);
+        fichierInit.generateFileName(demande);
         fichierInit.setPath(Paths.get(uploadPath + "modif/" + numDemande));
         /*Préparation du fichier résultat d'appel de la fonction Oracle*/
         fichierPrepare = (FichierPrepare) FichierFactory.getFichier(Constant.ETATDEM_PREPAREE, TYPE_DEMANDE.MODIF);
-        fichierPrepare.generateFileName(numDemande);
+        fichierPrepare.generateFileName(demande);
         fichierPrepare.setPath(Paths.get(uploadPath + "modif/" + numDemande));
         /*Préparation du fichier enrichi par l'utilisateur*/
         FichierEnrichiModif fichierEnrichiModif = (FichierEnrichiModif) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.MODIF);
-        fichierEnrichiModif.generateFileName(numDemande);
+        fichierEnrichiModif.generateFileName(demande);
         fichierEnrichiModif.setPath(Paths.get(uploadPath + "modif/" + numDemande));
     }
 

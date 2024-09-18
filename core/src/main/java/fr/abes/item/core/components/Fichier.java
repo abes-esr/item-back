@@ -13,7 +13,7 @@ public interface Fichier {
 	void setPath(Path path);
 	int getType();
 	TYPE_DEMANDE getDemandeType();
-	void generateFileName(Integer numDemande);
+	void generateFileName(Demande numDemande);
 
 	/**
 	 * Méthode permettant de vérifier que le contenu du fichier correspond aux spécifications
