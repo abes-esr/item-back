@@ -4,5 +4,5 @@
 LANG=fr_FR.UTF-8
 if [[ $(pgrep -cf "item-batch.jar --spring.batch.job.name=traiterLigneFichierExemp") < 1 ]];
 then
-   java -jar -XX:MaxRAMPercentage=95 /scripts/item-batch.jar --spring.batch.job.name=traiterLigneFichierExemp --server.port=8082
+   java -jar -XX:MaxRAMPercentage=80 -XX:+UseG1GC -Xshare:on -XX:+UseCompressedOops /scripts/item-batch.jar --spring.batch.job.name=traiterLigneFichierExemp --server.port=8082
 fi
