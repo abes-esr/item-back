@@ -30,7 +30,7 @@ public class FichierInitialSupp extends FichierInitial implements Fichier {
     @Override
     public void generateFileName(Demande demande) {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
-        this.filename = Constant.FIC_INITIAL_NAME + demandeSupp.getTypeSuppression() + "_" + demandeSupp.getId() + Constant.EXTENSIONTXT;
+        this.filename = Constant.FIC_INITIAL_NAME + demandeSupp.getTypeSuppression().toString().toLowerCase() + "_" + demandeSupp.getId() + Constant.EXTENSIONTXT;
     }
 
     @Override
