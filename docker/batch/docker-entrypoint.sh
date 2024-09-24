@@ -30,4 +30,4 @@ if [ "$ITEM_BATCH_AT_STARTUP" = "1" ]; then
 fi
 
 # execute CMD (crond)
-exec "$@"
+tail -f /dev/null
