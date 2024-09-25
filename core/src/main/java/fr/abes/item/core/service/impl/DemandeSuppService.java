@@ -382,7 +382,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private List<Exemplaire> getExemplairesExistants(LigneFichierSupp ligneFichierSupp) throws IOException, QueryToSudocException, CBSException, ZoneException {
+    public List<Exemplaire> getExemplairesExistants(LigneFichierSupp ligneFichierSupp) throws IOException, QueryToSudocException, CBSException, ZoneException {
         String query = "che ppn " + ligneFichierSupp.getPpn();
         traitementService.getCbs().search(query);
         int nbReponses = traitementService.getCbs().getNbNotices();
