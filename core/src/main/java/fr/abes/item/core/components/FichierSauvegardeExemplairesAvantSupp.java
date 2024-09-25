@@ -10,6 +10,7 @@ import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.item.ILigneFichierSuppDao;
 import fr.abes.item.core.service.impl.DemandeSuppService;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -63,15 +64,6 @@ public class FichierSauvegardeExemplairesAvantSupp extends AbstractFichier imple
     }
 
     // Classe utilitaire pour représenter une paire de valeurs
-    static class Pair<K, V> {
-        private K key;
-        private V value;
-        public Pair(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        public K getKey() { return key; }
-        public V getValue() { return value; }
-    }
+    @Getter
+    record Pair<K, V>(K key, V value) {}
 }
