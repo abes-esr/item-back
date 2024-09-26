@@ -128,7 +128,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     public void initFiles(Demande demande) throws FileTypeException {
         Integer numDemande = demande.getId();
         fichierEnrichiRecouv = (FichierEnrichiRecouv) FichierFactory.getFichier(Constant.ETATDEM_PREPARATION, TYPE_DEMANDE.RECOUV);
-        fichierEnrichiRecouv.generateFileName(numDemande);
+        fichierEnrichiRecouv.generateFileName(demande);
         fichierEnrichiRecouv.setPath(Paths.get(uploadPath + "recouv/" + numDemande));
         log.debug("Dépot du fichier dans : " + uploadPath + "recouv/" + numDemande);
     }
@@ -226,12 +226,11 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     @Override
     public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
-        Integer numDemande = demande.getId();
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.RECOUV);
-            fichier.generateFileName(numDemande);
+            fichier.generateFileName(demande);
             stockerFichierOnDisk(file, fichier, demandeRecouv);
             this.majDemandeWithFichierEnrichi(demandeRecouv);
         } catch (NullPointerException e) {

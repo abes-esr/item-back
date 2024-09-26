@@ -33,7 +33,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
 
 
     @Override
-    public void checkFileContent(Demande demandeModif) throws FileCheckingException, IOException {
+    public void checkFileContent(Demande demande) throws FileCheckingException, IOException {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader bufLecteur = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
             String ligne;
@@ -67,8 +67,8 @@ public class FichierInitial extends AbstractFichier implements Fichier {
     }
 
     @Override
-    public void generateFileName(Integer numDemande) {
-        this.filename = Constant.FIC_INITIAL_NAME + numDemande + Constant.EXTENSIONTXT;
+    public void generateFileName(Demande demande) {
+        this.filename = Constant.FIC_INITIAL_NAME + demande.getId() + Constant.EXTENSIONTXT;
     }
 
     public void supprimerRetourChariot() throws IOException {

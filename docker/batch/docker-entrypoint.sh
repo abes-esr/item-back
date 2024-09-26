@@ -29,5 +29,4 @@ if [ "$ITEM_BATCH_AT_STARTUP" = "1" ]; then
   /scripts/itemBatchTraiterLigneFichierSupp.sh
 fi
 
-# execute CMD (crond)
 exec "$@"

@@ -182,12 +182,11 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      */
     @Override
     public void stockerFichier(MultipartFile file, Demande demande) throws IOException, FileTypeException, FileCheckingException, DemandeCheckingException {
-        Integer numDemande = demande.getNumDemande();
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         try {
             Utilitaires.checkExtension(Objects.requireNonNull(file.getOriginalFilename()));
             Fichier fichier = FichierFactory.getFichier(demande.getEtatDemande().getNumEtat(), TYPE_DEMANDE.EXEMP); //Retourne un FichierEnrichiExemp
-            fichier.generateFileName(numDemande); //génération nom du fichier
+            fichier.generateFileName(demande); //génération nom du fichier
             stockerFichierOnDisk(file, fichier, demandeExemp); //stockage du fichier sur disque, le controle de l'entête du fichier s'effectue ici
             this.majDemandeWithFichierEnrichi(demandeExemp); //mise à jour de la demande avec les paramètres du fichier enrichi : index de recherche, liste des zones, ajout des lignes du fichier dans la BDD
         } catch (NullPointerException e) {
@@ -246,7 +245,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         Integer numDemande = demande.getId();
         // préparation du fichier envoyé par l'utilisateur
         fichierEnrichiExemp = (FichierEnrichiExemp) FichierFactory.getFichier(Constant.ETATDEM_ACOMPLETER, TYPE_DEMANDE.EXEMP); //création d'un objet fichier
-        fichierEnrichiExemp.generateFileName(numDemande);  //creation du nom du fichier (fichierenrichi)
+        fichierEnrichiExemp.generateFileName(demande);  //creation du nom du fichier (fichierenrichi)
         fichierEnrichiExemp.setPath(Paths.get(uploadPath + "exemp/" + numDemande)); //emplacement du dossier ou sera crée le fichier
     }
 

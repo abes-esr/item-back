@@ -47,8 +47,15 @@ ENTRYPOINT ["java","-jar","/app/item.jar"]
 # Image pour le module batch
 # Remarque: l'image openjdk:11 n'est pas utilisée car nous avons besoin de cronie
 #           qui n'est que disponible sous centos/rockylinux.
+FROM maven:3-eclipse-temurin-17 as batch-builder
+WORKDIR application
+ARG JAR_FILE=build/batch/target/*.jar
+COPY --from=build-image ${JAR_FILE} item-batch.jar
+RUN java -Djarmode=layertools -jar item-batch.jar extract
+
+
 FROM rockylinux:8 as batch-image
-WORKDIR /scripts/
+WORKDIR scripts
 #locales fr
 # Les locales fr_FR
 RUN dnf install langpacks-fr glibc-all-langpacks -y
@@ -62,6 +69,10 @@ ENV LC_ALL fr_FR.UTF-8
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+COPY --from=batch-builder application/dependencies/ ./
+COPY --from=batch-builder application/spring-boot-loader/ ./
+COPY --from=batch-builder application/snapshot-dependencies/ ./
+COPY --from=batch-builder application/application/ ./
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
 # gettext: pour avoir envsubst qui permet de gérer le template tasks.tmpl
@@ -93,7 +104,7 @@ RUN chmod +x /scripts/itemBatchTraiterLigneFichierRecouv.sh
 COPY ./docker/batch/itemBatchTraiterLigneFichierSupp.sh /scripts/itemBatchTraiterLigneFichierSupp.sh
 RUN chmod +x /scripts/itemBatchTraiterLigneFichierSupp.sh
 
-COPY --from=build-image /build/batch/target/*.jar /scripts/item-batch.jar
+COPY --from=batch-builder /application/*.jar /scripts/item-batch.jar
 RUN chmod +x /scripts/item-batch.jar
 
 COPY ./docker/batch/docker-entrypoint.sh /docker-entrypoint.sh

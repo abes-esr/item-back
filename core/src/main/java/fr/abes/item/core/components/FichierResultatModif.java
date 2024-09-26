@@ -32,8 +32,8 @@ public class FichierResultatModif extends AbstractFichier implements Fichier {
 	}
 
 	@Override
-	public void generateFileName(Integer numDemande) {
-		this.filename = Constant.FIC_RESULTAT_NAME + numDemande + Constant.EXTENSIONCSV;
+	public void generateFileName(Demande demande) {
+		this.filename = Constant.FIC_RESULTAT_NAME + demande.getId() + Constant.EXTENSIONCSV;
 
 	}
 
