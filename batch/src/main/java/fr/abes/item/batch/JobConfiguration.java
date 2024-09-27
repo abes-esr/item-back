@@ -10,7 +10,6 @@ import fr.abes.item.batch.traitement.traiterlignesfichierchunk.LignesFichierRead
 import fr.abes.item.batch.traitement.traiterlignesfichierchunk.LignesFichierWriter;
 import fr.abes.item.batch.webstats.ExportStatistiquesTasklet;
 import fr.abes.item.batch.webstats.VerifierParamsTasklet;
-import fr.abes.item.core.components.FichierSauvegardeSupp;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
@@ -54,7 +53,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-    private final FichierSauvegardeSupp fichierSauvegardeSupp;
 
     @Value("${batch.min.hour}")
     int minHour;
@@ -71,10 +69,9 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, FichierSauvegardeSupp fichierSauvegardeSupp) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
-        this.fichierSauvegardeSupp = fichierSauvegardeSupp;
     }
 
     @Bean
@@ -91,7 +88,7 @@ public class JobConfiguration {
     @Bean
     @StepScope
     public LignesFichierProcessor processor() {
-        return new LignesFichierProcessor(strategyFactory, proxyRetry, fichierSauvegardeSupp);
+        return new LignesFichierProcessor(strategyFactory, proxyRetry);
     }
     @Bean
     public LignesFichierWriter writer() {
@@ -115,7 +112,9 @@ public class JobConfiguration {
         return new AuthentifierSurSudocTasklet(strategyFactory, mailAdmin, proxyRetry);
     }
     @Bean
-    public Tasklet genererFichierTasklet() { return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult, fichierSauvegardeSupp); }
+    public Tasklet creerFichierSauvegardeTasklet() { return new CreerFichierSauvegardeTasklet(strategyFactory, uploadPath); }
+    @Bean
+    public Tasklet genererFichierTasklet() { return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult); }
     @Bean
     public Tasklet verifierParamsTasklet() { return new VerifierParamsTasklet(); }
 
@@ -232,6 +231,13 @@ public class JobConfiguration {
     public Step stepGenererFichier(JobRepository jobRepository, @Qualifier("genererFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepGenererFichier", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step stepCreerFichierSauvegarde(JobRepository jobRepository, @Qualifier("creerFichierSauvegardeTasklet") Tasklet tasklet, PlatformTransactionManager platformTransactionManager) {
+        return new StepBuilder("stepCreerFichierSauvegarde", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, platformTransactionManager)
                 .build();
     }
 
@@ -384,17 +390,18 @@ public class JobConfiguration {
 
     //job de lancement d'une demande de suppression
     @Bean
-    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepTraitementErreurStep4") Step stepTraitementErreurStep4, @Qualifier("stepGenererFichier") Step step5) {
+    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepCreerFichierSauvegarde") Step stepCreerFichier, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierSupp", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step1).on(Constant.COMPLETED).to(stepCreerFichier)
+                .from(stepCreerFichier).on(Constant.COMPLETED).to(step2)
+                .from(stepCreerFichier).on(Constant.FAILED).end()
                 .from(step2).on(Constant.FAILED).end()
                 .from(step2).on(Constant.COMPLETED).to(step3)
                 .from(step3).on(Constant.FAILED).end()
                 .from(step3).on(Constant.COMPLETED).to(step4)
-                .from(step4).on(Constant.FAILED).to(stepTraitementErreurStep4)
-                .from(stepTraitementErreurStep4).on(Constant.COMPLETED).end()
+                .from(step4).on(Constant.FAILED).end()
                 .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
     }

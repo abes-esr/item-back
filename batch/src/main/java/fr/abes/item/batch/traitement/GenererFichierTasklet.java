@@ -7,7 +7,6 @@ import fr.abes.item.batch.traitement.model.LigneFichierDtoModif;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoRecouv;
 import fr.abes.item.batch.traitement.model.LigneFichierDtoSupp;
 import fr.abes.item.core.components.FichierResultatModif;
-import fr.abes.item.core.components.FichierSauvegardeSupp;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
@@ -48,7 +47,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     private IDemandeService demandeService;
     private ILigneFichierService ligneFichierService;
     private IMailer mailer;
-    private FichierSauvegardeSupp fichierSauvegardeSupp;
 
     public GenererFichierTasklet(StrategyFactory factory, String uploadPath, String mailAdmin, Integer nbPpnInFileResult) {
         this.factory = factory;
@@ -56,15 +54,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
         this.mailAdmin = mailAdmin;
         this.nbPpnInFileResult = nbPpnInFileResult;
     }
-
-    public GenererFichierTasklet(StrategyFactory factory, String uploadPath, String mailAdmin, Integer nbPpnInFileResult, FichierSauvegardeSupp fichierSauvegardeSupp) {
-        this.factory = factory;
-        this.uploadPath = uploadPath;
-        this.mailAdmin = mailAdmin;
-        this.nbPpnInFileResult = nbPpnInFileResult;
-        this.fichierSauvegardeSupp = fichierSauvegardeSupp;
-    }
-
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
@@ -92,11 +81,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.info(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
-        log.info("test ITEM-231");
-        log.warn(fichierSauvegardeSupp.toString());
-
-        //TODO contrôle que fichierSauvegardeSupp n'est pas null
-
         try {
             String nomFichier = this.genererFichier(); //NOM FICHIER DEMANDE GENERE
             mailer.mailFinTraitement(
