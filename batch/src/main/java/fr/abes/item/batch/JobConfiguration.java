@@ -15,8 +15,10 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersIncrementer;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
@@ -26,6 +28,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -49,9 +52,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EntityScan("fr.abes.item.core.entities.item")
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
-
     private final ProxyRetry proxyRetry;
-
 
     @Value("${batch.min.hour}")
     int minHour;
@@ -66,6 +67,7 @@ public class JobConfiguration {
     private String uploadPath;
     @Value("${batch.nbPpnInFileResult}")
     private Integer nbPpnInFileResult;
+
 
     public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
         this.strategyFactory = strategyFactory;
@@ -82,7 +84,9 @@ public class JobConfiguration {
     public LignesFichierReader reader() {
         return new LignesFichierReader();
     }
+
     @Bean
+    @StepScope
     public LignesFichierProcessor processor() {
         return new LignesFichierProcessor(strategyFactory, proxyRetry);
     }
@@ -107,6 +111,8 @@ public class JobConfiguration {
     {
         return new AuthentifierSurSudocTasklet(strategyFactory, mailAdmin, proxyRetry);
     }
+    @Bean
+    public Tasklet creerFichierSauvegardeTasklet() { return new CreerFichierSauvegardeTasklet(strategyFactory, uploadPath); }
     @Bean
     public Tasklet genererFichierTasklet() { return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult); }
     @Bean
@@ -202,10 +208,36 @@ public class JobConfiguration {
                 .writer(writer)
                 .build();
     }
+    //Step s'éxecutant en cas d'erreur survenant pendant le traitement des lignes du fichier
+    @Bean
+    @Qualifier("stepTraitementErreurStep4")
+    public Step stepTraitementErreurStep4(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("stepTraitementErreurStep4", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    // Logique de traitement d'erreur ici
+                    // Par exemple, vous pouvez logger l'erreur, envoyer une notification, etc.
+                    log.error("Erreur lors du traitement de la ligne de fichier");
+                    // Vous pouvez aussi accéder aux informations de l'erreur via le JobExecution
+                    JobExecution jobExecution = chunkContext.getStepContext().getStepExecution().getJobExecution();
+                    Throwable exception = jobExecution.getAllFailureExceptions().get(0);
+                    log.error("Exception: ", exception);
+                    //Stocker le fichier sur le serveur
+
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
     @Bean
     public Step stepGenererFichier(JobRepository jobRepository, @Qualifier("genererFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepGenererFichier", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step stepCreerFichierSauvegarde(JobRepository jobRepository, @Qualifier("creerFichierSauvegardeTasklet") Tasklet tasklet, PlatformTransactionManager platformTransactionManager) {
+        return new StepBuilder("stepCreerFichierSauvegarde", jobRepository).allowStartIfComplete(true)
+                .tasklet(tasklet, platformTransactionManager)
                 .build();
     }
 
@@ -358,11 +390,13 @@ public class JobConfiguration {
 
     //job de lancement d'une demande de suppression
     @Bean
-    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
+    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepCreerFichierSauvegarde") Step stepCreerFichier, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierSupp", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
-                .from(step1).on(Constant.COMPLETED).to(step2)
+                .from(step1).on(Constant.COMPLETED).to(stepCreerFichier)
+                .from(stepCreerFichier).on(Constant.COMPLETED).to(step2)
+                .from(stepCreerFichier).on(Constant.FAILED).end()
                 .from(step2).on(Constant.FAILED).end()
                 .from(step2).on(Constant.COMPLETED).to(step3)
                 .from(step3).on(Constant.FAILED).end()

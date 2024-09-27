@@ -1,5 +1,5 @@
-* * * * * /scripts/itemBatchTraiterLigneFichierModif.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
-* * * * * /scripts/itemBatchTraiterLigneFichierExemp.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
-* * * * * /scripts/itemBatchTraiterLigneFichierRecouv.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
-* * * * * /scripts/itemBatchTraiterLigneFichierSupp.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
-${ITEM_BATCH_CRON_STAT} /scripts/itemBatchExportStatistiques.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
+* * * * * cd /scripts/ ; /scripts/itemBatchTraiterLigneFichierModif.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
+* * * * * cd /scripts/ ; /scripts/itemBatchTraiterLigneFichierExemp.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
+* * * * * cd /scripts/ ; /scripts/itemBatchTraiterLigneFichierRecouv.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
+* * * * * cd /scripts/ ; /scripts/itemBatchTraiterLigneFichierSupp.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
+${ITEM_BATCH_CRON_STAT} cd /scripts/ ; /scripts/itemBatchExportStatistiques.sh 1>/proc/1/fd/1 2>/proc/1/fd/2
