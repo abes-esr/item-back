@@ -6,6 +6,7 @@ import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.exception.FileCheckingException;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -19,7 +20,8 @@ import java.util.List;
 
 @Setter
 @Getter
-public class FichierSauvegardeSupp implements Fichier{
+@Component
+public class FichierSauvegardeSupp extends AbstractFichier implements Fichier{
     private List<Pair<String, List<Exemplaire>>> ppnWithExemplairesList = new ArrayList<>();
 
     private String filename;
@@ -101,6 +103,14 @@ public class FichierSauvegardeSupp implements Fichier{
         }
     }
 
-    @Getter
+    @Override
+    public String toString() {
+        return "FichierSauvegardeSupp{" +
+                "ppnWithExemplairesList=" + ppnWithExemplairesList.stream().toList() +
+                ", filename='" + filename + '\'' +
+                ", path=" + path +
+                '}';
+    }
+
     record Pair<K, V>(K key, V value) {}
 }
