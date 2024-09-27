@@ -55,7 +55,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
         this.nbPpnInFileResult = nbPpnInFileResult;
     }
 
-
     @Override
     public void beforeStep(StepExecution stepExecution) {
         ExecutionContext executionContext = stepExecution
@@ -82,7 +81,6 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) throws Exception {
         log.info(Constant.ENTER_EXECUTE_FROM_GENEREFICHIER);
-
         try {
             String nomFichier = this.genererFichier(); //NOM FICHIER DEMANDE GENERE
             mailer.mailFinTraitement(

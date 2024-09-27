@@ -66,6 +66,7 @@ public class Constant implements Serializable {
 	public static final String FIC_CORRESPONDANCE_NAME = "fichier_correspondance_";
 	public static final String FIC_ENRICHI_NAME = "fichier_enrichi_";
 	public static final String FIC_PREPARE_NAME = "fichier_prepare_";
+	public static final String FIC_SAUVEGARDE_NAME = "fichier_sauvegarde_";
 
 	/**Application services errors*/
 	public static final String STORAGE_SERVICE_INITIALIZATION_ERROR = "Ne peut pas initialiser le stockage, erreur au moment de la creation du repertoire : ";

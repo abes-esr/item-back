@@ -3,15 +3,19 @@ package fr.abes.item.batch.traitement.traiterlignesfichierchunk;
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.DonneeLocale;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.batch.traitement.ProxyRetry;
 import fr.abes.item.batch.traitement.model.*;
+import fr.abes.item.core.components.FichierSauvegardeSupp;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.QueryToSudocException;
+import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.impl.DemandeSuppService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -24,6 +28,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.dao.DataAccessException;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -31,6 +36,7 @@ import java.util.List;
 public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
+    private FichierSauvegardeSupp fichierSauvegardeSupp;
 
     private Demande demande;
 
@@ -49,6 +55,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         IDemandeService demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
         Integer demandeId = (Integer) executionContext.get("demandeId");
         this.demande = demandeService.findById(demandeId);
+        this.fichierSauvegardeSupp = new FichierSauvegardeSupp();
+        this.fichierSauvegardeSupp.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
+        this.fichierSauvegardeSupp.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }
 
@@ -77,6 +86,8 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
                 log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
             }
+        } catch (StorageException ex) {
+            log.error(ex.getMessage());
         } catch (Exception e) {
             log.error(Constant.ERROR_FROM_RECUP_NOTICETRAITEE + e);
             ligneFichierDto.setRetourSudoc(e.getMessage());
@@ -91,7 +102,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
      * @throws CBSException  : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
-     * @throws IOException : erreur de communication avec le CBS
+     * @throws IOException   : erreur de communication avec le CBS
      */
     private LigneFichierDtoModif processDemandeModif(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeModif demandeModif = (DemandeModif) demande;
@@ -109,7 +120,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
      * @throws CBSException  : erreur CBS
      * @throws ZoneException : erreur de construction de la notice
-     * @throws IOException : erreur de communication avec le CBS
+     * @throws IOException   : erreur de communication avec le CBS
      */
     private LigneFichierDtoExemp processDemandeExemp(LigneFichierDto ligneFichierDto) throws CBSException, ZoneException, IOException {
         DemandeExemp demandeExemp = (DemandeExemp) this.demande;
@@ -122,15 +133,19 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     /**
      * Méthode permettant de lancer la suppression sur une ligne du fichier
      *
-     * @param ligneFichierDto ligne du fichier sur laquelle lancer le traitement de suppression
+     * @param ligneFichierDto ligne du fichier sur lequel lancer le traitement de suppression
      * @return la DTO de la ligne fichier modifiée en fonction du résultat du traitement
-     * @throws CBSException  : erreur CBS
-     * @throws IOException : erreur de communication avec le CBS
+     * @throws CBSException : erreur CBS
+     * @throws IOException  : erreur de communication avec le CBS
      */
-    private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException {
-        DemandeSupp demandeSupp = (DemandeSupp) demande;
+    private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException, ZoneException, QueryToSudocException, StorageException {
+        DemandeSupp demandeSupp = (DemandeSupp) this.demande;
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
-        //sauvegarde la notice modifiée
+        //récupération des exemplaires existants pour cette ligne
+        List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
+                .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
+        this.fichierSauvegardeSupp.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+        //supprimer l'exemplaire
         this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
         ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
         return ligneFichierDtoSupp;
@@ -152,7 +167,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @return la DTO ligneFichier mise à jour en fonction du résultat de la requête che
      * @throws CBSException          : erreur CBS
      * @throws QueryToSudocException : erreur dans le type d'index de recherche
-     * @throws IOException         : erreur de communication avec le CBS
+     * @throws IOException           : erreur de communication avec le CBS
      */
     private LigneFichierDtoRecouv processDemandeRecouv(LigneFichierDto ligneFichierDto) throws CBSException, QueryToSudocException, IOException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) this.demande;
