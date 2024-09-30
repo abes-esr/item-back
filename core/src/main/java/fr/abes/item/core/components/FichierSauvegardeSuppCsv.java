@@ -6,6 +6,7 @@ import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.StorageException;
+import fr.abes.item.core.service.ReferenceService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,16 @@ import java.util.List;
 @Component
 public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier {
 
-    public void writePpnInFile(String ppn, List<Exemplaire> exemplaires) throws StorageException {
+    private ReferenceService referenceService;
 
+    private StringBuilder csvContent;
+
+    public FichierSauvegardeSuppCsv() {
+        this.csvContent = new StringBuilder();
+    }
+
+    public void writePpnInFile(String ppn, List<Exemplaire> exemplaires) throws StorageException {
+        // TODO coder l'algo de remplissage du fichier csv (hors en-tête)
     }
 
     @Override
@@ -54,6 +63,6 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     public void writeHeader() {
-
+        this.csvContent.append(this.referenceService.constructHeaderCsv());
     }
 }

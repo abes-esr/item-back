@@ -1,12 +1,7 @@
 package fr.abes.item.core.service;
 
-import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.IndexRecherche;
-import fr.abes.item.core.entities.item.Traitement;
-import fr.abes.item.core.entities.item.TypeExemp;
-import fr.abes.item.core.repository.item.IEtatDemandeDao;
-import fr.abes.item.core.repository.item.ITraitementDao;
-import fr.abes.item.core.repository.item.ITypeExempDao;
+import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.repository.item.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,11 +13,13 @@ public class ReferenceService {
     private final IEtatDemandeDao etatDemandeDao;
     private final ITypeExempDao typeExempDao;
     private final ITraitementDao traitementDao;
+    private final IZonesAutoriseesDao iZonesAutoriseesDao;
 
-    public ReferenceService(IEtatDemandeDao etatDemandeDao, ITypeExempDao typeExempDao, ITraitementDao traitementDao) {
+    public ReferenceService(IEtatDemandeDao etatDemandeDao, ITypeExempDao typeExempDao, ITraitementDao traitementDao, IZonesAutoriseesDao iZonesAutoriseesDao) {
         this.etatDemandeDao = etatDemandeDao;
         this.typeExempDao = typeExempDao;
         this.traitementDao = traitementDao;
+        this.iZonesAutoriseesDao = iZonesAutoriseesDao;
     }
 
 
@@ -64,5 +61,19 @@ public class ReferenceService {
 
     public Integer findTraitementByDemandeId(Integer id) {
         return traitementDao.findTraitementByDemandeModifId(id);
+    }
+
+    public String constructHeaderCsv() {
+        List<ZonesAutorisees> listZonesAutorisees = this.iZonesAutoriseesDao.findAll();
+        StringBuilder headerCsv = new StringBuilder();
+        headerCsv.append("PPN").append(";");
+        for (ZonesAutorisees zonesAutorisees: listZonesAutorisees) {
+            headerCsv.append(zonesAutorisees.getLabelZone());
+            for (SousZonesAutorisees sousZonesAutorisees : zonesAutorisees.getSousZonesAutorisees()) {
+                headerCsv.append(sousZonesAutorisees.getLibelle()).append(";");
+            }
+        }
+        headerCsv.append("\n");
+        return headerCsv.toString();
     }
 }
