@@ -88,7 +88,7 @@ public class FileSystemStorageService {
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new StorageFileNotFoundException(Constant.ERR_FILE_READING + filename + " sur le chemin : " + file.toUri());
+                throw new StorageFileNotFoundException(Constant.ERR_FILE_READING + filename);
             }
         } catch (MalformedURLException e) {
             throw new StorageFileNotFoundException(Constant.ERR_FILE_READING + filename, e);
