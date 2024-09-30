@@ -144,7 +144,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
-        this.fichierSauvegardeSupp.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+        if (!exemplairesExistants.isEmpty()){
+            this.fichierSauvegardeSupp.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+        }
         //supprimer l'exemplaire
         this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
         ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
