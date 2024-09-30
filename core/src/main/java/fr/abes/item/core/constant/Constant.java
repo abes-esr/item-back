@@ -25,6 +25,8 @@ public class Constant implements Serializable {
 	public static final int ETATDEM_SIMULATION = 4;
 	//Simulation terminée, demandeModif en attente de traitement par le batch
 	public static final int ETATDEM_ATTENTE = 5;
+	//Etat en attente fictif pour gérer les 2 fichiers de sauvegardes pour les demandes de SUPP
+	public static final int ETATDEM_ATTENTE_2 = 11;
 	//DemandeModif en cours de traitement par le batch
 	public static final int ETATDEM_ENCOURS = 6;
 	//DemandeModif traiteée et terminée
@@ -50,7 +52,6 @@ public class Constant implements Serializable {
 	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM";
 	public static final String AUCUNE_DEMANDE = "AUCUNE DEMANDE";
 	public static final String DEFAULT = "default";
-	public static final String DEMANDE = "La demande ";
 
 	/**Authentication failed*/
 	public static final String UTILISATEUR_ABSENT_BASE = "Cet utilisateur n'existe pas dans la base de données.";

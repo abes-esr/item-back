@@ -1,6 +1,7 @@
 package fr.abes.item.batch.traitement;
 
-import fr.abes.item.core.components.FichierSauvegardeSupp;
+import fr.abes.item.core.components.FichierSauvegardeSuppCsv;
+import fr.abes.item.core.components.FichierSauvegardeSuppTxt;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
@@ -25,7 +26,8 @@ public class CreerFichierSauvegardeTasklet implements Tasklet, StepExecutionList
     private final StrategyFactory factory;
     private final String uploadPath;
     private Demande demande;
-    private FichierSauvegardeSupp fichier;
+    private FichierSauvegardeSuppTxt fichierTxt;
+    private FichierSauvegardeSuppCsv fichierCsv;
 
     public CreerFichierSauvegardeTasklet(StrategyFactory factory, String uploadPath) {
         this.factory = factory;
@@ -45,17 +47,23 @@ public class CreerFichierSauvegardeTasklet implements Tasklet, StepExecutionList
     }
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        this.fichier = (FichierSauvegardeSupp) FichierFactory.getFichier(Constant.ETATDEM_ATTENTE, TYPE_DEMANDE.SUPP);
-        fichier.generateFileName(this.demande);
-        fichier.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
+        this.fichierTxt = (FichierSauvegardeSuppTxt) FichierFactory.getFichier(Constant.ETATDEM_ATTENTE, TYPE_DEMANDE.SUPP);
+        fichierTxt.generateFileName(this.demande);
+        fichierTxt.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
+        this.fichierCsv = (FichierSauvegardeSuppCsv) FichierFactory.getFichier(Constant.ETATDEM_ATTENTE_2, TYPE_DEMANDE.SUPP);
+        fichierCsv.generateFileName(this.demande);
+        fichierCsv.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" + demande.getId()));
+        fichierCsv.writeHeader();
         return RepeatStatus.FINISHED;
     }
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         if (stepExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-            stepExecution.getJobExecution().getExecutionContext().put("fichierTxtPath", this.fichier.getPath().toString());
-            stepExecution.getJobExecution().getExecutionContext().put("fichierTxtName", this.fichier.getFilename());
+            stepExecution.getJobExecution().getExecutionContext().put("fichierTxtPath", this.fichierTxt.getPath().toString());
+            stepExecution.getJobExecution().getExecutionContext().put("fichierTxtName", this.fichierTxt.getFilename());
+            stepExecution.getJobExecution().getExecutionContext().put("fichierCsvPath", this.fichierCsv.getPath().toString());
+            stepExecution.getJobExecution().getExecutionContext().put("fichierCsvName", this.fichierCsv.getFilename());
         }
         return stepExecution.getExitStatus();
     }

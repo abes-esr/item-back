@@ -10,32 +10,17 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
 
 @Setter
 @Getter
 @Component
-public class FichierSauvegardeSupp extends AbstractFichier implements Fichier {
+public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier {
 
     public void writePpnInFile(String ppn, List<Exemplaire> exemplaires) throws StorageException {
-        try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw)) {
-            out.println(ppn);
-            out.println("\n");
-            exemplaires.forEach(exemplaire -> {
-                out.println(exemplaire);
-                out.println("\n");
-            });
-            out.println("\n");
-        } catch (IOException ex) {
-            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
-        }
+
     }
 
     @Override
@@ -50,7 +35,7 @@ public class FichierSauvegardeSupp extends AbstractFichier implements Fichier {
 
     @Override
     public int getType() {
-        return Constant.ETATDEM_ATTENTE;
+        return Constant.ETATDEM_ATTENTE_2;
     }
 
     @Override
@@ -60,11 +45,15 @@ public class FichierSauvegardeSupp extends AbstractFichier implements Fichier {
 
     @Override
     public void generateFileName(Demande demande) {
-        this.filename = Constant.FIC_SAUVEGARDE_NAME + demande.getId() + Constant.EXTENSIONTXT;
+        this.filename = Constant.FIC_SAUVEGARDE_NAME + demande.getId() + Constant.EXTENSIONCSV;
     }
 
     @Override
     public void checkFileContent(Demande d) throws FileCheckingException, IOException {
         //non implémentée
+    }
+
+    public void writeHeader() {
+
     }
 }

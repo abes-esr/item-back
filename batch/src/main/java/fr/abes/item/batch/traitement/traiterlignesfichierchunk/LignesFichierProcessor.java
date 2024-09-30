@@ -7,7 +7,8 @@ import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.batch.traitement.ProxyRetry;
 import fr.abes.item.batch.traitement.model.*;
-import fr.abes.item.core.components.FichierSauvegardeSupp;
+import fr.abes.item.core.components.FichierSauvegardeSuppCsv;
+import fr.abes.item.core.components.FichierSauvegardeSuppTxt;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
@@ -36,7 +37,8 @@ import java.util.List;
 public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-    private FichierSauvegardeSupp fichierSauvegardeSupp;
+    private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
+    private FichierSauvegardeSuppCsv fichierSauvegardeSuppcsv;
 
     private Demande demande;
 
@@ -55,9 +57,14 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         IDemandeService demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
         Integer demandeId = (Integer) executionContext.get("demandeId");
         this.demande = demandeService.findById(demandeId);
-        this.fichierSauvegardeSupp = new FichierSauvegardeSupp();
-        this.fichierSauvegardeSupp.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
-        this.fichierSauvegardeSupp.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
+        this.fichierSauvegardeSuppTxt = new FichierSauvegardeSuppTxt();
+        this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
+        this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
+
+        this.fichierSauvegardeSuppcsv = new FichierSauvegardeSuppCsv();
+        this.fichierSauvegardeSuppcsv.setPath(Path.of(String.valueOf(executionContext.get("fichierCsvPath"))));
+        this.fichierSauvegardeSuppcsv.setFilename(String.valueOf(executionContext.get("fichierCsvName")));
+
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }
 
@@ -145,7 +152,8 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
         if (!exemplairesExistants.isEmpty()){
-            this.fichierSauvegardeSupp.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+            this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+            this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
         }
         //supprimer l'exemplaire
         this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
