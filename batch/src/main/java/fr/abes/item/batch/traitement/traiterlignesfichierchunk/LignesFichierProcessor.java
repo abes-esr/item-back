@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, LigneFichierDto>, StepExecutionListener {
@@ -151,9 +152,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
-        if (!exemplairesExistants.isEmpty()){
-            this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
-            this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+        Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
+        if (exemplaireASupprimerOpt.isPresent()){
+            this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+            this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
         }
         //supprimer l'exemplaire
         this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);

@@ -29,16 +29,14 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         this.csvContent = new StringBuilder();
     }
 
-    public void writePpnInFile(String ppn, List<Exemplaire> exemplaires) throws StorageException {
+    public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
         // TODO boucler sur chaque exemplaire et rechercher une correspondance entre une zone de l'exemplaire et la première zone du header, si correspondance alors mettre la zone exemplaire au bon index dans le csvContent
-        for (Exemplaire exemplaire : exemplaires) {
-            this.csvContent.append(ppn).append(";"); // ajout du ppn
-            for (String zoneAChercher : this.csvContent.toString().split(";")) {
-                List<Zone> listZones = exemplaire.getListeZones().values().stream().filter(exemp -> exemp.getLabel().equals(zoneAChercher)).toList(); // getLabel renvoi le numéro d'exemplaire (exemple e01)
-                for (Zone zone : listZones) {
-                    // TODO la zone et l'inclure dans le csvContent à la bonne place
+        this.csvContent.append(ppn).append(";"); // ajout du ppn
+        for (String zoneAChercher : this.csvContent.toString().split(";")) {
+            List<Zone> listZones = exemplaire.getListeZones().values().stream().filter(exemp -> exemp.getLabel().equals(zoneAChercher)).toList(); // getLabel renvoi le numéro d'exemplaire (exemple e01)
+            for (Zone zone : listZones) {
+                // TODO la zone et l'inclure dans le csvContent à la bonne place
 
-                }
             }
 
 
