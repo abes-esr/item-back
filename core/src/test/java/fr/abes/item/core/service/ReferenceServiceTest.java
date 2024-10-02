@@ -64,8 +64,10 @@ class ReferenceServiceTest {
 
         Mockito.when(iZonesAutoriseesDao.findAll()).thenReturn(zonesAutoriseesList);
 
-        String test = referenceService.constructHeaderCsv();
-        assertEquals("PPN;917$a;930$c;$d;\n",test);
+        List<String> test = referenceService.constructHeaderCsv();
+        List<String> reference = List.of("PPN;917$a;930$c;$d;".split(";"));
+
+        assertEquals(reference,test);
 
     }
 }

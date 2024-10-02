@@ -1,5 +1,6 @@
 package fr.abes.item.core.components;
 
+import com.opencsv.CSVWriter;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.core.constant.Constant;
@@ -9,39 +10,62 @@ import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.ReferenceService;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 @Setter
 @Getter
 @Component
+@NoArgsConstructor
 public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier {
 
     private ReferenceService referenceService;
 
-    private StringBuilder csvContent;
-
-    public FichierSauvegardeSuppCsv() {
-        this.csvContent = new StringBuilder();
-    }
+    private CSVWriter csvWriter;
 
     public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
-        // TODO boucler sur chaque exemplaire et rechercher une correspondance entre une zone de l'exemplaire et la première zone du header, si correspondance alors mettre la zone exemplaire au bon index dans le csvContent
-        this.csvContent.append(ppn).append(";"); // ajout du ppn
-        for (String zoneAChercher : this.csvContent.toString().split(";")) {
-            List<Zone> listZones = exemplaire.getListeZones().values().stream().filter(exemp -> exemp.getLabel().equals(zoneAChercher)).toList(); // getLabel renvoi le numéro d'exemplaire (exemple e01)
-            for (Zone zone : listZones) {
-                // TODO la zone et l'inclure dans le csvContent à la bonne place
+        // création de la liste de référence pour trouver l'emplacement de chaque zone et sous-zone
+        List<String> listDeReference = referenceService.constructHeaderCsv();
+        listDeReference.remove(0);
 
-            }
+        String resultat = "";
 
+        gererZones(listDeReference, exemplaire, resultat, null); // TODO passer une vrai Zone ou retirer le paramètre Zone dans l'appel de la méthode
 
-            this.csvContent.append("\n"); // retour à la ligne
+        // ajout de la ligne
+        this.csvWriter.writeNext(resultat.split(";"));
+    }
+
+    public String gererZones(List<String> listeZonesEtSousZones, Exemplaire exemplaire, String resultat, Zone zone) {
+        if (listeZonesEtSousZones.isEmpty()) {
+            return resultat;
         }
+        String zoneSousZone = listeZonesEtSousZones.remove(0);
+        if (zoneSousZone.startsWith("$")) {
+            return gererSousZone(listeZonesEtSousZones, exemplaire, resultat, zone, zoneSousZone);
+        } else {
+            zone = exemplaire.findZone(zoneSousZone.split("\\$")[0],0);
+            if (zone != null) {
+                String sousZone = zone.findSubLabel(zoneSousZone.split("\\$")[1]);
+                resultat += sousZone;
+            }
+            resultat += ";";
+        }
+        return gererZones(listeZonesEtSousZones, exemplaire, resultat, zone);
+    }
+
+    private String gererSousZone(List<String> listeZonesEtSousZones, Exemplaire exemplaire, String resultat, Zone zone, String sousZoneAChercher) {
+        if (zone != null) {
+            String sousZone = zone.findSubLabel(sousZoneAChercher);
+            resultat += sousZone + ";";
+        }
+        return gererZones(listeZonesEtSousZones, exemplaire, resultat, zone);
     }
 
     @Override
@@ -74,7 +98,11 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         //non implémentée
     }
 
+    public void initWriter() throws IOException {
+        this.csvWriter = new CSVWriter(Files.newBufferedWriter(this.path), ';', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+    }
+
     public void writeHeader() {
-        this.csvContent.append(this.referenceService.constructHeaderCsv());
+        this.csvWriter.writeNext((String[]) this.referenceService.constructHeaderCsv().toArray());
     }
 }

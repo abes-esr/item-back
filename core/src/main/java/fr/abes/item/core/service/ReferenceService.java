@@ -4,6 +4,7 @@ import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.repository.item.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,17 +64,16 @@ public class ReferenceService {
         return traitementDao.findTraitementByDemandeModifId(id);
     }
 
-    public String constructHeaderCsv() {
+    public List<String> constructHeaderCsv() {
         List<ZonesAutorisees> listZonesAutorisees = this.iZonesAutoriseesDao.findAll();
-        StringBuilder headerCsv = new StringBuilder();
-        headerCsv.append("PPN").append(";");
+        List<String> headerCsv = new ArrayList<>();
+        headerCsv.add("PPN");
         for (ZonesAutorisees zonesAutorisees: listZonesAutorisees) {
-            headerCsv.append(zonesAutorisees.getLabelZone());
+            headerCsv.add(zonesAutorisees.getLabelZone()+zonesAutorisees.getSousZonesAutorisees().remove(0).getLibelle());
             for (SousZonesAutorisees sousZonesAutorisees : zonesAutorisees.getSousZonesAutorisees()) {
-                headerCsv.append(sousZonesAutorisees.getLibelle()).append(";");
+                headerCsv.add(sousZonesAutorisees.getLibelle());
             }
         }
-        headerCsv.append("\n");
-        return headerCsv.toString();
+        return headerCsv;
     }
 }
