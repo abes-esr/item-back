@@ -1,6 +1,5 @@
 package fr.abes.item.core.components;
 
-import com.opencsv.CSVWriter;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.core.constant.Constant;
@@ -10,62 +9,72 @@ import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.ReferenceService;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
 
 @Setter
 @Getter
 @Component
-@NoArgsConstructor
 public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier {
 
-    private ReferenceService referenceService;
+    private final ReferenceService referenceService;
 
-    private CSVWriter csvWriter;
-
-    public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
-        // création de la liste de référence pour trouver l'emplacement de chaque zone et sous-zone
-        List<String> listDeReference = referenceService.constructHeaderCsv();
-        listDeReference.remove(0);
-
-        String resultat = "";
-
-        gererZones(listDeReference, exemplaire, resultat, null); // TODO passer une vrai Zone ou retirer le paramètre Zone dans l'appel de la méthode
-
-        // ajout de la ligne
-        this.csvWriter.writeNext(resultat.split(";"));
+    public FichierSauvegardeSuppCsv(ReferenceService referenceService) {
+        this.referenceService = referenceService;
     }
 
-    public String gererZones(List<String> listeZonesEtSousZones, Exemplaire exemplaire, String resultat, Zone zone) {
-        if (listeZonesEtSousZones.isEmpty()) {
-            return resultat;
+    public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
+        try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            // création de la liste de référence pour trouver l'emplacement de chaque zone et sous-zone
+            List<String> listDeReference = referenceService.constructHeaderCsv();
+            listDeReference.remove(0);
+            // ajout de la ligne
+            out.println(ppn + ";" + gererZones(listDeReference, exemplaire));
+        } catch (IOException ex) {
+            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
         }
-        String zoneSousZone = listeZonesEtSousZones.remove(0);
+
+    }
+
+    public String gererZones(List<String> listeZonesEtSousZones, Exemplaire exemplaire) {
+        return gererZonesRecursif(listeZonesEtSousZones, 0, exemplaire, "", null);
+    }
+
+    private String gererZonesRecursif(List<String> listeZonesEtSousZones, int index, Exemplaire exemplaire, String resultat, Zone zone) {
+        if (index >= listeZonesEtSousZones.size()) {
+            if (resultat != null && !resultat.isEmpty()) {
+                return resultat.substring(0, resultat.length()-1);
+            }
+            return null;
+        }
+        String zoneSousZone = listeZonesEtSousZones.get(index);
+
         if (zoneSousZone.startsWith("$")) {
-            return gererSousZone(listeZonesEtSousZones, exemplaire, resultat, zone, zoneSousZone);
+            if (zone != null) {
+                String sousZone = zone.findSubLabel(zoneSousZone);
+                if (sousZone != null) {
+                    resultat += sousZone;
+                }
+            }
         } else {
             zone = exemplaire.findZone(zoneSousZone.split("\\$")[0],0);
             if (zone != null) {
                 String sousZone = zone.findSubLabel(zoneSousZone.split("\\$")[1]);
-                resultat += sousZone;
+                if (sousZone != null) {
+                    resultat += sousZone;
+                }
             }
-            resultat += ";";
         }
-        return gererZones(listeZonesEtSousZones, exemplaire, resultat, zone);
-    }
-
-    private String gererSousZone(List<String> listeZonesEtSousZones, Exemplaire exemplaire, String resultat, Zone zone, String sousZoneAChercher) {
-        if (zone != null) {
-            String sousZone = zone.findSubLabel(sousZoneAChercher);
-            resultat += sousZone + ";";
-        }
-        return gererZones(listeZonesEtSousZones, exemplaire, resultat, zone);
+        return gererZonesRecursif(listeZonesEtSousZones, index+1, exemplaire, resultat + ";", zone);
     }
 
     @Override
@@ -98,11 +107,14 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         //non implémentée
     }
 
-    public void initWriter() throws IOException {
-        this.csvWriter = new CSVWriter(Files.newBufferedWriter(this.path), ';', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-    }
-
     public void writeHeader() {
-        this.csvWriter.writeNext((String[]) this.referenceService.constructHeaderCsv().toArray());
+        try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw)) {
+            // ajout de la ligne
+            out.println(String.join(";", this.referenceService.constructHeaderCsv()));
+        } catch (IOException ex) {
+            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
+        }
     }
 }

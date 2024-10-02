@@ -26,9 +26,8 @@ public class FichierSauvegardeSuppTxt extends AbstractFichier implements Fichier
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             out.println(ppn);
-            out.println("\n");
+            out.print("\n");
             out.println(exemplaire);
-            out.println("\n");
             out.println("\n");
         } catch (IOException ex) {
             throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");

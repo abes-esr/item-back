@@ -53,7 +53,6 @@ public class CreerFichierSauvegardeTasklet implements Tasklet, StepExecutionList
         this.fichierCsv = (FichierSauvegardeSuppCsv) FichierFactory.getFichier(Constant.ETATDEM_ATTENTE_2, TYPE_DEMANDE.SUPP);
         fichierCsv.generateFileName(this.demande);
         fichierCsv.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" + demande.getId()));
-        fichierCsv.initWriter();
         fichierCsv.writeHeader();
         return RepeatStatus.FINISHED;
     }

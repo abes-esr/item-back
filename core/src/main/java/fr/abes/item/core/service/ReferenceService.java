@@ -69,9 +69,11 @@ public class ReferenceService {
         List<String> headerCsv = new ArrayList<>();
         headerCsv.add("PPN");
         for (ZonesAutorisees zonesAutorisees: listZonesAutorisees) {
-            headerCsv.add(zonesAutorisees.getLabelZone()+zonesAutorisees.getSousZonesAutorisees().remove(0).getLibelle());
-            for (SousZonesAutorisees sousZonesAutorisees : zonesAutorisees.getSousZonesAutorisees()) {
-                headerCsv.add(sousZonesAutorisees.getLibelle());
+            if(!zonesAutorisees.getLabelZone().startsWith("L")){
+                headerCsv.add(zonesAutorisees.getLabelZone()+zonesAutorisees.getSousZonesAutorisees().remove(0).getLibelle());
+                for (SousZonesAutorisees sousZonesAutorisees : zonesAutorisees.getSousZonesAutorisees()) {
+                    headerCsv.add(sousZonesAutorisees.getLibelle());
+                }
             }
         }
         return headerCsv;

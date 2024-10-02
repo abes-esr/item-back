@@ -1,6 +1,6 @@
 package fr.abes.item.core.components;
 
-import com.opencsv.CSVWriter;
+import com.google.common.collect.Lists;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.TYPE_NOTICE;
@@ -13,7 +13,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(classes = {FichierSauvegardeSuppCsv.class})
 class FichierSauvegardeSuppCsvTest {
@@ -24,29 +25,71 @@ class FichierSauvegardeSuppCsvTest {
     @MockBean
     private ReferenceService referenceService;
 
-    CSVWriter csvWriter;
+    @Test
+    void gererZonesAvec1Exemplaire() throws ZoneException {
+        List<String> listZoneSousZone = List.of("930$c;$d;991$a".split(";"));
+
+        Exemplaire exemplaire = new Exemplaire();
+        Zone zone930 = new Zone("930", TYPE_NOTICE.EXEMPLAIRE);
+        zone930.addSubLabel("$c", "test 930$c");
+        zone930.addSubLabel("$d", "test 930$d");
+
+        exemplaire.addZone(zone930);
+        exemplaire.addZone("991", "$a", "test 991$a");
+
+        String result = fichierSauvegardeSuppCsv.gererZones(listZoneSousZone, exemplaire);
+
+        assertEquals("test 930$c;test 930$d;test 991$a", result);
+    }
 
     @Test
-    void gererZones() throws ZoneException {
-        List<String> listZoneSousZone = List.of("917$a;930$a;$c;$d;$e;$i;$j;$v;$2;$l;$k;991$a;915$a;$b;$f;955$a;$k;$4;920$a;$b;$c".split(";"));
+    void gererZonesAvec1ExemplaireEtListeLongue() throws ZoneException {
+        List<String> listZoneSousZone = List.of("915$a;917$a;930$a;$c;$d;$i;$j;991$a".split(";"));
 
-        String resultat = "";
+        Exemplaire exemplaire = new Exemplaire();
+        Zone zone930 = new Zone("930", TYPE_NOTICE.EXEMPLAIRE);
+        zone930.addSubLabel("$c", "test 930$c");
+        zone930.addSubLabel("$d", "test 930$d");
 
-        Exemplaire exemplaire1 = new Exemplaire();
-        exemplaire1.addZone("930", "$c", "test 930$c");
-        exemplaire1.addZone("930", "$d", "test 930$d");
-        exemplaire1.addZone("991", "$a", "test 930$a");
+        exemplaire.addZone(zone930);
+        exemplaire.addZone("991", "$a", "test 991$a");
 
-        Zone zone1 = new Zone("917", TYPE_NOTICE.EXEMPLAIRE);
+        String result = fichierSauvegardeSuppCsv.gererZones(listZoneSousZone, exemplaire);
 
-        assertEquals(listZoneSousZone, fichierSauvegardeSuppCsv.gererZones(listZoneSousZone, exemplaire1, resultat, null));
+        assertEquals(";;;test 930$c;test 930$d;;;test 991$a", result);
+    }
 
-//        Exemplaire exemplaire2 = new Exemplaire();
-//        exemplaire2.addZone("917", "$a", "test 917$a");
-//        exemplaire2.addZone("991", "$a", "test 930$a");
-//        exemplaire2.addZone("915", "$a", "test 915$a");
-//        exemplaire2.addZone("915", "$c", "test 915$c");
-//
-//        assertEquals(, exemplaire2.getListeZones());
+    @Test
+    void gererZonesAvec1ExemplaireLong() throws ZoneException {
+        List<String> listZoneSousZone = List.of("930$c;$i;$d".split(";"));
+
+        Exemplaire exemplaire = new Exemplaire();
+        Zone zone930 = new Zone("930", TYPE_NOTICE.EXEMPLAIRE);
+        zone930.addSubLabel("$c", "test 930$c");
+        zone930.addSubLabel("$d", "test 930$d");
+
+        exemplaire.addZone(zone930);
+        exemplaire.addZone("991", "$a", "test 991$a");
+
+        String result = fichierSauvegardeSuppCsv.gererZones(listZoneSousZone, exemplaire);
+
+        assertEquals("test 930$c;;test 930$d", result);
+    }
+
+    @Test
+    void gereZonesAvecListeVide() throws ZoneException {
+        List<String> listZoneSousZone = Lists.newArrayList();
+
+        Exemplaire exemplaire = new Exemplaire();
+        Zone zone930 = new Zone("930", TYPE_NOTICE.EXEMPLAIRE);
+        zone930.addSubLabel("$c", "test 930$c");
+        zone930.addSubLabel("$d", "test 930$d");
+
+        exemplaire.addZone(zone930);
+        exemplaire.addZone("991", "$a", "test 991$a");
+
+        String result = fichierSauvegardeSuppCsv.gererZones(listZoneSousZone, exemplaire);
+
+        assertNull(result);
     }
 }

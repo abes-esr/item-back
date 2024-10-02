@@ -16,6 +16,7 @@ import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.ReferenceService;
 import fr.abes.item.core.service.impl.DemandeSuppService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +39,16 @@ import java.util.Optional;
 public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-    private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
+    private final ReferenceService referenceService;
+        private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
     private FichierSauvegardeSuppCsv fichierSauvegardeSuppcsv;
 
     private Demande demande;
 
-    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
+    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry,ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
+        this.referenceService = referenceService;
     }
 
 
@@ -62,7 +65,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
         this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
 
-        this.fichierSauvegardeSuppcsv = new FichierSauvegardeSuppCsv();
+        this.fichierSauvegardeSuppcsv = new FichierSauvegardeSuppCsv(this.referenceService);
         this.fichierSauvegardeSuppcsv.setPath(Path.of(String.valueOf(executionContext.get("fichierCsvPath"))));
         this.fichierSauvegardeSuppcsv.setFilename(String.valueOf(executionContext.get("fichierCsvName")));
 
