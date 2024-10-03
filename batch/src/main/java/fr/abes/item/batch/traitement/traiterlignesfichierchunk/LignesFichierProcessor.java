@@ -40,7 +40,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
     private final ReferenceService referenceService;
-        private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
+    private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
     private FichierSauvegardeSuppCsv fichierSauvegardeSuppcsv;
 
     private Demande demande;
