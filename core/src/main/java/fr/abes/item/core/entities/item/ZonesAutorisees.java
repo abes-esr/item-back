@@ -27,7 +27,7 @@ public class ZonesAutorisees implements Serializable, GenericEntity<Integer> {
     @Column(name = "INDICATEURS")
     private String indicateurs;
 
-    @OneToMany(mappedBy = "zone", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "zone", fetch = FetchType.EAGER)
     private List<SousZonesAutorisees> sousZonesAutorisees;
 
     @ManyToMany
