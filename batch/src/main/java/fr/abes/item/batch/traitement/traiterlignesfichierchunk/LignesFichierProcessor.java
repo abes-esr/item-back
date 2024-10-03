@@ -64,12 +64,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         this.fichierSauvegardeSuppTxt = new FichierSauvegardeSuppTxt();
         this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
         this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
-        log.info("Initialisation fichier txt: " + this.fichierSauvegardeSuppTxt.getPath() + this.fichierSauvegardeSuppTxt.getFilename());
 
         this.fichierSauvegardeSuppcsv = new FichierSauvegardeSuppCsv(this.referenceService);
         this.fichierSauvegardeSuppcsv.setPath(Path.of(String.valueOf(executionContext.get("fichierCsvPath"))));
         this.fichierSauvegardeSuppcsv.setFilename(String.valueOf(executionContext.get("fichierCsvName")));
-        log.info("Initialisation fichier csv: " + this.fichierSauvegardeSuppTxt.getPath() + this.fichierSauvegardeSuppTxt.getFilename());
 
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }

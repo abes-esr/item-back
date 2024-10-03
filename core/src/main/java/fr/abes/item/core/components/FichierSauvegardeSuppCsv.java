@@ -33,7 +33,6 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
-        log.debug("Ecriture du fichier sur chemin: " + this.getPath().resolve(this.getFilename()));
         try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
