@@ -10,6 +10,7 @@ import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.ReferenceService;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -22,6 +23,7 @@ import java.util.List;
 @Setter
 @Getter
 @Component
+@Slf4j
 public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier {
 
     private final ReferenceService referenceService;
@@ -31,6 +33,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
+        log.debug("Ecriture du fichier sur chemin: " + this.getPath().resolve(this.getFilename()));
         try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -42,7 +45,6 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         } catch (IOException ex) {
             throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
         }
-
     }
 
     public String gererZones(List<String> listeZonesEtSousZones, Exemplaire exemplaire) {
