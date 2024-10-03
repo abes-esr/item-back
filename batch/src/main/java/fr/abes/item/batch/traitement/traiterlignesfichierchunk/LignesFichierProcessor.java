@@ -7,7 +7,8 @@ import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.cbs.notices.Zone;
 import fr.abes.item.batch.traitement.ProxyRetry;
 import fr.abes.item.batch.traitement.model.*;
-import fr.abes.item.core.components.FichierSauvegardeSupp;
+import fr.abes.item.core.components.FichierSauvegardeSuppCsv;
+import fr.abes.item.core.components.FichierSauvegardeSuppTxt;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
@@ -15,6 +16,7 @@ import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.ReferenceService;
 import fr.abes.item.core.service.impl.DemandeSuppService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -31,18 +33,22 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-    private FichierSauvegardeSupp fichierSauvegardeSupp;
+    private final ReferenceService referenceService;
+    private FichierSauvegardeSuppTxt fichierSauvegardeSuppTxt;
+    private FichierSauvegardeSuppCsv fichierSauvegardeSuppcsv;
 
     private Demande demande;
 
-    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
+    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry,ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
+        this.referenceService = referenceService;
     }
 
 
@@ -55,9 +61,14 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         IDemandeService demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
         Integer demandeId = (Integer) executionContext.get("demandeId");
         this.demande = demandeService.findById(demandeId);
-        this.fichierSauvegardeSupp = new FichierSauvegardeSupp();
-        this.fichierSauvegardeSupp.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
-        this.fichierSauvegardeSupp.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
+        this.fichierSauvegardeSuppTxt = new FichierSauvegardeSuppTxt();
+        this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
+        this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
+
+        this.fichierSauvegardeSuppcsv = new FichierSauvegardeSuppCsv(this.referenceService);
+        this.fichierSauvegardeSuppcsv.setPath(Path.of(String.valueOf(executionContext.get("fichierCsvPath"))));
+        this.fichierSauvegardeSuppcsv.setFilename(String.valueOf(executionContext.get("fichierCsvName")));
+
         log.info(Constant.POUR_LA_DEMANDE + this.demande.getNumDemande());
     }
 
@@ -144,8 +155,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
-        if (!exemplairesExistants.isEmpty()){
-            this.fichierSauvegardeSupp.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplairesExistants);
+        Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
+        if (exemplaireASupprimerOpt.isPresent()){
+            this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+            this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
         }
         //supprimer l'exemplaire
         this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);

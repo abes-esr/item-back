@@ -13,6 +13,7 @@ import fr.abes.item.batch.webstats.VerifierParamsTasklet;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.service.ReferenceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -54,6 +55,7 @@ public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
 
+    private final ReferenceService referenceService;
     @Value("${batch.min.hour}")
     int minHour;
 
@@ -69,9 +71,10 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
+        this.referenceService = referenceService;
     }
 
     @Bean
@@ -88,7 +91,7 @@ public class JobConfiguration {
     @Bean
     @StepScope
     public LignesFichierProcessor processor() {
-        return new LignesFichierProcessor(strategyFactory, proxyRetry);
+        return new LignesFichierProcessor(strategyFactory, proxyRetry, this.referenceService);
     }
     @Bean
     public LignesFichierWriter writer() {

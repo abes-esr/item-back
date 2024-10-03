@@ -8,6 +8,7 @@ import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.StorageException;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -15,23 +16,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.List;
 
 @Setter
 @Getter
 @Component
-public class FichierSauvegardeSupp extends AbstractFichier implements Fichier {
+@Slf4j
+public class FichierSauvegardeSuppTxt extends AbstractFichier implements Fichier {
 
-    public void writePpnInFile(String ppn, List<Exemplaire> exemplaires) throws StorageException {
+    public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
         try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             out.println(ppn);
-            out.println("\n");
-            exemplaires.forEach(exemplaire -> {
-                out.println(exemplaire);
-                out.println("\n");
-            });
+            out.print("\n");
+            out.println(exemplaire);
             out.println("\n");
         } catch (IOException ex) {
             throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
