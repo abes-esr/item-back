@@ -25,7 +25,7 @@ public class ItemLogAppender extends AbstractAppender {
             String demandeId = ThreadContext.get("demandeId");
             String typeDemande = ThreadContext.get("typeDemande");
             if (demandeId != null && typeDemande != null) {
-                System.out.println("DEM_" + typeDemande + "_" + demandeId + " : " + originalMessage);
+                System.out.println("DEM_" + typeDemande + "_" + demandeId + " / " + event.getSource().getClassName() + " / " + event.getSource().getMethodName() + " : " + originalMessage);
             }
         }
     }
