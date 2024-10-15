@@ -23,7 +23,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
     @Autowired
     public FichierEnrichiSupp(@Value("") final String filename) {
         this.filename = filename;
-        this.ligneCourante=2;
+        this.ligneCourante = 2;
     }
 
     @Override
@@ -48,11 +48,30 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader bufLecteur = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
             String ligne = Utilitaires.checkBom(bufLecteur.readLine());
-            check3Cols(ligne, 3, Constant.ERR_FILE_3COL_SUPP);
+            check3Cols(ligne);
             while ((ligne = bufLecteur.readLine()) != null) {
                 checkBodyLine(ligne, demandeSupp);
                 ligneCourante++;
             }
+        }
+    }
+
+    /**
+     * Méthode de vérification de la première partie de la ligne du fichier enrichi.
+     * Les trois premières colonnes doivent être : ppn;rcr;epn;
+     *
+     * @param ligne : ligne à traiter
+     * @throws FileCheckingException : erreur dans le format de la ligne
+     */
+    private void check3Cols(String ligne) throws FileCheckingException {
+        if (ligne.split(";").length < 3) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
+        }
+        if (ligne.length() < 11) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
+        }
+        if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
         }
     }
 
@@ -63,17 +82,14 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
      * @throws FileCheckingException : erreur de format de la ligne
      */
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
-        if (ligne.length() < 13) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante
-                    + Constant.ERR_FILE_LINELENGTH);
-        }
         try {
             String[] tabligne = ligne.split(";");
             checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
             checkPpn(tabligne[0], ligneCourante);
-            if (!tabligne[2].isEmpty())
+            //cas ou l'epn est renseigné
+            if (tabligne.length > 2)
                 checkEpn(tabligne[2], ligneCourante);
-        }catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_LINELENGTH);
         }
     }

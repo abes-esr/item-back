@@ -112,13 +112,13 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_ERRLINE = "Erreur ligne ";
 	public static final String ERR_FILE_ONLYONEPPN = "la ligne ne doit contenir qu'un ppn (sur 9 caractères).";
 	public static final String ERR_FILE_HEAD4TH = "La valeur en-tête de la quatrieme colonne n'est pas valide.";
-	public static final String ERR_FILE_LINELENGTH = "Il y a un problème lié à la longueur de la ligne.";
+	public static final String ERR_FILE_LINELENGTH = " : Il y a un problème lié à la longueur de la ligne.";
 	public static final String ERR_FILE_TYPEFILE = "Type de fichier inconnu: ";
 	public static final String ERR_FILE_TYPEDEMANDE = " pour le type de demande ";
 	public static final String ERR_FILE_4COLNONVIDE = "La valeur de la 4è colonne ne doit pas être vide.";
 	public static final String ERR_FILE_4COLZONE = "impossible de lancer un traitement sur la zone ";
 	public static final String ERR_FILE_4COLVIDE = "La valeur de la 4è colonne doit être vide.";
-	public static final String ERR_FILE_WRONGRCR = "La valeur du rcr ne correspond pas au rcr de la demandeModif.";
+	public static final String ERR_FILE_WRONGRCR = "La valeur du rcr ne correspond pas au rcr de la demande.";
 	public static final String ERR_FILE_WRONGPPN = "Le PPN n'est pas conforme.";
 	public static final String ERR_FILE_WRONGEPN = "La valeur de l'epn n'est pas conforme.";
 

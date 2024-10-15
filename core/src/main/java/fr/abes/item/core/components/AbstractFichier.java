@@ -80,24 +80,6 @@ public abstract class AbstractFichier {
         return indexZone;
     }
 
-    /**
-     * Méthode de vérification de la première partie de la ligne du fichier enrichi.
-     * Les trois premières colonnes doivent être : ppn;rcr;epn;
-     *
-     * @param ligne : ligne à traiter
-     * @throws FileCheckingException : erreur dans le format de la ligne
-     */
-    protected void check3Cols(String ligne, int maxSize, String errorMessage) throws FileCheckingException {
-        if (ligne.split(";").length < maxSize) {
-            throw new FileCheckingException(errorMessage);
-        }
-        if (ligne.length() < 12) {
-            throw new FileCheckingException(errorMessage);
-        }
-        if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
-            throw new FileCheckingException(errorMessage);
-        }
-    }
 
     /**
      * Méthode permettant de vérifier que la valeur de la seconde colonne correspond au RCR de la demande
@@ -117,7 +99,7 @@ public abstract class AbstractFichier {
      * @throws FileCheckingException : erreur de format de fichier
      */
     protected void checkPpn(String ppn, int ligneCourante) throws FileCheckingException {
-        if (!ppn.matches("\\d{1,9}X?$")){
+        if (!ppn.matches("^\\d{8}[0-9X]$")){
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGPPN);
         }
     }
@@ -128,7 +110,7 @@ public abstract class AbstractFichier {
      * @throws FileCheckingException: erreur de format de l'epn
      */
     protected void checkEpn(String epn, int ligneCourante) throws FileCheckingException {
-        if (!epn.matches("\\d{1,9}X?$")) {
+        if (!epn.matches("^\\d{8}[0-9X]$")) {
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGEPN);
         }
     }

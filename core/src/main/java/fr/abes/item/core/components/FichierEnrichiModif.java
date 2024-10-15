@@ -56,7 +56,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
                 throw new FileCheckingException(Constant.ERR_FILE_NOTRAIT);
             }
             String ligne = Utilitaires.checkBom(bufLecteur.readLine());
-            check3Cols(ligne, 4, Constant.ERR_FILE_3COL_MODIF);
+            check3Cols(ligne);
             String tagSubTag = ligne.split(";")[3];
             if (tagSubTag.matches("e\\d{2}\\$a")) {
                 throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + tagSubTag);
@@ -81,6 +81,25 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
 
         }
 
+    }
+
+    /**
+     * Méthode de vérification de la première partie de la ligne du fichier enrichi.
+     * Les trois premières colonnes doivent être : ppn;rcr;epn;
+     *
+     * @param ligne : ligne à traiter
+     * @throws FileCheckingException : erreur dans le format de la ligne
+     */
+    private void check3Cols(String ligne) throws FileCheckingException {
+        if (ligne.split(";").length < 4) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+        }
+        if (ligne.length() < 12) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+        }
+        if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
+            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+        }
     }
 
     /**
