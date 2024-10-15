@@ -56,7 +56,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
                 throw new FileCheckingException(Constant.ERR_FILE_NOTRAIT);
             }
             String ligne = Utilitaires.checkBom(bufLecteur.readLine());
-            check3Cols(ligne);
+            check3Cols(ligne, 4, Constant.ERR_FILE_3COL_MODIF);
             String tagSubTag = ligne.split(";")[3];
             if (tagSubTag.matches("e\\d{2}\\$a")) {
                 throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + tagSubTag);
@@ -81,25 +81,6 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
 
         }
 
-    }
-
-    /**
-     * Méthode de vérification de la première partie de la ligne du fichier enrichi.
-     * Les trois premières colonnes doivent être : ppn;rcr;epn;
-     *
-     * @param ligne : ligne à traiter
-     * @throws FileCheckingException : erreur dans le format de la ligne
-     */
-    private void check3Cols(String ligne) throws FileCheckingException {
-        if (ligne.split(";").length < 4) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL);
-        }
-        if (ligne.length() < 12) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL);
-        }
-        if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL);
-        }
     }
 
     /**
@@ -149,46 +130,12 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
         }
         try {
             String[] tabligne = ligne.split(";");
-            checkRcr(tabligne[1], demandeModif.getRcr());
-            checkPpn(tabligne[0]);
-            checkEpn(tabligne[2]);
+            checkRcr(tabligne[1], demandeModif.getRcr(), ligneCourante);
+            checkPpn(tabligne[0], ligneCourante);
+            checkEpn(tabligne[2], ligneCourante);
             check4cols(tabligne, demandeModif.getTraitement().getNomMethode());
         }catch (IndexOutOfBoundsException e) {
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_LINELENGTH);
-        }
-    }
-
-    /**
-     * Méthode permettant de vérifier que la valeur de la seconde colonne correspond au RCR de la demande
-     * @param rcrFichier : ligne du fichier
-     * @param rcr : rcr de la demande
-     * @throws FileCheckingException : erreur de format de fichier
-     */
-    private void checkRcr(String rcrFichier, String rcr) throws FileCheckingException {
-        if (!rcrFichier.equals(rcr)) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGRCR);
-        }
-    }
-
-    /**
-     * Méthode de vérification de la forme d'un ppn
-     * @param ppn ppn à vérifier
-     * @throws FileCheckingException : erreur de format de fichier
-     */
-    private void checkPpn(String ppn) throws FileCheckingException {
-        if (!ppn.matches("\\d{1,9}X?$")){
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGPPN);
-        }
-    }
-
-    /**
-     * Méthode de vérification de la forme d'un epn
-     * @param epn epn à vérifier
-     * @throws FileCheckingException: erreur de format de l'epn
-     */
-    private void checkEpn(String epn) throws FileCheckingException {
-        if (!epn.matches("\\d{1,9}X?$")) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGEPN);
         }
     }
 
