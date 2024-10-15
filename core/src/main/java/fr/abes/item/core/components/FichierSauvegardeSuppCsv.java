@@ -42,7 +42,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
             // ajout de la ligne
             out.println(ppn + ";" + gererZones(listDeReference, exemplaire));
         } catch (IOException ex) {
-            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
+            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
         }
     }
 
@@ -115,7 +115,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
             // ajout de la ligne
             out.println(String.join(";", this.referenceService.constructHeaderCsv()));
         } catch (IOException ex) {
-            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde txt");
+            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
         }
     }
 }

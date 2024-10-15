@@ -12,12 +12,13 @@ import fr.abes.item.core.exception.FileCheckingException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -368,5 +369,37 @@ public class Utilitaires {
             case MODIF -> "modification";
             case SUPP -> "suppression";
         };
+    }
+
+    /**
+     * Méthode qui permet de trier le contenu du fichier de correspondence
+     * @param file un fichier de type Resource
+     * @return un fichier de type Resource
+     * @throws IOException renvoi une exception si le fichier ne peut être lu
+     */
+    public static Resource sortFichierCorrespondance(Resource file) throws IOException {
+        FileReader fileReader = new FileReader(String.valueOf(file.getURI()).substring(6));
+        BufferedReader reader = new BufferedReader(fileReader);
+        List<String> correspondenceUnsortList = new ArrayList<>();
+        String result = null;
+        int i = 0;
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            if (i == 0) { // stockage de la ligne d'en-tête
+                result = line + "\n";
+                i++;
+            } else {
+                // stockage des lignes de correspondence
+                correspondenceUnsortList.add(line+"\n");
+            }
+        }
+        reader.close();
+        fileReader.close();
+        // tri des lignes
+        Collections.sort(correspondenceUnsortList);
+        // assemblage de l'en-tête avec les lignes pour constituer le résultat final
+        List<String> correspondenceSortList = new ArrayList<>(correspondenceUnsortList);
+        result = result + correspondenceSortList.toString().replaceAll(", ","").replaceAll("\\[", "").replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\]", "");
+
+        return new ByteArrayResource(result.getBytes());
     }
 }

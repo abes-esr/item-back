@@ -4,6 +4,7 @@ import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.exception.ForbiddenException;
 import fr.abes.item.core.exception.UserExistException;
 import fr.abes.item.core.service.FileSystemStorageService;
+import fr.abes.item.core.utilitaire.Utilitaires;
 import fr.abes.item.security.CheckAccessToServices;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 
 @RestController
@@ -43,7 +45,7 @@ public class DownloadFichierRestService {
 	@Operation(summary = "permet de récupérer les fichiers relatifs à une demande")
 	public ResponseEntity<Resource> downloadFile(
 			@PathVariable("filename") String filename, @PathVariable("id") Integer numDemande, @PathVariable("type") TYPE_DEMANDE type, HttpServletRequest request
-	) throws UserExistException, ForbiddenException {
+	) throws UserExistException, ForbiddenException, IOException {
 		checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute("userNum").toString(), type);
 
 		if (numDemande != null && numDemande != 0) {
@@ -52,9 +54,10 @@ public class DownloadFichierRestService {
 		}
 		Resource file = storageService.loadAsResource(filename);
 
+		Resource bodyFile = Utilitaires.sortFichierCorrespondance(file);
+
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=\"" + file.getFilename() + "\"")
-				.body(file);
-
+				.body(bodyFile);
 	}
 }
