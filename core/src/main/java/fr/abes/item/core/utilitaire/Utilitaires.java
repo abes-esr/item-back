@@ -12,11 +12,7 @@ import fr.abes.item.core.exception.FileCheckingException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -371,33 +367,4 @@ public class Utilitaires {
         };
     }
 
-    /**
-     * Méthode qui permet de trier le contenu du fichier de correspondance
-     * @param file un fichier de type Resource
-     * @return une String contenant les correspondances triées
-     * @throws IOException renvoi une exception si le fichier ne peut être lu
-     */
-    public static String sortFichierCorrespondance(Resource file) throws IOException {
-        FileReader fileReader = new FileReader(String.valueOf(file.getURI()).substring(6));
-        BufferedReader reader = new BufferedReader(fileReader);
-        List<String> correspondanceUnsortList = new ArrayList<>();
-        String result = null;
-        int i = 0;
-        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-            if (i == 0) { // stockage de la ligne d'en-tête
-                result = line + "\n";
-                i++;
-            } else {
-                // stockage des lignes de correspondance
-                correspondanceUnsortList.add(line+"\n");
-            }
-        }
-        reader.close();
-        fileReader.close();
-        // tri des lignes
-        Collections.sort(correspondanceUnsortList);
-        // assemblage de l'en-tête avec les lignes pour constituer le résultat final
-        List<String> correspondanceSortList = new ArrayList<>(correspondanceUnsortList);
-        return result + correspondanceSortList.toString().replaceAll(", ","").replaceAll("\\[", "").replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\]", "");
-    }
 }

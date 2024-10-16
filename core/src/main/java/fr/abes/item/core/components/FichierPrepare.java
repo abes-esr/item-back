@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -89,7 +89,6 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
 		}
-
 	}
 
 	/**
@@ -114,18 +113,46 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
 		}
+	}
 
+	/**
+	 * Méthode qui permet de trier le contenu du fichier de correspondance
+	 * @throws IOException renvoi une exception si le fichier ne peut être lu
+	 */
+	public void trierLignesDeCorrespondances() throws IOException {
+		FileReader fileReader = new FileReader(path.resolve(filename).toString());
+		BufferedReader reader = new BufferedReader(fileReader);
+		List<String> correspondanceUnsortList = new ArrayList<>();
+		String result = null;
+		int i = 0;
+		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+			if (i == 0) { // stockage de la ligne d'en-tête
+				result = line + "\n";
+				i++;
+			} else {
+				// stockage des lignes de correspondance
+				correspondanceUnsortList.add(line+"\n");
+			}
+		}
+		reader.close();
+		fileReader.close();
+		// tri des lignes
+		Collections.sort(correspondanceUnsortList);
+		// assemblage de l'en-tête avec les lignes pour constituer le résultat final
+		List<String> correspondanceSortList = new ArrayList<>(correspondanceUnsortList);
+		result = result + correspondanceSortList.toString().replaceAll(", ","").replaceAll("\\[", "").replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\]", "");
+		ecrireFichierTrie(result);
 	}
 
 	/**
 	 * Méthode permettant d'écrire sur le fichier la liste des correspondances triées
-	 * @param sortedResult String contenant la liste des correspondances triées
+	 * @param sortedLines String contenant la liste des correspondances triées
 	 */
-	public void writeSortedFileToDisk(String sortedResult) {
+	public void ecrireFichierTrie(String sortedLines) {
 		try (FileWriter fw = new FileWriter(path.resolve(filename).toString());
 			 BufferedWriter bw = new BufferedWriter(fw);
 			 PrintWriter out = new PrintWriter(bw)) {
-			out.println(sortedResult);
+			out.println(sortedLines);
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_SORTED_FILE);
 		}
