@@ -19,12 +19,12 @@ import java.io.PrintWriter;
 @Slf4j
 @Component
 public class FichierPrepare extends AbstractFichier implements Fichier {
-	
+
 	@Autowired
 	public FichierPrepare(@Value("") final String filename) {
 		this.filename = filename;
 	}
-	
+
 	@Override
 	public String getFilename() {
 		return this.filename;
@@ -34,7 +34,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	
+
 	@Override
 	public int getType() {
 		return Constant.ETATDEM_PREPAREE;
@@ -53,7 +53,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	public void generateFileName(Demande demande) {
 		this.filename = Constant.FIC_PREPARE_NAME + demande.getId() + Constant.EXTENSIONCSV;
 	}
-	
+
 	/**
 	 * Méthode d'écriture de la première ligne dans le fichier
 	 */
@@ -64,9 +64,9 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 			out.println("PPN;RCR;EPN;");
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
-		} 
+		}
 	}
-	
+
 	/**
 	 * Méthode permetant d'alimenter le fichier à partir d'une chaine correspondant à une liste d'epn
 	 * @param input résultat de l'appel à la fonction Oracle
@@ -88,8 +88,8 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
             }
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
-		} 
-		
+		}
+
 	}
 
 	/**
@@ -116,6 +116,19 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		}
 
 	}
-	
+
+	/**
+	 * Méthode permettant d'écrire sur le fichier la liste des correspondances triées
+	 * @param sortedResult String contenant la liste des correspondances triées
+	 */
+	public void writeSortedFileToDisk(String sortedResult) {
+		try (FileWriter fw = new FileWriter(path.resolve(filename).toString());
+			 BufferedWriter bw = new BufferedWriter(fw);
+			 PrintWriter out = new PrintWriter(bw)) {
+			out.println(sortedResult);
+		} catch (IOException ex) {
+			log.error(Constant.ERROR_UNABLE_TO_CREATE_SORTED_FILE);
+		}
+	}
 
 }

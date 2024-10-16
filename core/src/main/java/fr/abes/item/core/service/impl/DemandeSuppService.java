@@ -181,6 +181,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             //Alimentation du fichier par appel à la procédure Oracle ppntoepn
             appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
             demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
+            fichierPrepare.writeSortedFileToDisk(Utilitaires.sortFichierCorrespondance(storageService.loadAsResource(fichierPrepare.getFilename())));
             save(demande);
             checkEtatDemande(demande);
         }
