@@ -11,6 +11,7 @@ import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.ILigneFichierService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.ThreadContext;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.batch.core.ExitStatus;
@@ -110,6 +111,8 @@ public class LireLigneFichierTasklet implements Tasklet, StepExecutionListener {
             stepExecution.getJobExecution().getExecutionContext().put("lignes", this.lignesFichier);
             stepExecution.getJobExecution().getExecutionContext().put("demandeId", this.demandeId);
             stepExecution.getJobExecution().getExecutionContext().put("typeDemande", this.typeDemande.toString());
+            ThreadContext.put("demandeId", String.valueOf(this.demandeId));
+            ThreadContext.put("typeDemande", this.typeDemande.toString());
         }
         return stepExecution.getExitStatus();
     }
