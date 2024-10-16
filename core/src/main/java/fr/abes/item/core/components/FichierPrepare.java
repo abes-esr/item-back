@@ -148,7 +148,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	 * Méthode permettant d'écrire sur le fichier la liste des correspondances triées
 	 * @param sortedLines String contenant la liste des correspondances triées
 	 */
-	public void ecrireFichierTrie(String sortedLines) {
+	private void ecrireFichierTrie(String sortedLines) {
 		try (FileWriter fw = new FileWriter(path.resolve(filename).toString());
 			 BufferedWriter bw = new BufferedWriter(fw);
 			 PrintWriter out = new PrintWriter(bw)) {
