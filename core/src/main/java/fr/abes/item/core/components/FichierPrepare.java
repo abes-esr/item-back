@@ -11,20 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Component
 public class FichierPrepare extends AbstractFichier implements Fichier {
-	
+
 	@Autowired
 	public FichierPrepare(@Value("") final String filename) {
 		this.filename = filename;
 	}
-	
+
 	@Override
 	public String getFilename() {
 		return this.filename;
@@ -34,7 +34,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	
+
 	@Override
 	public int getType() {
 		return Constant.ETATDEM_PREPAREE;
@@ -53,7 +53,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	public void generateFileName(Demande demande) {
 		this.filename = Constant.FIC_PREPARE_NAME + demande.getId() + Constant.EXTENSIONCSV;
 	}
-	
+
 	/**
 	 * Méthode d'écriture de la première ligne dans le fichier
 	 */
@@ -64,9 +64,9 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 			out.println("PPN;RCR;EPN;");
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
-		} 
+		}
 	}
-	
+
 	/**
 	 * Méthode permetant d'alimenter le fichier à partir d'une chaine correspondant à une liste d'epn
 	 * @param input résultat de l'appel à la fonction Oracle
@@ -88,8 +88,7 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
             }
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
-		} 
-		
+		}
 	}
 
 	/**
@@ -114,8 +113,40 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		} catch (IOException ex) {
 			log.error(Constant.ERROR_UNABLE_TO_CREATE_FILE);
 		}
-
 	}
-	
+
+	/**
+	 * Méthode qui permet de trier le contenu du fichier de correspondance
+	 * @throws IOException renvoi une exception si le fichier ne peut être lu
+	 */
+	public void trierLignesDeCorrespondances() throws IOException {
+		FileReader fileReader = new FileReader(path.resolve(filename).toString());
+		BufferedReader reader = new BufferedReader(fileReader);
+
+		List<String> correspondanceSortList = new ArrayList<>();
+		String header = reader.readLine();//cette ligne enleve le header et le stock
+		correspondanceSortList.add(header + "\n");
+		reader.lines().sorted().forEach(line -> {
+			correspondanceSortList.add(line+"\n");
+		});
+		reader.close();
+		fileReader.close();
+		String result = String.join("", correspondanceSortList);
+		ecrireFichierTrie(result);
+	}
+
+	/**
+	 * Méthode permettant d'écrire sur le fichier la liste des correspondances triées
+	 * @param sortedLines String contenant la liste des correspondances triées
+	 */
+	private void ecrireFichierTrie(String sortedLines) {
+		try (FileWriter fw = new FileWriter(path.resolve(filename).toString());
+			 BufferedWriter bw = new BufferedWriter(fw);
+			 PrintWriter out = new PrintWriter(bw)) {
+			out.println(sortedLines);
+		} catch (IOException ex) {
+			log.error(Constant.ERROR_UNABLE_TO_CREATE_SORTED_FILE);
+		}
+	}
 
 }

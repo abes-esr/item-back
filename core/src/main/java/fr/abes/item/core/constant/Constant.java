@@ -231,6 +231,7 @@ public class Constant implements Serializable {
 	public static final String ERROR_MONTH_RANGE = "Le mois doit être compris entre 1 et 12";
 	public static final String ERROR_YEAR_RANGE = "L'année ne peut pas être inférieure à l'année courante";
 	public static final String ERROR_UNABLE_TO_CREATE_FILE = "impossible de créer le fichier ppn;rcr;epn";
+	public static final String ERROR_UNABLE_TO_CREATE_SORTED_FILE = "impossible de créer le fichier de correspondance trié";
 	public static final String ERROR_UNKNOWN_REST_CONTROLLER = "unknown error caught in RESTController, {}";
 	public static final String REST_RESPONDING_WITH_STATUS = "Response REST avec statut {}";
 	public static final String ERROR_FIRST_LINE_OF_FILE_NULL = "la première ligne du fichier est nulle";
