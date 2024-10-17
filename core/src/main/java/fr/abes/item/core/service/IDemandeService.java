@@ -21,6 +21,8 @@ public interface IDemandeService {
 
     Demande creerDemande(String rcr, Integer userNum);
 
+    void modifierShortNameDemande(Demande demande);
+
     Demande archiverDemande(Demande demande) throws DemandeCheckingException;
 
     void deleteById(Integer id);

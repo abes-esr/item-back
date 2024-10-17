@@ -87,6 +87,11 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
+    public void modifierShortNameDemande(Demande demande) {
+        setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
         ligneFichierService.deleteByDemande(demandeSupp);
