@@ -3,7 +3,10 @@ package fr.abes.item.core.service.impl;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.LigneFichier;
+import fr.abes.item.core.entities.item.LigneFichierSupp;
 import fr.abes.item.core.repository.item.ILigneFichierSuppDao;
 import fr.abes.item.core.service.ILigneFichierService;
 import fr.abes.item.core.utilitaire.Utilitaires;
@@ -21,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-@Strategy(type= ILigneFichierService.class, typeDemande = {TYPE_DEMANDE.SUPP})
+@Strategy(type = ILigneFichierService.class, typeDemande = {TYPE_DEMANDE.SUPP})
 @Service
 public class LigneFichierSuppService implements ILigneFichierService {
     private final ILigneFichierSuppDao dao;
@@ -32,23 +35,19 @@ public class LigneFichierSuppService implements ILigneFichierService {
 
     @Override
     @Transactional
-    public void saveFile(File file, Demande demande){
+    public void saveFile(File file, Demande demande) {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
-        BufferedReader reader = null;
-
-        try {
-            reader = ReaderFactory.createBufferedReader(file);
-
+        try (BufferedReader reader = ReaderFactory.createBufferedReader(file)) {
             String line;
             String firstLine = reader.readLine(); //ne pas prendre en compte la première ligne avec les en-tête
 
-            if(firstLine == null){
+            if (firstLine == null) {
                 log.error(Constant.ERROR_FIRST_LINE_OF_FILE_NULL);
             }
 
             int position = 0;
-
-            while ((line = reader.readLine()) != null){
+            List<LigneFichierSupp> listToSave = new ArrayList<>();
+            while ((line = reader.readLine()) != null) {
                 Pattern regexp = Pattern.compile(Constant.LIGNE_FICHIER_SERVICE_PATTERN_SANS_VALEUR);
                 Matcher colsFinded = regexp.matcher(line);
                 String ppn = "";
@@ -62,21 +61,12 @@ public class LigneFichierSuppService implements ILigneFichierService {
                     if (colsFinded.group("epn") != null)
                         epn = Utilitaires.addZeros(colsFinded.group("epn"), Constant.TAILLEMAX);
                 }
-                if (!epn.isEmpty()) {
-                    LigneFichierSupp lf = new LigneFichierSupp(ppn, rcr, epn, position++, 0, "", demandeSupp);
-                    dao.save(lf);
-                }
+                LigneFichierSupp lf = new LigneFichierSupp(ppn, rcr, epn, position++, 0, "", demandeSupp);
+                listToSave.add(lf);
             }
-        } catch (IOException e){
+            dao.saveAll(listToSave);
+        } catch (IOException e) {
             log.error(e.getMessage());
-        } finally {
-            if (reader != null){
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                }
-            }
         }
     }
 

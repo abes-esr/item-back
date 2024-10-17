@@ -155,14 +155,19 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
-        Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
-        if (exemplaireASupprimerOpt.isPresent()){
-            this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
-            this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+        if (ligneFichierDtoSupp.getEpn() != null) {
+            Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
+            if (exemplaireASupprimerOpt.isPresent()) {
+                this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+            }
+            //supprimer l'exemplaire
+            this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
+            ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
+        } else {
+            //si pas d'epn dans la ligne du fichier, on ne fait pas le traitement et on écrit directement le message dans le retour sudoc pour le fichier résultat
+            ligneFichierDtoSupp.setRetourSudoc("Exemplaire inexistant");
         }
-        //supprimer l'exemplaire
-        this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
-        ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
         return ligneFichierDtoSupp;
     }
 

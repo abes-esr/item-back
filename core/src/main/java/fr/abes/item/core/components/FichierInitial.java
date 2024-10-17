@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 public class FichierInitial extends AbstractFichier implements Fichier {
-    private int ligneCourante;
+    protected int ligneCourante;
 
     @Autowired
     public FichierInitial(@Value("") final String filename) {
@@ -59,7 +59,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
      * @param ligne : ligne à vérifier
      * @throws FileCheckingException : erreur dans la format de la ligne
      */
-    private void checkBodyLine(String ligne) throws FileCheckingException {
+    protected void checkBodyLine(String ligne) throws FileCheckingException {
         if (ligne.length() != 9) {
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_ONLYONEPPN);
         }

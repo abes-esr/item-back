@@ -38,11 +38,7 @@ public class LigneFichierModifService implements ILigneFichierService {
     @SuppressWarnings("squid:S3776")
     public void saveFile(File file, Demande demande){
         DemandeModif demandeModif = (DemandeModif) demande;
-        BufferedReader reader = null;
-
-        try {
-            reader = ReaderFactory.createBufferedReader(file);
-
+        try (BufferedReader reader = ReaderFactory.createBufferedReader(file)){
             String line;
             String firstLine = reader.readLine(); //ne pas prendre en compte la première ligne avec les en-tête
 
@@ -75,14 +71,6 @@ public class LigneFichierModifService implements ILigneFichierService {
             }
         } catch (IOException e){
             log.error(e.getMessage());
-        } finally {
-            if (reader != null){
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                }
-            }
         }
     }
 

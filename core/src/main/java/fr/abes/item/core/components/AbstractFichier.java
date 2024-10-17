@@ -2,6 +2,7 @@ package fr.abes.item.core.components;
 
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.entities.item.IndexRecherche;
+import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.Getter;
 import lombok.Setter;
@@ -77,6 +78,41 @@ public abstract class AbstractFichier {
             //Si l'utilisateur n'a pas renseigné d'index de recherche
         }
         return indexZone;
+    }
+
+
+    /**
+     * Méthode permettant de vérifier que la valeur de la seconde colonne correspond au RCR de la demande
+     * @param rcrFichier : ligne du fichier
+     * @param rcr : rcr de la demande
+     * @throws FileCheckingException : erreur de format de fichier
+     */
+    protected void checkRcr(String rcrFichier, String rcr, int ligneCourante) throws FileCheckingException {
+        if (!rcrFichier.equals(rcr)) {
+            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGRCR);
+        }
+    }
+
+    /**
+     * Méthode de vérification de la forme d'un ppn
+     * @param ppn ppn à vérifier
+     * @throws FileCheckingException : erreur de format de fichier
+     */
+    protected void checkPpn(String ppn, int ligneCourante) throws FileCheckingException {
+        if (!ppn.matches("^\\d{8}[0-9X]$")){
+            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGPPN);
+        }
+    }
+
+    /**
+     * Méthode de vérification de la forme d'un epn
+     * @param epn epn à vérifier
+     * @throws FileCheckingException: erreur de format de l'epn
+     */
+    protected void checkEpn(String epn, int ligneCourante) throws FileCheckingException {
+        if (!epn.matches("^\\d{8}[0-9X]$")) {
+            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGEPN);
+        }
     }
 
 }

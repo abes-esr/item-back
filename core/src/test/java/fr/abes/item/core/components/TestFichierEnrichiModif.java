@@ -17,7 +17,7 @@ import java.util.Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("Test pour FichierEnrichi")
+@DisplayName("Test pour FichierEnrichi modification")
 class TestFichierEnrichiModif {
 
 	@DisplayName("checkNok3Cols")
@@ -94,7 +94,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("colMissing.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_3COL))
+		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_3COL_MODIF))
 				.isTrue();
 	}
 

@@ -95,7 +95,7 @@ public class Constant implements Serializable {
 
     public static final String LIGNE_FICHIER_SERVICE_PATTERN = "^(?<ppn>\\d{1,9}X?);(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?);(?<valeur>.+)?";
 
-	public static final String LIGNE_FICHIER_SERVICE_PATTERN_SANS_VALEUR = "^(?<ppn>\\d{1,9}X?);(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?)?";
+	public static final String LIGNE_FICHIER_SERVICE_PATTERN_SANS_VALEUR = "(?<ppn>\\d{1,9}X?)?;(?<rcr>\\d{8,9});(?<epn>\\d{1,9}X?)?";
 
     /**Specific errors on file format*/
 	public static final String ERR_FILE_NOT_FOUND = "Fichier introuvable.";
@@ -107,17 +107,18 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_TOOMUCH_MODIF = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_MODIF + Constant.ERR_FILE_TOOMUCH_END;
 	public static final String ERR_FILE_TOOMUCH_EXEMP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_EXEMP + Constant.ERR_FILE_TOOMUCH_END;
 	public static final String ERR_FILE_TOOMUCH_SUPP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_SUPP + Constant.ERR_FILE_TOOMUCH_END;
-	public static final String ERR_FILE_3COL = "La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone).";
+	public static final String ERR_FILE_3COL_MODIF = "La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone).";
+	public static final String ERR_FILE_3COL_SUPP = "La première ligne du fichier doit contenir 3 colonnes (ppn;rcr;epn)";
 	public static final String ERR_FILE_ERRLINE = "Erreur ligne ";
 	public static final String ERR_FILE_ONLYONEPPN = "la ligne ne doit contenir qu'un ppn (sur 9 caractères).";
 	public static final String ERR_FILE_HEAD4TH = "La valeur en-tête de la quatrieme colonne n'est pas valide.";
-	public static final String ERR_FILE_LINELENGTH = "Il y a un problème lié à la longueur de la ligne.";
+	public static final String ERR_FILE_LINELENGTH = " : Il y a un problème lié à la longueur de la ligne.";
 	public static final String ERR_FILE_TYPEFILE = "Type de fichier inconnu: ";
 	public static final String ERR_FILE_TYPEDEMANDE = " pour le type de demande ";
 	public static final String ERR_FILE_4COLNONVIDE = "La valeur de la 4è colonne ne doit pas être vide.";
 	public static final String ERR_FILE_4COLZONE = "impossible de lancer un traitement sur la zone ";
 	public static final String ERR_FILE_4COLVIDE = "La valeur de la 4è colonne doit être vide.";
-	public static final String ERR_FILE_WRONGRCR = "La valeur du rcr ne correspond pas au rcr de la demandeModif.";
+	public static final String ERR_FILE_WRONGRCR = "La valeur du rcr ne correspond pas au rcr de la demande.";
 	public static final String ERR_FILE_WRONGPPN = "Le PPN n'est pas conforme.";
 	public static final String ERR_FILE_WRONGEPN = "La valeur de l'epn n'est pas conforme.";
 
