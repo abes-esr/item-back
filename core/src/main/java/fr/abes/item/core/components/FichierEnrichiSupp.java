@@ -2,6 +2,7 @@ package fr.abes.item.core.components;
 
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.exception.FileCheckingException;
@@ -84,8 +85,10 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
         try {
             String[] tabligne = ligne.split(";");
+            if (demandeSupp.getTypeDemande().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
+                checkPpn(tabligne[0], ligneCourante);
+            }
             checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
-            checkPpn(tabligne[0], ligneCourante);
             //cas ou l'epn est renseigné
             if (tabligne.length > 2)
                 checkEpn(tabligne[2], ligneCourante);

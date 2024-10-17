@@ -72,8 +72,7 @@ public class LigneFichierExempService implements ILigneFichierService {
                 LigneFichierExemp ligneFichierExemp = new LigneFichierExemp(indexRecherche.toString(), valeur.toString(), 0, position++, "", null, demandeExemp, null);
                 dao.save(ligneFichierExemp);
             }
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
