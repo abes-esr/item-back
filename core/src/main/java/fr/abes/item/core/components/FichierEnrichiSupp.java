@@ -85,7 +85,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
         try {
             String[] tabligne = ligne.split(";");
-            if (demandeSupp.getTypeDemande().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
+            if (demandeSupp.getTypeSuppression().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
                 checkPpn(tabligne[0], ligneCourante);
             }
             checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
