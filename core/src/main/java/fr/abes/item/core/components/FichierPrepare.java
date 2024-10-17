@@ -122,25 +122,16 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	public void trierLignesDeCorrespondances() throws IOException {
 		FileReader fileReader = new FileReader(path.resolve(filename).toString());
 		BufferedReader reader = new BufferedReader(fileReader);
-		List<String> correspondanceUnsortList = new ArrayList<>();
-		String result = null;
-		int i = 0;
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			if (i == 0) { // stockage de la ligne d'en-tête
-				result = line + "\n";
-				i++;
-			} else {
-				// stockage des lignes de correspondance
-				correspondanceUnsortList.add(line+"\n");
-			}
-		}
+
+		List<String> correspondanceSortList = new ArrayList<>();
+		String header = reader.readLine();//cette ligne enleve le header et le stock
+		correspondanceSortList.add(header + "\n");
+		reader.lines().sorted().forEach(line -> {
+			correspondanceSortList.add(line+"\n");
+		});
 		reader.close();
 		fileReader.close();
-		// tri des lignes
-		Collections.sort(correspondanceUnsortList);
-		// assemblage de l'en-tête avec les lignes pour constituer le résultat final
-		List<String> correspondanceSortList = new ArrayList<>(correspondanceUnsortList);
-		result = result + correspondanceSortList.toString().replaceAll(", ","").replaceAll("\\[", "").replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\]", "");
+		String result = String.join("", correspondanceSortList);
 		ecrireFichierTrie(result);
 	}
 
