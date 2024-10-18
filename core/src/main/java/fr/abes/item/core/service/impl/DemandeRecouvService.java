@@ -356,4 +356,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             return listeDemandes;
         return null;
     }
+
+    @Override
+    public void modifierShortNameDemande(Demande demande) {
+        setIlnShortNameOnDemande(demande);
+    }
 }
