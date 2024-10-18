@@ -8,11 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class FichierPrepareSupp extends FichierPrepare implements Fichier {
@@ -31,17 +28,19 @@ public class FichierPrepareSupp extends FichierPrepare implements Fichier {
 
 	public void controleIntegriteDesCorrespondances() throws IOException, FileCheckingException {
 		List<String> epnSansCorrespondance = new ArrayList<>();
-		try (FileInputStream fileReader = new FileInputStream(path.resolve(filename).toString());
-			BufferedReader reader = new BufferedReader(new InputStreamReader(fileReader, StandardCharsets.UTF_8))) {
+		try (FileReader fileReader = new FileReader(path.resolve(filename).toString());
+			 BufferedReader reader = new BufferedReader(fileReader);) {
 
-			reader.readLine();//cette ligne enleve le header et le stoc
-
-			reader.lines().forEach(line -> {
-				Matcher m = Pattern.compile("^(?<PPN>\\d{8}[0-9X]);(?<RCR>\\d{9});(?<EPN>\\d{8}[0-9X])?;$").matcher(line);
-				if (m.group("PPN").isEmpty()) {
-					epnSansCorrespondance.add(m.group("EPN"));
+			// TODO vérifier que tous les epn sans correspondances sont bien catchés
+			reader.readLine();//cette ligne enleve le header
+			String line = reader.readLine();
+			while (reader.readLine() != null) {
+				List<String> ppnRcrEpn = List.of(line.split(";"));
+				if (ppnRcrEpn.get(0).isEmpty()) {
+					epnSansCorrespondance.add(ppnRcrEpn.get(2));
 				}
-			});
+				line = reader.readLine();
+			}
 		}
 		if (!epnSansCorrespondance.isEmpty()) {
 			throw new FileCheckingException("EPN sans correspondance : " + String.join(", ", epnSansCorrespondance));
