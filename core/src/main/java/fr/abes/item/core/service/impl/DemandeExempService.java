@@ -751,4 +751,9 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         ligneFichierService.deleteByDemande(demandeExemp);
         return changeState(demandeExemp, Constant.ETATDEM_ARCHIVEE);
     }
+
+    @Override
+    public void modifierShortNameDemande(Demande demande) {
+        setIlnShortNameOnDemande(demande);
+    }
 }

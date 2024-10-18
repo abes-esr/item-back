@@ -125,6 +125,7 @@ public class DemandeRestService {
         if (demande != null) {
             if (rcr.isPresent()) {
                 demande.setRcr(rcr.get());
+                service.modifierShortNameDemande(demande);
                 return builder.buildDemandeDto(service.save(demande), type);
             }
             if (type.equals(TYPE_DEMANDE.EXEMP) && typeExemp.isPresent()) {

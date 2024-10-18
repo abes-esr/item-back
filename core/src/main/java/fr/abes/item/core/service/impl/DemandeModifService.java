@@ -586,4 +586,9 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         }
         return null;
     }
+
+    @Override
+    public void modifierShortNameDemande(Demande demande) {
+        setIlnShortNameOnDemande(demande);
+    }
 }
