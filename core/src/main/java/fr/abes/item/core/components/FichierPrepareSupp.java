@@ -30,17 +30,12 @@ public class FichierPrepareSupp extends FichierPrepare implements Fichier {
 		List<String> epnSansCorrespondance = new ArrayList<>();
 		try (FileReader fileReader = new FileReader(path.resolve(filename).toString());
 			 BufferedReader reader = new BufferedReader(fileReader);) {
-
-			// TODO vérifier que tous les epn sans correspondances sont bien catchés
 			reader.readLine();//cette ligne enleve le header
-			String line = reader.readLine();
-			while (reader.readLine() != null) {
-				List<String> ppnRcrEpn = List.of(line.split(";"));
-				if (ppnRcrEpn.get(0).isEmpty()) {
-					epnSansCorrespondance.add(ppnRcrEpn.get(2));
+			reader.lines().forEach(line -> {
+				if(line.split(";")[0].isEmpty()){
+					epnSansCorrespondance.add(line.split(";")[2]);
 				}
-				line = reader.readLine();
-			}
+			});
 		}
 		if (!epnSansCorrespondance.isEmpty()) {
 			throw new FileCheckingException("EPN sans correspondance : " + String.join(", ", epnSansCorrespondance));
