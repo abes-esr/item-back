@@ -98,8 +98,8 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	 */
 	public void alimenterPpn(String input, String listeEpn, String rcr) {
 		try (FileWriter fw = new FileWriter(path.resolve(filename).toString(), true);
-			 BufferedWriter bw = new BufferedWriter(fw);
-			 PrintWriter out = new PrintWriter(bw)) {
+			BufferedWriter bw = new BufferedWriter(fw);
+			PrintWriter out = new PrintWriter(bw)) {
 			String[] tabEpn = listeEpn.split(",");
 			Multimap<String, String> resJson = Utilitaires.parseJson(input, true);
 			for (String epn : tabEpn) {
