@@ -185,7 +185,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichierPrepare.ecrireEnTete();
             //Alimentation du fichier par appel à la procédure Oracle ppntoepn
             appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
-            // TODO effectuer un contrôle d'intégrité du fichier de correspondance. Si PPN absent, alors throw une erreur (à créer) "correspondance(s) incomplète(s) ligne(s) ..."
             if(demande.getTypeSuppression().equals(TYPE_SUPPRESSION.EPN))
                 fichierPrepare.controleIntegriteDesCorrespondances();
             fichierPrepare.trierLignesDeCorrespondances();
