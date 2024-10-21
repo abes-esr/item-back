@@ -155,14 +155,17 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
-        //TODO voir dans getTypeDocumentFromPpn comment gérer la logique de la 008 pour les notices
-        String oo8 = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
-                .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
         if (ligneFichierDtoSupp.getEpn() != null) {
             Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
             if (exemplaireASupprimerOpt.isPresent()) {
                 this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
-                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+                /*TODO : voir les éventuelles erreurs à catcher dans la récupération du type de document
+                La zone est normalement obligatoire, et forcément sur 4 caractères (à vérifier)
+                Que faire en cas d'erreur de requête sur la recherche du ppn, ou de construction de l'objet NoticeConcrete
+                 */
+                String typeDoc = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
+                        .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
+                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), typeDoc);
             }
             //supprimer l'exemplaire
             this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
