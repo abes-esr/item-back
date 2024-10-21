@@ -160,7 +160,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException, FileTypeException {
+    private void checkEtatDemande(DemandeSupp demande) throws DemandeCheckingException, IOException, FileTypeException, FileCheckingException {
         int etat = demande.getEtatDemande().getNumEtat();
         switch (etat) {
             case Constant.ETATDEM_PREPARATION -> preparerFichierEnPrep(demande);
@@ -177,7 +177,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
     }
 
-    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException, FileTypeException {
+    private void preparerFichierEnPrep(DemandeSupp demande) throws IOException, DemandeCheckingException, FileTypeException, FileCheckingException {
         if (demande.getTypeSuppression() != null) {
             //Suppression d'un éventuel fichier existant sur le disque
             storageService.delete(fichierPrepare.getFilename());
@@ -185,8 +185,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             fichierPrepare.ecrireEnTete();
             //Alimentation du fichier par appel à la procédure Oracle ppntoepn
             appelProcStockee(demande.getRcr(), demande.getTypeSuppression());
-            demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
             fichierPrepare.trierLignesDeCorrespondances();
+            demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPAREE));
             save(demande);
             checkEtatDemande(demande);
         }
