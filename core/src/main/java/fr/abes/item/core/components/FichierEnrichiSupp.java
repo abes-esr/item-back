@@ -65,7 +65,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
      * @throws FileCheckingException : erreur dans le format de la ligne
      */
     private void check3Cols(String ligne) throws FileCheckingException {
-        if (ligne.split(";").length < 3) {
+        if (ligne.split(";").length != 3) {
             throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
         }
         if (ligne.length() < 11) {
@@ -84,12 +84,17 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
      */
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
         try {
+            // contrôle de la longueur de la ligne
+            if (ligne.split(";").length > 3) {
+                throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + " \"" + ligne + "\" " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);
+            }
             String[] tabligne = ligne.split(";");
+            // contrôle du ppn
             if (demandeSupp.getTypeSuppression().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
                 checkPpn(tabligne[0], ligneCourante);
             }
             checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
-            //cas ou l'epn est renseigné
+            // contrôle de l'epn s'il est renseigné
             if (tabligne.length > 2)
                 checkEpn(tabligne[2], ligneCourante);
         } catch (IndexOutOfBoundsException e) {
