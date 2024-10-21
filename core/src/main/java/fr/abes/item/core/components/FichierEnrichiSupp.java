@@ -10,7 +10,6 @@ import fr.abes.item.core.utilitaire.Utilitaires;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -86,7 +85,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
         try {
             // contrôle de la longueur de la ligne
-            if (ligne.split(";").length > 3 || StringUtils.countOccurrencesOf(ligne, ";") != 3) {
+            if (ligne.split(";").length > 3) {
                 throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + " \"" + ligne + "\" " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);
             }
             String[] tabligne = ligne.split(";");
