@@ -155,6 +155,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         //récupération des exemplaires existants pour cette ligne
         List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
                 .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
+        //TODO voir dans getTypeDocumentFromPpn comment gérer la logique de la 008 pour les notices
+        String oo8 = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
+                .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
         if (ligneFichierDtoSupp.getEpn() != null) {
             Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
             if (exemplaireASupprimerOpt.isPresent()) {

@@ -3,6 +3,7 @@ package fr.abes.item.core.service.impl;
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
 import fr.abes.cbs.notices.Exemplaire;
+import fr.abes.cbs.notices.Notice;
 import fr.abes.item.core.components.*;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
@@ -388,6 +389,24 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         } finally {
             traitementService.disconnect();
         }
+    }
+
+    public String getTypeDocumentFromPpn(String ppn) throws CBSException, IOException, QueryToSudocException {
+        String query = "che ppn " + ppn;
+        traitementService.getCbs().search(query);
+        int nbReponses = traitementService.getCbs().getNbNotices();
+        return switch (nbReponses) {
+            case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
+            case 1 -> {
+                //TODO reprendre ici et voir si on peut récupérer la 008 en récupérant la notice au format String
+                //TODO Parce que j'ai pas envie de parser en string pour aller chercher la 008n si une méthode existe deja dans accescbs
+                //Notice notice = traitementService.getCbs().getClientCBS()
+                //String notice = traitementService.getCbs().getClientCBS().mod("1", String.valueOf(traitementService.getCbs().getLotEncours()));
+                //log.debug(notice);
+                //yield notice;
+            }
+            default -> throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
+        };
     }
 
     public List<Exemplaire> getExemplairesExistants(LigneFichierSupp ligneFichierSupp) throws IOException, QueryToSudocException, CBSException, ZoneException {
