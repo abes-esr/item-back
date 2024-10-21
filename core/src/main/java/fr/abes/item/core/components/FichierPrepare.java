@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -40,13 +39,14 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 		return Constant.ETATDEM_PREPAREE;
 	}
 
-
 	@Override
-	public TYPE_DEMANDE getDemandeType() {return TYPE_DEMANDE.MODIF; }
+	public TYPE_DEMANDE getDemandeType() {
+		return TYPE_DEMANDE.MODIF;
+	}
 
 	@Override
 	public void checkFileContent(Demande demandeModif) {
-	//nothing to do
+		//nothing to do
 	}
 
 	@Override
@@ -98,8 +98,8 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 	 */
 	public void alimenterPpn(String input, String listeEpn, String rcr) {
 		try (FileWriter fw = new FileWriter(path.resolve(filename).toString(), true);
-			 BufferedWriter bw = new BufferedWriter(fw);
-			 PrintWriter out = new PrintWriter(bw)) {
+			BufferedWriter bw = new BufferedWriter(fw);
+			PrintWriter out = new PrintWriter(bw)) {
 			String[] tabEpn = listeEpn.split(",");
 			Multimap<String, String> resJson = Utilitaires.parseJson(input, true);
 			for (String epn : tabEpn) {
@@ -125,9 +125,10 @@ public class FichierPrepare extends AbstractFichier implements Fichier {
 
 		List<String> correspondanceSortList = new ArrayList<>();
 		String header = reader.readLine();//cette ligne enleve le header et le stock
-		correspondanceSortList.add(header + "\n");
+		correspondanceSortList.add(header);
 		reader.lines().sorted().forEach(line -> {
-			correspondanceSortList.add(line+"\n");
+			correspondanceSortList.add("\n");
+			correspondanceSortList.add(line);
 		});
 		reader.close();
 		fileReader.close();
