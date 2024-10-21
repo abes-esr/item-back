@@ -70,7 +70,8 @@ public class ReferenceService {
     public List<String> constructHeaderCsv() {
         List<ZonesAutorisees> listZonesAutorisees = this.iZonesAutoriseesDao.findAll();
         List<String> headerCsv = new ArrayList<>();
-        headerCsv.add("TYPE (008);PPN");
+        headerCsv.add("TYPE (008)");
+        headerCsv.add("PPN");
         for (ZonesAutorisees zonesAutorisees: listZonesAutorisees) {
             if(!zonesAutorisees.getLabelZone().startsWith("L")){
                 headerCsv.add(zonesAutorisees.getLabelZone()+zonesAutorisees.getSousZonesAutorisees().remove(0).getLibelle());
