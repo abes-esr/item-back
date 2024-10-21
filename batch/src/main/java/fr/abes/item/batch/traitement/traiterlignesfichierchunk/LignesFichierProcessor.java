@@ -158,14 +158,19 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         if (ligneFichierDtoSupp.getEpn() != null) {
             Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
             if (exemplaireASupprimerOpt.isPresent()) {
+                //Type de document non présent dans le fichier de sauvegarde txt, seulement dans le csv
                 this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
-                /*TODO : voir les éventuelles erreurs à catcher dans la récupération du type de document
-                La zone est normalement obligatoire, et forcément sur 4 caractères (à vérifier)
-                Que faire en cas d'erreur de requête sur la recherche du ppn, ou de construction de l'objet NoticeConcrete
-                 */
-                String typeDoc = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
-                        .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
-                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), typeDoc);
+                try{
+                    String typeDoc = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
+                            .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
+                    this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), typeDoc);
+                } catch (CBSException | IOException | ZoneException | QueryToSudocException e) {
+                    if(e.getClass().equals(QueryToSudocException.class)){
+                        this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), e.getMessage());
+                    }else{
+                        this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), "");
+                    }
+                }
             }
             //supprimer l'exemplaire
             this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
