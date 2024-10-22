@@ -399,7 +399,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
             case 1 -> {
                 NoticeConcrete notice = traitementService.getCbs().editerNoticeConcrete("1");
-                yield notice.findZone("008", 0).getValeur().substring(0,2);
+                yield notice.getNoticeBiblio().findZone("008", 0).findSubLabel("$a").substring(0,2);
             }
             default -> throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
         };
