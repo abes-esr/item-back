@@ -86,7 +86,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
         try {
             // contrôle de la longueur de la ligne
             if (ligne.split(";").length > 3) {
-                throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + " \"" + ligne + "\" " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);
+                throw new FileCheckingException(Constant.ERR_FILE_LINE + ligne + " : " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);
             }
             String[] tabligne = ligne.split(";");
             // contrôle du ppn
@@ -98,7 +98,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
             if (tabligne.length > 2)
                 checkEpn(tabligne[2], ligneCourante);
         } catch (IndexOutOfBoundsException e) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_LINELENGTH);
+            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_LINELENGTH);
         }
     }
 }

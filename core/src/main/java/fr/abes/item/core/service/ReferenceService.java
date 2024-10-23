@@ -1,7 +1,10 @@
 package fr.abes.item.core.service;
 
 import fr.abes.item.core.entities.item.*;
-import fr.abes.item.core.repository.item.*;
+import fr.abes.item.core.repository.item.IEtatDemandeDao;
+import fr.abes.item.core.repository.item.ITraitementDao;
+import fr.abes.item.core.repository.item.ITypeExempDao;
+import fr.abes.item.core.repository.item.IZonesAutoriseesDao;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -67,6 +70,7 @@ public class ReferenceService {
     public List<String> constructHeaderCsv() {
         List<ZonesAutorisees> listZonesAutorisees = this.iZonesAutoriseesDao.findAll();
         List<String> headerCsv = new ArrayList<>();
+        headerCsv.add("TYPE (008)");
         headerCsv.add("PPN");
         for (ZonesAutorisees zonesAutorisees: listZonesAutorisees) {
             if(!zonesAutorisees.getLabelZone().startsWith("L")){
