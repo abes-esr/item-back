@@ -32,7 +32,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         this.referenceService = referenceService;
     }
 
-    public void writePpnInFile(String ppn, Exemplaire exemplaire) throws StorageException {
+    public void writePpnInFile(String ppn, Exemplaire exemplaire, String typeDoc) throws StorageException {
         try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -40,7 +40,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
             List<String> listDeReference = referenceService.constructHeaderCsv();
             listDeReference.remove(0);
             // ajout de la ligne
-            out.println(ppn + ";" + gererZones(listDeReference, exemplaire));
+            out.println(typeDoc + ";" + ppn + ";" + gererZones(listDeReference, exemplaire));
         } catch (IOException ex) {
             throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
         }

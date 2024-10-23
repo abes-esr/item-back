@@ -107,13 +107,6 @@ class TestUtilitaires {
         assertThat(Utilitaires.addZeros(str, 9)).isEqualTo("000000012");
     }
 
-    @Test
-    void stringToRemove(){
-        String string = "230727409;seau;bleu;;;";
-        String stringResult = Utilitaires.removeSemicolonFromEndOfLine(string);
-        System.out.println(stringResult);
-    }
-
     /**
      * Test de vérification de la méthode supprimant les données locales de la première ligne du fichier
      */
