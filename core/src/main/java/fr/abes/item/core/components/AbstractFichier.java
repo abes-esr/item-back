@@ -89,7 +89,7 @@ public abstract class AbstractFichier {
      */
     protected void checkRcr(String rcrFichier, String rcr, int ligneCourante) throws FileCheckingException {
         if (!rcrFichier.equals(rcr)) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGRCR);
+            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_WRONGRCR);
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class AbstractFichier {
      */
     protected void checkPpn(String ppn, int ligneCourante) throws FileCheckingException {
         if (!ppn.matches("^(\\d{8}[0-9X])?$")){
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGPPN);
+            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_WRONGPPN);
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class AbstractFichier {
      */
     protected void checkEpn(String epn, int ligneCourante) throws FileCheckingException {
         if (!epn.matches("^(\\d{8}[0-9X])?$")) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_WRONGEPN);
+            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_WRONGEPN);
         }
     }
 
