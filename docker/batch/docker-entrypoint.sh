@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # Paramètres par défaut du conteneur
-export ITEM_BATCH_CRON_TRAITEMENT=${ITEM_BATCH_CRON_TRAITEMENT:='* * * * *'}
-export ITEM_BATCH_CRON_STAT=${ITEM_BATCH_CRON_STAT:='0 7 1 * *'}
 export ITEM_BATCH_AT_STARTUP=${ITEM_BATCH_AT_STARTUP:='1'}
 
 # Réglage de /etc/environment pour que les crontab s'exécutent avec les bonnes variables d'env
