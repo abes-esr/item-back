@@ -61,7 +61,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
      */
     protected void checkBodyLine(String ligne) throws FileCheckingException {
         if (ligne.length() != 9) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_ONLYONEPPN);
+            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_ONLYONEPPN);
         }
         ligneCourante++;
     }
