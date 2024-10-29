@@ -130,7 +130,7 @@ public class DemandeRestService {
                 if(type == TYPE_DEMANDE.SUPP) {
                     demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); // permet de remettre l'état de la demande à 1 (en préparation) lorsque le RCR est modifié
                 } else if (type == TYPE_DEMANDE.EXEMP) {
-                    demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER)); // permet de remettre l'état de la demande à 3 (en préparation) lorsque le RCR est modifié
+                    demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER)); // permet de remettre l'état de la demande à 3 (à compléter) lorsque le RCR est modifié
                 }
                 return builder.buildDemandeDto(service.save(demande), type);
             }
