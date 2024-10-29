@@ -127,7 +127,11 @@ public class DemandeRestService {
             if (rcr.isPresent()) {
                 demande.setRcr(rcr.get());
                 service.modifierShortNameDemande(demande);
-                demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); // permet de remettre l'état de la demande à 1 (en préparation) lorsque le RCR est modifié
+                if(type == TYPE_DEMANDE.SUPP) {
+                    demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); // permet de remettre l'état de la demande à 1 (en préparation) lorsque le RCR est modifié
+                } else if (type == TYPE_DEMANDE.EXEMP) {
+                    demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER)); // permet de remettre l'état de la demande à 3 (en préparation) lorsque le RCR est modifié
+                }
                 return builder.buildDemandeDto(service.save(demande), type);
             }
             if (type.equals(TYPE_DEMANDE.EXEMP) && typeExemp.isPresent()) {
