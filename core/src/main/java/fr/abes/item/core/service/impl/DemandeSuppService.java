@@ -341,6 +341,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             //étape sélection du type de fichier de suppression
             case 1 -> {
                 demandeSupp.setTypeSuppression(null);
+                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
                 return save(demandeSupp);
             }
             //étape upload du fichier
