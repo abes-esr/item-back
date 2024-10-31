@@ -281,7 +281,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         try {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
-            String notice =  traitementService.getNoticeFromEPN(epn);
+            String notice = traitementService.getNoticeFromEPN(epn);
             return notice.substring(1, notice.length() - 1);
         } finally {
             // déconnexion du CBS après avoir lancé la requête
@@ -293,7 +293,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * Méthode de modification d'une notice en fonction du traitement
      *
      * @param demande      permet de récupérer le traitement à lancer sur la notice
-     * @param exemplaire        notice récupérée du Sudoc sur laquelle on effectue le traitement
+     * @param exemplaire   notice récupérée du Sudoc sur laquelle on effectue le traitement
      * @param ligneFichier informations à intégrer à la notice à traiter
      * @return la notice modifiée
      */
@@ -356,7 +356,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public void deleteById(Integer id) {
         //suppression des fichiers et du répertoire
-        storageService.changePath(Paths.get(uploadPath + "modif/" +  id));
+        storageService.changePath(Paths.get(uploadPath + "modif/" + id));
         storageService.deleteAll();
         demandeModifDao.deleteById(id);
     }
@@ -466,37 +466,35 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
         switch (etape) {
-            case 2:
-                demandeModif.setTraitement(null); //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
+            case 1 -> demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
+            case 2 -> {
+                demandeModif.setTraitement(null);
+                //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
                 demandeModif.setZone(null); //On repasse ZONE à null : obtenu ETAPE 5
                 demandeModif.setSousZone(null); //On repasse SOUS_ZONE à null : obtenu ETAPE 5
                 demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
                 //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
                 /*Suppression des lignes de la table LIGNE_FICHIER_MODIF crées à ETAPE 5*/
                 ligneFichierService.deleteByDemande(demandeModif);
-                //Mise à jour de l'entité
-                save(demandeModif);
-                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
-                return demandeModif;
-            case 3:
+            }
+            case 3 -> {
                 demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 demandeModif.setTraitement(null);
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
                 ligneFichierService.deleteByDemande(demandeModif);
-                save(demandeModif);
-                return demandeModif;
-            case 4:
+            }
+            case 4 -> {
                 demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
                 //On ne modifie pas le traitement obtenu a etape 3
                 demandeModif.setZone(null);
                 demandeModif.setSousZone(null);
                 ligneFichierService.deleteByDemande(demandeModif);
-                save(demandeModif);
-                return demandeModif;
-            default:
+            }
+            default ->
                 throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
         }
+        return save(demandeModif);
     }
 
     private void resetDemande(DemandeModif demandeModif) throws IOException {
