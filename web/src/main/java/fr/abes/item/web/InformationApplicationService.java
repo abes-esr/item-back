@@ -22,20 +22,16 @@ public class InformationApplicationService {
         this.statusService = statusService;
     }
 
-    @Operation(description = "Connaître : Version du front, back, quel application-localhost.properties est actuellement utilisé, url des serveurs sudoc, item, base xml branchés")
+    @Operation(description = "Connaître : Version du back")
     @GetMapping(value = "/applicationDetails")
     public String getApplicationDetails() {
         return this.applicationVersionBack;
     }
 
     @SneakyThrows
-    @Operation(summary = "Connaitre : Statut base xml, Statut base item, Statut CBS")
+    @Operation(summary = "Connaitre : Statut base item")
     @GetMapping(value = "/applicationStatutServices")
-    public Map<String, Boolean> getStatutServices() {
-        Map<String, Boolean> map = new HashMap<>();
-        map.put("STATUT CBS", statusService.getCbsConnectionStatus());
-        map.put("STATUT BASE_XML", statusService.getXmlConnectionStatus());
-        map.put("STATUT BASE_ITEM", statusService.getItemDataBaseStatus());
-        return map;
+    public Boolean getStatutServices() {
+        return statusService.getItemDataBaseStatus();
     }
 }
