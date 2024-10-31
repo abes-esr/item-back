@@ -330,7 +330,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         switch (etape) {
             case 1:
-                demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); // TODO tester cette correction pour les exemplarisations
+                demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
                 return save(demandeExemp);
             case 2:
                 //retour de la demande d'exemplarisation au stade choix du type, à l'état en saisie (=preparation)

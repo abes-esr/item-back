@@ -466,6 +466,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
         switch (etape) {
+            case 1:
+                demandeModif.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
             case 2:
                 demandeModif.setTraitement(null); //On repasse DEM_TRAIT_ID à null : obtenu ETAPE 3
                 demandeModif.setZone(null); //On repasse ZONE à null : obtenu ETAPE 5
