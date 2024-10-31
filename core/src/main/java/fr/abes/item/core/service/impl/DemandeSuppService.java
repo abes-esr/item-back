@@ -342,24 +342,15 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             case 1 -> {
                 demandeSupp.setTypeSuppression(null);
                 demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-                return save(demandeSupp);
+
             }
             //étape upload du fichier
-            case 2 -> {
-                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
-                //le commentaire n'est pas effacé, il est géré dans le tableau de bord : pas dans les ETAPES
-                //Suppression des lignes de la table LIGNE_FICHIER_SUPP crées à ETAPE 5
-                return save(demandeSupp);
-                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
-            }
+            case 2 -> demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); //On repasse DEM_ETAT_ID à 1
             //etape upload du fichier initial
-            case 3 -> {
-                demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
-                return save(demandeSupp);
-                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
-            }
+            case 3 -> demandeSupp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER));
             default -> throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
         }
+        return save(demandeSupp);
     }
 
     @Override

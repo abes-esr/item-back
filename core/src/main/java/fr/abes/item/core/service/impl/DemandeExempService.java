@@ -329,10 +329,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     public Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         switch (etape) {
-            case 1:
-                demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-                return save(demandeExemp);
-            case 2:
+            case 1 -> demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
+            case 2 -> {
                 //retour de la demande d'exemplarisation au stade choix du type, à l'état en saisie (=preparation)
                 demandeExemp.setTypeExemp(null); //effacement type d'exemplarisation obtenu a : ETAPE2
                 demandeExemp.setIndexRecherche(null); //effacement de l'index de recherche obtenu a etape chargement du fichier : ETAPE3
@@ -342,21 +340,16 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
                 /*suppression des lignes de la table LIGNE_FICHIER_EXEMP crées à chargement du fichier : ETAPE3
                 On supprime les lignes qui ont en REF_DEMANDE l'id de la demande*/
                 ligneFichierExempDao.deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
-                //Mise à jour de l'entité
-                save(demandeExemp);
-                //Suppression du fichier sur disque non nécessaire, sera écrasé au prochain upload
-                //Retour de la demande
-                return demandeExemp;
-            case 3:
+            }
+            case 3 -> {
                 demandeExemp.setIndexRecherche(null);
                 demandeExemp.setListeZones(null);
                 demandeExemp.setEtatDemande(new EtatDemande(Constant.ETATDEM_ACOMPLETER)); //retour en ETAT3
                 ligneFichierExempDao.deleteLigneFichierExempByDemandeExempId(demandeExemp.getId());
-                save(demandeExemp);
-                return demandeExemp;
-            default:
-                throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
+            }
+            default -> throw new DemandeCheckingException(Constant.GO_BACK_TO_IDENTIFIED_STEP_ON_DEMAND_FAILED);
         }
+        return save(demandeExemp);
     }
 
     @Override
