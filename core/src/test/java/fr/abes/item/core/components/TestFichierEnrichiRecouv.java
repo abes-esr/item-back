@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Test fichier recouvrement")
 @SpringBootTest(classes = {FichierEnrichiRecouv.class})
@@ -63,7 +63,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testIndexRechercheNok() {
         composantFichier.setFilename("nokindex.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -72,7 +72,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testNbColonnes() {
         composantFichier.setFilename("nokNbColonnes.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "3" + Constant.ERR_FILE_WRONGNBCOLUMNS));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -81,7 +81,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testLigneVide() {
         composantFichier.setFilename("nokLigneVide.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_LIGNE_ANORNALE));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
     /**
      * Méthode vérifiant que le champ date est bien codé sur 4 chiffres
@@ -89,7 +89,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testDate() {
         composantFichier.setFilename("nokDate.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_DATENOK));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -98,6 +98,6 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testPpn() {
         composantFichier.setFilename("nokPpn.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_WRONGPPN));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 }

@@ -16,6 +16,7 @@ import java.util.ListIterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Test pour FichierInitial")
 public class TestFichierInitialModif {
@@ -27,7 +28,7 @@ public class TestFichierInitialModif {
 	public void checkMaxLines() {
 		FichierInitial fic = new FichierInitial("maxLines.txt");
 		fic.setPath(Paths.get("src/test/resources/fichierInitial"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(null)).getMessage().contains(Constant.ERR_FILE_TOOMUCH_START)).isTrue();
+		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(null)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
 	}
 
 	@DisplayName("checkChampTropLong")
@@ -35,9 +36,8 @@ public class TestFichierInitialModif {
 	public void checkChampTropLong() {
 		FichierInitial fic = new FichierInitial("champTropLong.txt");
 		fic.setPath(Paths.get("src/test/resources/fichierInitial"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(null))
-				.getMessage().contains("la ligne ne doit contenir qu'un ppn"))
-		.isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(null))
+				.getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
 	}
 
 	@DisplayName("cutFileMoinsde300")

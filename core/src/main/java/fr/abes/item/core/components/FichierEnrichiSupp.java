@@ -66,13 +66,13 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
      */
     private void check3Cols(String ligne) throws FileCheckingException {
         if (ligne.split(";").length != 3) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (ligne.length() < 11) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_SUPP);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -86,19 +86,19 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
         try {
             // contrôle de la longueur de la ligne
             if (ligne.split(";").length > 3) {
-                throw new FileCheckingException(Constant.ERR_FILE_LINE + ligne + " : " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
             String[] tabligne = ligne.split(";");
             // contrôle du ppn
             if (demandeSupp.getTypeSuppression().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
-                checkPpn(tabligne[0], ligneCourante);
+                checkPpn(tabligne[0]);
             }
-            checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
+            checkRcr(tabligne[1], demandeSupp.getRcr());
             // contrôle de l'epn s'il est renseigné
             if (tabligne.length > 2)
-                checkEpn(tabligne[2], ligneCourante);
+                checkEpn(tabligne[2]);
         } catch (IndexOutOfBoundsException e) {
-            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_LINELENGTH);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 }

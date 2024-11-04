@@ -84,7 +84,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             }
 
             while ((ligne = bufLecteur.readLine()) != null) { //Tant qu'il y a des lignes à lire dans le fichier
-                this.checkAnormalLineOfExemplary(ligneCourante, ligne); //Détecte une ligne de données vide
+                this.checkAnormalLineOfExemplary(ligne); //Détecte une ligne de données vide
                 //Supprime les éventuels ; que l'utilisateur aurait pu rajouter à la fin des lignes
                 ligne = Utilitaires.removeSemicolonFromEndOfLine(ligne);
                 this.checkBodyLine(ligne);
@@ -93,12 +93,12 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
 
             //cas où il n'y a que la ligne d'en-tête, lance une erreur (absence des données liées au zones et sous zones)
             if (ligneCourante == 2) {
-                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_NOREQUESTS);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
 
             //cas ou le nombre de lignes du fichier dépassent la limite autorisée
             if ((ligneCourante - 1) > Constant.MAX_LIGNE_FICHIER_INIT_EXEMP) {
-                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_TOOMUCH_EXEMP);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
         }
     }
@@ -106,7 +106,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
     private void checkFirstColumn(String ligne) throws FileCheckingException {
         this.indice = checkIndexRecherche(ligne); //Affectation de la taille de l'indice de la ligne d'entête
         if (this.indice == 0) {
-            throw new FileCheckingException(1, Constant.ERR_FILE_INDEXINCONNU);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -121,7 +121,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
         String[] tabLigne = indexLigne.split(";");
         //Si l'utilisateur n'a pas renseigné d'index de recherche
         if (tabLigne[0].isEmpty() || tabLigne[0].equalsIgnoreCase(" ")) {
-            throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         //on récupère la liste des index possibles dans la BDD : DAT, ISBN, ISSN, PPN, SOU
         List<IndexRecherche> index = indexRechercheDao.findAll();
@@ -151,14 +151,14 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
         de zone de l'entête du fichier*/
         if (tabLigne.length != indice) {
             if(tabLigne.length == 2 && indice == 3){
-                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATEAUTEURTITRE_TITREMANQUANT);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_WRONGNBCOLUMNS);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
 
         //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
-        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.REG_EXP_DATE_A_4_DECIMALES))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_DATENOK);
+        if ((("DAT").equals(this.indexRecherche.getCode())) && (!tabLigne[0].matches(Constant.ERR_FILE_WRONGCONTENT))) { //Si la date de la ligne en cours n'est pas sur 4 chiffres
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -167,9 +167,9 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
      * @param lignedExemplaire la ligne d'exemplaire à analyser
      * @throws FileCheckingException une ligne anormale à été détectée, l'utilisateur doit revoir son fichier
      */
-    private void checkAnormalLineOfExemplary(Integer ligneCourante, String lignedExemplaire) throws FileCheckingException {
+    private void checkAnormalLineOfExemplary(String lignedExemplaire) throws FileCheckingException {
         if (Utilitaires.detectAnormalLine(lignedExemplaire)){
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_LIGNE_ANORNALE);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 }

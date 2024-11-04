@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -98,7 +97,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testIndexRechercheNok() {
         composantFichier.setFilename("nokindex.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     @Test
@@ -114,7 +113,7 @@ class TestFichierEnrichiExemp {
     void testZonesNok1() {
         //teste une zone non autorisée
         composantFichier.setFilename("nokzones1.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ZONENONAUTORISEE)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -124,7 +123,7 @@ class TestFichierEnrichiExemp {
     void testZonesNok2() {
         //teste une sous zone non autorisée
         composantFichier.setFilename("nokzones2.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_SOUSZONENONAUTORISEE)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -133,7 +132,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testNoZone() {
         composantFichier.setFilename("noZone.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_NOZONE));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -142,7 +141,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testZoneSansSousZone() {
         composantFichier.setFilename("zoneSansSousZone.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ZONEINCOMPLETE));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -151,7 +150,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testNbColonnes() {
         composantFichier.setFilename("nokNbColonnes.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "3 : " + Constant.ERR_FILE_WRONGNBCOLUMNS));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -160,7 +159,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testDate() {
         composantFichier.setFilename("nokDate.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_DATENOK));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -169,7 +168,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testPpn() {
         composantFichier.setFilename("nokPpn.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_WRONGPPN));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     /**
@@ -178,7 +177,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testNbLignes() throws IOException, FileCheckingException{
         composantFichier.setFilename("nokNbLignes.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_TOOMUCH_EXEMP));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
         composantFichier.setFilename("okNbLignes.csv");
         composantFichier.checkFileContent(demande);
     }
@@ -189,13 +188,13 @@ class TestFichierEnrichiExemp {
     @Test
     void testIndexRecherche() {
         composantFichier.setFilename("nokIndexRecherche.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
     }
 
     @Test
     void checkMandatoryZones() throws FileCheckingException, IOException {
         composantFichier.setFilename("nokMandatoryZones.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_MANDATORY_ZONE_MISSING));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
         composantFichier.setFilename("okMandatoryZones.csv");
         composantFichier.checkFileContent(demande);
     }

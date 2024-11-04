@@ -45,7 +45,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
 
             //cas ou il y a trop de lignes dans le fichier
             if ((ligneCourante - 1) > Constant.MAX_LIGNE_FICHIER_INIT_MODIF) {
-                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_TOOMUCH_MODIF);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
 
         }
@@ -61,7 +61,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
      */
     protected void checkBodyLine(String ligne) throws FileCheckingException {
         if (ligne.length() != 9) {
-            throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_ONLYONEPPN);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         ligneCourante++;
     }
@@ -77,7 +77,7 @@ public class FichierInitial extends AbstractFichier implements Fichier {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
             while ((line = reader.readLine()) != null) if (!line.trim().isEmpty()) {
-                sb.append(line).append(System.getProperty("line.separator"));
+                sb.append(line).append(System.lineSeparator());
             }
             try (BufferedWriter out = new BufferedWriter(new FileWriter(path.resolve(this.filename).toString()))) {
                 out.write(sb.toString());
