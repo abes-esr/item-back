@@ -19,50 +19,40 @@ import javax.validation.ConstraintViolationException;
 @Slf4j
 @RestControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+	private ResponseEntity<Object> buildResponseEntity(ApiReturnError apiReturnError) {
+		return new ResponseEntity<>(apiReturnError, apiReturnError.getStatus());
+	}
 
 	@ExceptionHandler({ForbiddenException.class, UserExistException.class})
 	public ResponseEntity<?> handleForbiddenFailures(Throwable t) {
-		return errorResponse(t, HttpStatus.FORBIDDEN);
+		return buildResponseEntity(new ApiReturnError(HttpStatus.FORBIDDEN, t.getMessage(), t));
 	}
 
 	@ExceptionHandler(BadCredentialsException.class)
-	public ResponseEntity<?> handleBadCredentials(Throwable t) { return errorResponse(t, HttpStatus.UNAUTHORIZED); }
+	public ResponseEntity<?> handleBadCredentials(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.UNAUTHORIZED, t.getMessage(), t)); }
 
 	@ExceptionHandler({ IllegalArgumentException.class, FileCheckingException.class, FileTypeException.class})
 	public ResponseEntity<?> handleMiscFailures(Throwable t) {
-		return errorResponse(t, HttpStatus.BAD_REQUEST);
+		return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, t.getMessage(), t));
 	}
 
 	@ExceptionHandler({ DemandeCheckingException.class })
-	public ResponseEntity<?> handleBadConditionsFailures(Throwable t) { return errorResponse(t, HttpStatus.PRECONDITION_FAILED);}
+	public ResponseEntity<?> handleBadConditionsFailures(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.PRECONDITION_FAILED, t.getMessage(), t));}
 
 	@ExceptionHandler({ UnknownDemandeException.class })
-	public ResponseEntity<?> handleUnknownDemande(Throwable t) { return errorResponse(t, HttpStatus.BAD_REQUEST);}
+	public ResponseEntity<?> handleUnknownDemande(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, t.getMessage(), t));}
 
 	@ExceptionHandler({ CBSException.class, ZoneException.class, QueryToSudocException.class })
-	public ResponseEntity<?> handleBadRequestFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
+	public ResponseEntity<?> handleBadRequestFailures(Throwable t) {return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, t.getMessage(), t));}
 
 	@ExceptionHandler({ ConstraintViolationException.class })
-	public ResponseEntity<?> handleConstraintFailures(Throwable t) {return errorResponse(t, HttpStatus.BAD_REQUEST);}
+	public ResponseEntity<?> handleConstraintFailures(Throwable t) {return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, t.getMessage(), t));}
 
 	@ExceptionHandler({StorageFileNotFoundException.class})
-	public ResponseEntity<?> handleStorageFileNotFound(Throwable t) { return errorResponse(t, HttpStatus.NOT_FOUND);}
+	public ResponseEntity<?> handleStorageFileNotFound(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.NOT_FOUND, t.getMessage(), t));}
 
 	@ExceptionHandler({WsAuthException.class})
-	public ResponseEntity<?> handleWsAuthException(Throwable t) { return errorResponse(t, HttpStatus.BAD_GATEWAY);}
+	public ResponseEntity<?> handleWsAuthException(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_GATEWAY, t.getMessage(), t));}
 
-	protected ResponseEntity<ExceptionMessage> errorResponse(Throwable throwable, HttpStatus status) {
-		if (null != throwable) {
-			log.error(Constant.ERROR_CAUGHT + throwable.getMessage());
-			return response(new ExceptionMessage(throwable), status);
-		} else {
-			log.error(Constant.ERROR_UNKNOWN_REST_CONTROLLER, status);
-			return response(null, status);
-		}
-	}
 
-	protected <T> ResponseEntity<T> response(T body, HttpStatus status) {
-		log.debug(Constant.REST_RESPONDING_WITH_STATUS, status);
-		return new ResponseEntity<>(body, new HttpHeaders(), status);
-	}
 }
