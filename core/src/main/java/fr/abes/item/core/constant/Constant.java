@@ -164,8 +164,8 @@ public class Constant implements Serializable {
 	/**Specific messages on mails sents and stats*/
 	public static final String STAT_NBDEMANDESTRAITEES_FILENAME = "demandesTraiteesRCR";
 	public static final String STAT_NBEXEMPLAIRESTRAITES_FILENAME = "exemplairesTraitesTraitementRCR";
-	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires ";
-	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires ";
+	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires N° ";
+	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires N° ";
 	public static final String DEMANDE_EXEMPLARISATION_START = "Votre exemplarisation - ";
 	public static final String DEMANDE_EXEMPLARISATION_END = "Résultat de votre exemplarisation - ";
 	public static final String DEMANDE_RECOUVREMENT_START = "Votre taux de recouvrement - N°";
