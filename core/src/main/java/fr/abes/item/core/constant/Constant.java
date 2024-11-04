@@ -102,6 +102,8 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_TYPEFILE = "Type de fichier inconnu: ";
 	public static final String ERR_FILE_TYPEDEMANDE = " pour le type de demande ";
 
+
+	public static final String ERR_FILE_LINEFILE = "Erreur de traitement sur la ligne du fichier.";
 	public static final String ERR_FILE_NOTICE_EPN_NUMBER = "Erreur de communication avec le serveur sur la récupération de la notice.";
 	public static final String ERR_FILE_NOTICE_NOT_FOUND = "Aucune notice ne correspond à la recherche.";
 	public static final String ERR_FILE_MULTIPLES_NOTICES_FOUND = "Plusieurs PPN correspondent à la requête : ";
