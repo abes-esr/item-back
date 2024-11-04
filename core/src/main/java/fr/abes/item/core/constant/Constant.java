@@ -202,7 +202,7 @@ public class Constant implements Serializable {
 	public static final String ENTER_CREATION_DEMANDE_BY_USERNUM = "entree dans autoriserCreationDemandeParUserNum..........";
 	public static final String ENTER_AUTORISER_MAJ_UTILISATEUR_BY_USERNUM = "entree dans autoriserMajUtilisateurParUserNum..........";
 	public static final String ENTER_AUTHENTICATE = "entree dans authenticate...";
-	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc";
+	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc ";
 	public static final String ERROR_AUTHENTICATION_IN_SECURITY_CONTEXT = "Could not set user authentication in security context";
 	public static final String NUMBER_IP_TENTATIVES = "NB de tentatives pour ip =";
 	public static final String ENTER_LOGIN_FAILED = "entree dans loginFailed...";

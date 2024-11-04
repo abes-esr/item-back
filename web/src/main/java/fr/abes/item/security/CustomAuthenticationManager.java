@@ -52,10 +52,8 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
-
-        User u = this.callWsAuth(name, password);
-
-        if (u != null) {
+        try {
+            User u = this.callWsAuth(name, password);
 
             u.setMail(this.getEmail(Integer.parseInt(u.getUserNum())));
             List<GrantedAuthority> authorities;
@@ -70,15 +68,14 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             SecurityContextHolder.getContext().setAuthentication(auth);
             authenticationEventPublisher.publishAuthenticationSuccess(auth);
             return auth;
-        }
-        else {
-            authenticationEventPublisher.publishAuthenticationFailure(new BadCredentialsException(Constant.WRONG_LOGIN_AND_OR_PASS), authentication);
-            throw new BadCredentialsException(Constant.WRONG_LOGIN_AND_OR_PASS);
+        } catch (WsAuthException ex) {
+            authenticationEventPublisher.publishAuthenticationFailure(new BadCredentialsException(ex.getMessage()), authentication);
+            throw new BadCredentialsException(ex.getMessage());
         }
     }
 
 
-    private User callWsAuth(String userKey, String password) {
+    private User callWsAuth(String userKey, String password) throws WsAuthException{
         try {
             RestTemplate restTemplate = new RestTemplate();
             String requestJson = "{\n" +
@@ -95,7 +92,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
         }
         catch (Exception e) {
             log.error(Constant.ERROR_SUDOC_WS_AUTHENTICATION + e);
-            throw new WsAuthException(e.getMessage());
+            throw new WsAuthException(Constant.WRONG_LOGIN_AND_OR_PASS);
         }
     }
     public String getEmail(Integer userNum) {
