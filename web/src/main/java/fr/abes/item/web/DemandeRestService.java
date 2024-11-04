@@ -7,7 +7,6 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.*;
 import fr.abes.item.core.service.IDemandeService;
@@ -127,7 +126,6 @@ public class DemandeRestService {
             if (rcr.isPresent()) {
                 demande.setRcr(rcr.get());
                 service.modifierShortNameDemande(demande);
-                demande.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION)); // permet de remettre l'état de la demande à 1 (en préparation) lorsque le RCR est modifié
                 return builder.buildDemandeDto(service.save(demande), type);
             }
             if (type.equals(TYPE_DEMANDE.EXEMP) && typeExemp.isPresent()) {
