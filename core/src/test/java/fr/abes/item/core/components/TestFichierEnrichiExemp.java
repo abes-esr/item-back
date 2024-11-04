@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -98,7 +97,7 @@ class TestFichierEnrichiExemp {
     @Test
     void testIndexRechercheNok() {
         composantFichier.setFilename("nokindex.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
     }
 
     @Test
@@ -114,7 +113,7 @@ class TestFichierEnrichiExemp {
     void testZonesNok1() {
         //teste une zone non autorisée
         composantFichier.setFilename("nokzones1.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ZONENONAUTORISEE)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ZONENONAUTORISEE));
     }
 
     /**
@@ -124,7 +123,7 @@ class TestFichierEnrichiExemp {
     void testZonesNok2() {
         //teste une sous zone non autorisée
         composantFichier.setFilename("nokzones2.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_SOUSZONENONAUTORISEE)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_SOUSZONENONAUTORISEE));
     }
 
     /**

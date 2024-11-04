@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,8 +25,7 @@ public class TestFichierEnrichiSupp {
         FichierEnrichiSupp fic = new FichierEnrichiSupp("checkNok3Cols.csv");
         fic.setPath(Paths.get("src/test/resources/fichierEnrichiSupp"));
 
-        assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeSupp)).getMessage().contains("La première ligne du fichier doit contenir 3 colonnes (ppn;rcr;epn)"))
-                .isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeSupp)).getMessage().contains("La première ligne du fichier doit contenir 3 colonnes (ppn;rcr;epn)"));
     }
 
     @DisplayName("checkOk3Cols")
