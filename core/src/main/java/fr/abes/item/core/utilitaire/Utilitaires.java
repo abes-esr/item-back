@@ -67,7 +67,7 @@ public class Utilitaires {
     public static void checkExtension(String filename) throws FileCheckingException {
         String extension = filename.substring(filename.length() - 4);
         if (!((".txt").equals(extension) || (".csv").equals(extension))) {
-            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
+            throw new FileCheckingException(Constant.ERR_FILE_FORMAT);
         }
     }
 

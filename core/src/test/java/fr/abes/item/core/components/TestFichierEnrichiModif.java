@@ -14,7 +14,6 @@ import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,7 +27,7 @@ class TestFichierEnrichiModif {
 		FichierEnrichiModif fic = new FichierEnrichiModif("Nok3Cols.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
 
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone)."));
 	}
 
 	@DisplayName("checkIsSubfieldValid1")
@@ -38,7 +37,7 @@ class TestFichierEnrichiModif {
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokSubfield1.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
 
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("checkIsSubfieldValid2")
@@ -47,7 +46,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokSubfield2.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("checkIsSubfieldValid3")
@@ -56,7 +55,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokSubfield3.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("checkIsSubfieldValid4")
@@ -83,8 +82,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("okSubfield3.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT))
-				.isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGRCR));
 	}
 
 	@DisplayName("checkColMissing")
@@ -93,8 +91,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("colMissing.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT))
-				.isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_3COL_MODIF));
 	}
 
 	@DisplayName("checkFileBodyLineLength")
@@ -103,7 +100,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokBodyFileLineLength.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("Il y a un problème lié à la longueur de la ligne."));
 	}
 
 	@DisplayName("checkRcr")
@@ -112,7 +109,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokBodyRcr.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGRCR));
 	}
 
 	@DisplayName("creerNouvelleZoneNOk")
@@ -121,7 +118,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("nokcreernouvellezone.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur de la 4è colonne ne doit pas être vide"));
 	}
 
 	@DisplayName("fourthColWithZoneENOk")
@@ -130,7 +127,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokCol4ZoneE.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("fourthColWithZone930b")
@@ -139,7 +136,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokCol4Zone930b.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("impossible de lancer un traitement sur la zone"));
 	}
 
 	@DisplayName("fourthColWithZone955")
@@ -148,7 +145,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokCol4Zone955.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("impossible de lancer un traitement sur la zone"));
 	}
 
 	@DisplayName("fourthColWithZoneAXX")
@@ -157,7 +154,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokCol4ZoneAXX.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("fourthColWithZoneexx")
@@ -166,7 +163,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokCol4Zonee01.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 	}
 
 	@DisplayName("supprimerZoneNOk")
@@ -176,7 +173,7 @@ class TestFichierEnrichiModif {
 		FichierEnrichiModif fic = new FichierEnrichiModif("noksupprimerzone.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
 		demandeModif.setTraitement(new Traitement(2, "Supprimer une zone", "supprimerZone"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur de la 4è colonne doit être vide"));
 	}
 
 	@DisplayName("fileOK")
@@ -195,7 +192,7 @@ class TestFichierEnrichiModif {
 		FichierEnrichiModif fic = new FichierEnrichiModif("okWithData.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
 		demandeModif.setTraitement(null);
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_NOTRAIT));
 	}
 
 	@DisplayName("checkPpn")
@@ -204,7 +201,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokPpn.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGPPN));
 	}
 
 	@DisplayName("checkEpn")
@@ -213,7 +210,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokEpn.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur de l'epn n'est pas conforme"));
 
 	}
 
@@ -223,7 +220,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(3, "Créer une nouvelle zone", "creerNouvelleZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("NokE856.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("impossible de lancer un traitement sur la zone"));
 	}
 
 	@DisplayName("checke01")
@@ -232,7 +229,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(3, "Créer une nouvelle zone", "creerNouvelleZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("Nokexx.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("impossible de lancer un traitement sur la zone"));
 	}
 
 	@DisplayName("checkDollar")
@@ -241,7 +238,7 @@ class TestFichierEnrichiModif {
 		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(3, "Créer une nouvelle zone", "creerNouvelleZone"));
 		FichierEnrichiModif fic = new FichierEnrichiModif("dollarforbid.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertThat(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("le caractère $ est interdit dans la 4è colonne"));
 	}
 
 	@Test
@@ -260,7 +257,8 @@ class TestFichierEnrichiModif {
 				"45");
 		FichierEnrichiModif fic = new FichierEnrichiModif("930$c-fichier_demande.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+		//Actual
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains("La valeur en-tête de la quatrieme colonne n'est pas valide"));
 
 	}
 }

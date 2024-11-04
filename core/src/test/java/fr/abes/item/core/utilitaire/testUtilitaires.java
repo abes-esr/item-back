@@ -19,7 +19,7 @@ class TestUtilitaires {
     @DisplayName("checkExtensionExe")
     @Test
     void checkExtensionExe() {
-        assertThat(assertThrows(FileCheckingException.class, () -> Utilitaires.checkExtension("testfichier.exe")).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT)).isTrue();
+        assertThat(assertThrows(FileCheckingException.class, () -> Utilitaires.checkExtension("testfichier.exe")).getMessage().contains(Constant.ERR_FILE_FORMAT)).isTrue();
     }
 
     @DisplayName("checkExtensionCsv")

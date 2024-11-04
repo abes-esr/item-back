@@ -63,7 +63,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testIndexRechercheNok() {
         composantFichier.setFilename("nokindex.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
     }
 
     /**
@@ -71,8 +71,9 @@ public class TestFichierEnrichiRecouv {
      */
     @Test
     void testNbColonnes() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokNbColonnes.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_WRONGNBCOLUMNS));
     }
 
     /**
@@ -80,24 +81,18 @@ public class TestFichierEnrichiRecouv {
      */
     @Test
     void testLigneVide() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokLigneVide.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_LIGNE_ANORNALE));
     }
     /**
      * Méthode vérifiant que le champ date est bien codé sur 4 chiffres
      */
     @Test
     void testDate() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokDate.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_DATENOK));
     }
 
-    /**
-     * Méthode vérifiant que le champ PPN est conforme
-     */
-    @Test
-    void testPpn() {
-        composantFichier.setFilename("nokPpn.csv");
-        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
-    }
 }

@@ -45,7 +45,7 @@ public class FichierInitialSupp extends FichierInitial implements Fichier {
 
             //cas ou il y a trop de lignes dans le fichier
             if ((ligneCourante - 1) > Constant.MAX_LIGNE_FICHIER_INIT_SUPP) {
-                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
+                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_TOOMUCH_SUPP);
             }
         }
     }

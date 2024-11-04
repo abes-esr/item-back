@@ -2,6 +2,7 @@ package fr.abes.item.exception;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
+import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
 	@ExceptionHandler({ IllegalArgumentException.class, FileCheckingException.class, FileTypeException.class})
 	public ResponseEntity<?> handleMiscFailures(Throwable t) {
-		return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, t.getMessage(), t));
+		return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, Constant.ERR_FILE_WRONGCONTENT, t));
 	}
 
 	@ExceptionHandler({ DemandeCheckingException.class })
