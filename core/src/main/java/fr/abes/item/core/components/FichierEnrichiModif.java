@@ -53,13 +53,13 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
         try (FileInputStream fis = new FileInputStream(path.resolve(filename).toString());
              BufferedReader bufLecteur = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))) {
             if (demandeModif.getTraitement() == null) {
-                throw new FileCheckingException(Constant.ERR_FILE_NOTRAIT);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
             String ligne = Utilitaires.checkBom(bufLecteur.readLine());
             check3Cols(ligne);
             String tagSubTag = ligne.split(";")[3];
             if (tagSubTag.matches("e\\d{2}\\$a")) {
-                throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + tagSubTag);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT + tagSubTag);
             }
             if (tagSubTag.startsWith("E")) {
                 checkSubfieldCol4ZoneE(tagSubTag, demandeModif.getTraitement().getNomMethode());
@@ -76,7 +76,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
             }
             // cas ou il n'y a que la ligne d'en-tête
             if (ligneCourante == 1) {
-                throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_NOREQUESTS);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
 
         }
@@ -92,13 +92,13 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      */
     private void check3Cols(String ligne) throws FileCheckingException {
         if (ligne.split(";").length < 4) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (ligne.length() < 12) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (!("ppn;rcr;epn").equalsIgnoreCase(ligne.substring(0, 11))) {
-            throw new FileCheckingException(Constant.ERR_FILE_3COL_MODIF);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -112,27 +112,27 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
     private void checkSubfieldCol4(String subfield, String traitement) throws FileCheckingException {
         String regexSupp = "[9LE]\\d\\d";
         if (traitement.equals("supprimerZone") && (!subfield.matches(regexSupp))){
-            throw new FileCheckingException(Constant.ERR_FILE_HEAD4TH);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (!traitement.equals("supprimerZone") && (!subfield.matches(regex))){
-            throw new FileCheckingException(Constant.ERR_FILE_HEAD4TH);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
 
         if (("930$b").equals(subfield)) {
-            throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + "930$b");
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (subfield.startsWith("955") || subfield.startsWith("956") || subfield.startsWith("957") || subfield.startsWith("959")) {
-            throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + subfield.substring(0,3));
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
     private void checkSubfieldCol4ZoneE(String subfield, String traitement) throws FileCheckingException {
         if (subfield.substring(1).matches(regex)) {
-                throw new FileCheckingException(Constant.ERR_FILE_HEAD4TH);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         //TODO : Revoir condition et ajouter TU parce que ça marche pas
         if (traitement.equals("creerNouvelleZone") && ("E856").contains(subfield) || ("E702").contains(subfield) || ("E712").contains(subfield)){
-                throw new FileCheckingException(Constant.ERR_FILE_4COLZONE + subfield.substring(0, 4));
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -144,8 +144,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
      */
     private void checkBodyLine(String ligne, DemandeModif demandeModif) throws FileCheckingException {
         if (ligne.length() < 13) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante
-                    + Constant.ERR_FILE_LINELENGTH);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         try {
             String[] tabligne = ligne.split(";");
@@ -154,7 +153,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
             checkEpn(tabligne[2], ligneCourante);
             check4cols(tabligne, demandeModif.getTraitement().getNomMethode());
         }catch (IndexOutOfBoundsException e) {
-            throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_LINELENGTH);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -171,23 +170,23 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
             case "creerNouvelleZone":
             case "ajoutSousZone":
                 if (ligne.length != 4) {
-                    throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_4COLNONVIDE);
+                    throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
                 }
                 else {
                     if (ligne[3].contains("$")) {
-                        throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_DOLLARFORBID);
+                        throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
                     }
                 }
                 break;
             case "remplacerSousZone":
                 if (ligne.length != 4) {
-                    throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_4COLNONVIDE);
+                    throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
                 }
                 break;
             case "supprimerSousZone":
             case "supprimerZone":
                 if (ligne.length != 3) {
-                    throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante + Constant.ERR_FILE_4COLVIDE);
+                    throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
                 }
                 break;
             default:

@@ -118,12 +118,12 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
 
             //cas où il n'y a que la ligne d'en-tête, lance une erreur (absence des données liées au zones et sous zones)
             if (ligneCourantePositionNumber == 2) {
-                throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_NOREQUESTS);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
 
             //cas ou le nombre de lignes du fichier dépassent la limite autorisée
             if ((ligneCourantePositionNumber - 1) > Constant.MAX_LIGNE_FICHIER_INIT_EXEMP) {
-                throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_TOOMUCH_EXEMP);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
         }
     }
@@ -134,7 +134,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
             Pattern patternZoneSousZones = Pattern.compile(Constant.REG_EXP_ZONES_SOUS_ZONES);
             boolean trouve = isTrouve(entete, ssZone, patternZoneSousZones);
             if (!trouve) {
-                throw new FileCheckingException(Constant.ERR_FILE_MANDATORY_ZONE_MISSING + ssZone.getZone().getLabelZone() + ssZone.getLibelle());
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
         }
     }
@@ -165,7 +165,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
      */
     private void checkAnormalLineOfExemplary(Integer ligneCourante, String lignedExemplaire) throws FileCheckingException {
         if (Utilitaires.detectAnormalLine(lignedExemplaire)){
-            throw new FileCheckingException(ligneCourante, Constant.ERR_FILE_LIGNE_ANORNALE);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -182,7 +182,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
     private void checkFirstColumn(String ligne, TypeExemp type) throws FileCheckingException {
         this.indiceZone = checkIndexRecherche(ligne, type);
         if (this.indiceZone == 0) {
-            throw new FileCheckingException(1, Constant.ERR_FILE_INDEXINCONNU);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -203,7 +203,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
             //en fonction de l'index, le nombre de zone à examiner change
             indexZone = getIndexZone(indexCourant, tabLigne, indexZone);
             if (tabLigne[0].isEmpty() || tabLigne[0].equalsIgnoreCase(" ")) {
-                throw new FileCheckingException(1, Constant.ERR_FILE_NOINDEX);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
         }
         /*A la fin on a un indexZone de :
@@ -241,14 +241,14 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
             //vérification des sous zones de la zone
             nbSousZones = checkSousZones(nbSousZones, matcher);
             if (nbSousZones == 0) {
-                throw new FileCheckingException(1, Constant.ERR_FILE_ZONEINCOMPLETE);
+                throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
             }
         }
         if (nbColonnes == 0) {
-            throw new FileCheckingException(1, Constant.ERR_FILE_NOZONE);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
         if (!matcher.lookingAt()) {
-            throw new FileCheckingException(1, Constant.ERR_FILE_CARACTERES);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 
@@ -260,7 +260,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
                 nbSousZones++;
                 sousZoneCourante = matcher.group("sousZone" + i);
                 if (!allowedSousZone.contains(sousZoneCourante)) {
-                    throw new FileCheckingException(1, Constant.ERR_FILE_SOUSZONENONAUTORISEE + sousZoneCourante + " pour la zone " + zoneCourante);
+                    throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
                 }
             }
         }
@@ -269,7 +269,7 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
 
     private void checkZone(List<String> allowedZones, String zone) throws FileCheckingException {
         if (!allowedZones.contains(zone))
-            throw new FileCheckingException(1, Constant.ERR_FILE_ZONENONAUTORISEE + zone);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
     }
 
     /**
@@ -281,18 +281,18 @@ public class FichierEnrichiExemp extends AbstractFichier implements Fichier {
         String[] tabLigne = ligne.split(";");
 
         if (Utilitaires.detectsANumberOfDataDifferentFromTheNumberOfHeaderDataOnALine(ligne, nbColonnes)) {
-            throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_WRONGNBCOLUMNS);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
 
         List<String> listeChamps = new ArrayList<>(Arrays.asList(tabLigne));
 
         //analyse de la valeur de la date dans le cas d'une recherche date;auteur;titre
         if ((("DAT").equals(this.indexRecherche.getCode())) && (!listeChamps.get(0).matches("\\d{4}"))) {
-            throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_DATENOK);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
 
         if ((("PPN").equals(this.indexRecherche.getCode())) && (!listeChamps.get(0).matches(Constant.PATTERN_INDEX_PPN))) {
-            throw new FileCheckingException(ligneCourantePositionNumber, Constant.ERR_FILE_WRONGPPN);
+            throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
     }
 }

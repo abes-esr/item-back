@@ -99,34 +99,10 @@ public class Constant implements Serializable {
 
     /**Specific errors on file format*/
 	public static final String ERR_FILE_NOT_FOUND = "Fichier introuvable.";
-	public static final String ERR_FILE_NOINDEX = "L'en-tête du fichier est non conforme. Il ne contient pas d’index de recherche.";
-	public static final String ERR_FILE_NOREQUESTS = "Le fichier ne contient pas de requêtes. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_NOTRAIT = "Aucun traitement associé à la demande.";
-	public static final String ERR_FILE_TOOMUCH_START = "Le fichier dépasse la limite des ";
-	public static final String ERR_FILE_TOOMUCH_END = " notices. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_TOOMUCH_MODIF = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_MODIF + Constant.ERR_FILE_TOOMUCH_END;
-	public static final String ERR_FILE_TOOMUCH_EXEMP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_EXEMP + Constant.ERR_FILE_TOOMUCH_END;
-	public static final String ERR_FILE_TOOMUCH_SUPP = Constant.ERR_FILE_TOOMUCH_START + Constant.MAX_LIGNE_FICHIER_INIT_SUPP + Constant.ERR_FILE_TOOMUCH_END;
-	public static final String ERR_FILE_3COL_MODIF = "La première ligne du fichier doit contenir 4 colonnes (ppn;rcr;epn;zone).";
-	public static final String ERR_FILE_3COL_SUPP = "La première ligne du fichier doit contenir 3 colonnes (ppn;rcr;epn)";
-	public static final String ERR_FILE_3COL_SUPP_ANY_LINE = "La ligne doit contenir trois colones";
-	public static final String ERR_FILE_ERRLINE = "Erreur ligne ";
-	public static final String ERR_FILE_LINE = "Ligne ";
-	public static final String ERR_FILE_ONLYONEPPN = "la ligne ne doit contenir qu'un ppn (sur 9 caractères).";
-	public static final String ERR_FILE_HEAD4TH = "La valeur en-tête de la quatrieme colonne n'est pas valide.";
-	public static final String ERR_FILE_LINELENGTH = " : Il y a un problème lié à la longueur de la ligne.";
+	public static final String ERR_FILE_WRONGCONTENT = "Erreur de traitement : Merci de vérifier la conformité de vos fichiers. En cas de difficultés, merci de consulter la documentation [Lien vers la documentation]";
 	public static final String ERR_FILE_TYPEFILE = "Type de fichier inconnu: ";
 	public static final String ERR_FILE_TYPEDEMANDE = " pour le type de demande ";
-	public static final String ERR_FILE_4COLNONVIDE = "La valeur de la 4è colonne ne doit pas être vide.";
-	public static final String ERR_FILE_4COLZONE = "impossible de lancer un traitement sur la zone ";
-	public static final String ERR_FILE_4COLVIDE = "La valeur de la 4è colonne doit être vide.";
-	public static final String ERR_FILE_WRONGRCR = "La valeur du rcr ne correspond pas au rcr de la demande.";
-	public static final String ERR_FILE_WRONGPPN = "Le PPN n'est pas conforme.";
-	public static final String ERR_FILE_WRONGEPN = "La valeur de l'epn n'est pas conforme.";
 
-	public static final String ERR_FILE_DOLLARFORBID = "le caractère $ est interdit dans la 4è colonne.";
-	public static final String ERR_FILE_LINEFILE = "Erreur de traitement sur la ligne du fichier.";
-	public static final String ERR_FILE_FORMAT = "Erreur de format de fichier : le fichier doit être au format .txt ou .csv.";
 	public static final String ERR_FILE_NOTICE_EPN_NUMBER = "Erreur de communication avec le serveur sur la récupération de la notice.";
 	public static final String ERR_FILE_NOTICE_NOT_FOUND = "Aucune notice ne correspond à la recherche.";
 	public static final String ERR_FILE_MULTIPLES_NOTICES_FOUND = "Plusieurs PPN correspondent à la requête : ";
@@ -143,17 +119,9 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_READING = "Ne peut pas lire le fichier : ";
 
 	/**Specific errors on file checking*/
-	public static final String ERR_FILE_LIGNE_ANORNALE = "L'en-tête du fichier est non conforme : il contient des caractères parasites. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 	public static final String ERR_FILE_INDEXINCONNU = "L'index choisi est inconnu. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_ZONENONAUTORISEE = "Zone(s) non autorisée(s) : ";
-	public static final String ERR_FILE_SOUSZONENONAUTORISEE = "Sous-zone(s) non autorisée(s) : ";
-	public static final String ERR_FILE_MANDATORY_ZONE_MISSING = "La zone suivante est obligatoire : ";
-	public static final String ERR_FILE_WRONGNBCOLUMNS = "Le nombre de colonnes du fichier ne correspond pas au nombre de données de l'en-tête.";
-	public static final String ERR_FILE_DATEAUTEURTITRE_TITREMANQUANT = "Il manque le titre sur cette ligne pour votre recherche par Date/Auteur/Titre.";
-	public static final String ERR_FILE_DATENOK = "Le champ date doit contenir 4 caractères numériques.";
 	public static final String ERR_FILE_NOZONE = "L'en-tête du fichier est non conforme : il ne contient pas de données d’exemplaires Merci de consulter la documentation utilisateur à cette adresse : ";
 	public static final String ERR_FILE_ZONEINCOMPLETE = "L'en-tête du fichier est non conforme. Les données d’exemplaires sont incomplètes : il manque une ou plusieurs sous-zones. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_CARACTERES = "L'en-tête du fichier est non conforme : il ne contient pas de données d’exemplaires Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 
 	/**Sudoc pass*/
 	public static final String PASSSUDOC = "pabnot6";
