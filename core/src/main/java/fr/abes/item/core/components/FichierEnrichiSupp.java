@@ -91,12 +91,12 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
             String[] tabligne = ligne.split(";");
             // contrôle du ppn
             if (demandeSupp.getTypeSuppression().equals(TYPE_SUPPRESSION.EPN) && tabligne[0] != null) {
-                checkPpn(tabligne[0], ligneCourante);
+                checkPpn(tabligne[0]);
             }
-            checkRcr(tabligne[1], demandeSupp.getRcr(), ligneCourante);
+            checkRcr(tabligne[1], demandeSupp.getRcr());
             // contrôle de l'epn s'il est renseigné
             if (tabligne.length > 2)
-                checkEpn(tabligne[2], ligneCourante);
+                checkEpn(tabligne[2]);
         } catch (IndexOutOfBoundsException e) {
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }

@@ -148,9 +148,9 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
         }
         try {
             String[] tabligne = ligne.split(";");
-            checkRcr(tabligne[1], demandeModif.getRcr(), ligneCourante);
-            checkPpn(tabligne[0], ligneCourante);
-            checkEpn(tabligne[2], ligneCourante);
+            checkRcr(tabligne[1], demandeModif.getRcr());
+            checkPpn(tabligne[0]);
+            checkEpn(tabligne[2]);
             check4cols(tabligne, demandeModif.getTraitement().getNomMethode());
         }catch (IndexOutOfBoundsException e) {
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);

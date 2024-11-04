@@ -260,9 +260,7 @@ class TestFichierEnrichiModif {
 				"45");
 		FichierEnrichiModif fic = new FichierEnrichiModif("930$c-fichier_demande.csv");
 		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		//Actual
-		assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif))
-				.getMessage().contains(Constant.ERR_FILE_WRONGCONTENT) ;
+		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGCONTENT));
 
 	}
 }

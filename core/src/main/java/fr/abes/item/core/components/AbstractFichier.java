@@ -87,7 +87,7 @@ public abstract class AbstractFichier {
      * @param rcr : rcr de la demande
      * @throws FileCheckingException : erreur de format de fichier
      */
-    protected void checkRcr(String rcrFichier, String rcr, int ligneCourante) throws FileCheckingException {
+    protected void checkRcr(String rcrFichier, String rcr) throws FileCheckingException {
         if (!rcrFichier.equals(rcr)) {
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
@@ -98,7 +98,7 @@ public abstract class AbstractFichier {
      * @param ppn ppn à vérifier
      * @throws FileCheckingException : erreur de format de fichier
      */
-    protected void checkPpn(String ppn, int ligneCourante) throws FileCheckingException {
+    protected void checkPpn(String ppn) throws FileCheckingException {
         if (!ppn.matches("^(\\d{8}[0-9X])?$")){
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }
@@ -109,7 +109,7 @@ public abstract class AbstractFichier {
      * @param epn epn à vérifier
      * @throws FileCheckingException: erreur de format de l'epn
      */
-    protected void checkEpn(String epn, int ligneCourante) throws FileCheckingException {
+    protected void checkEpn(String epn) throws FileCheckingException {
         if (!epn.matches("^(\\d{8}[0-9X])?$")) {
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }

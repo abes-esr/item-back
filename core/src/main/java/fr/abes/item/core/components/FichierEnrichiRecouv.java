@@ -84,7 +84,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             }
 
             while ((ligne = bufLecteur.readLine()) != null) { //Tant qu'il y a des lignes à lire dans le fichier
-                this.checkAnormalLineOfExemplary(ligneCourante, ligne); //Détecte une ligne de données vide
+                this.checkAnormalLineOfExemplary(ligne); //Détecte une ligne de données vide
                 //Supprime les éventuels ; que l'utilisateur aurait pu rajouter à la fin des lignes
                 ligne = Utilitaires.removeSemicolonFromEndOfLine(ligne);
                 this.checkBodyLine(ligne);
@@ -167,7 +167,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
      * @param lignedExemplaire la ligne d'exemplaire à analyser
      * @throws FileCheckingException une ligne anormale à été détectée, l'utilisateur doit revoir son fichier
      */
-    private void checkAnormalLineOfExemplary(Integer ligneCourante, String lignedExemplaire) throws FileCheckingException {
+    private void checkAnormalLineOfExemplary(String lignedExemplaire) throws FileCheckingException {
         if (Utilitaires.detectAnormalLine(lignedExemplaire)){
             throw new FileCheckingException(Constant.ERR_FILE_WRONGCONTENT);
         }

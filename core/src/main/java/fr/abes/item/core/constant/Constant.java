@@ -46,7 +46,6 @@ public class Constant implements Serializable {
 	public static final String EXEMPLAIRE_CREE = "exemplaire créé";
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
 	public static final String EXEMPLAIRE_SUPPRIME = "exemplaire supprimé";
-	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
 	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
 	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM";
@@ -118,11 +117,6 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_STORAGE_FILE_UNREADABLE = "Fichier illisible, verifier que le format du fichier est bien un fichier texte.";
 	public static final String ERR_FILE_READING = "Ne peut pas lire le fichier : ";
 
-	/**Specific errors on file checking*/
-	public static final String ERR_FILE_INDEXINCONNU = "L'index choisi est inconnu. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-	public static final String ERR_FILE_NOZONE = "L'en-tête du fichier est non conforme : il ne contient pas de données d’exemplaires Merci de consulter la documentation utilisateur à cette adresse : ";
-	public static final String ERR_FILE_ZONEINCOMPLETE = "L'en-tête du fichier est non conforme. Les données d’exemplaires sont incomplètes : il manque une ou plusieurs sous-zones. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
-
 	/**Sudoc pass*/
 	public static final String PASSSUDOC = "pabnot6";
 
@@ -152,7 +146,6 @@ public class Constant implements Serializable {
 	public static final String REG_EXP_ZONE_EXX = "e(?<numEx>[\\d]{2})\\s\\$a\\d{2}-\\d{2}-\\d{2}\\$b(.{1,8})";
 	public static final String REG_EXP_EXEMPLAIRE = "(?<exemplaire>(e[\\d]{2})\\s\\$a\\d{2}-\\d{2}-\\d{2}\\$b(.{1,8})\\r(.*\\r)*)";
 	public static final String REG_EXP_DONNEELOCALE = "(?<zone>([(^A)|(^E)|(L)]?)[\\d]{3})(?<espace>\\s)?+(?<indicateurs>[#\\d]{2})?(?<sousZone>[$][a-z\\d])";
-	public static final String REG_EXP_DATE_A_4_DECIMALES = "\\d{4}";
 
 	//PATTERN_LIGNE_ANORMALE : ligne avec seulement des points virgules sans données
 	public static final String REG_EXP_LIGNE_ANORMALE = "^((?!\\w).)*$";
@@ -179,7 +172,6 @@ public class Constant implements Serializable {
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MINUTES = "temps total execution (minutes) = ";
 	public static final String ERROR_SENDING_MAIL_END_OF_TREATMENT = "Erreur lors de l'envoi du mail de fin traitement : ";
 	public static final String POUR_LA_DEMANDE = "...pour la demande ";
-	public static final String ENTER_DOFILTERINTERNAL = "ENTREE DANS doFilterInternal.............................";
 	public static final String ERROR_ATTACHMENT_NOT_FOUND = "Fichier PJ introuvable : ";
 	public static final String ERROR_ATTACHMENT_UNATTACHABLE = "Impossible d'ajouter la PJ au mail : ";
 	public static final String ERROR_CONVERSION_MAIL_TO_JSON = "Erreur lors de la conversion du mail en JSON : ";
@@ -212,7 +204,6 @@ public class Constant implements Serializable {
 	public static final String ENTER_AUTHENTICATE = "entree dans authenticate...";
 	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc";
 	public static final String ERROR_AUTHENTICATION_IN_SECURITY_CONTEXT = "Could not set user authentication in security context";
-	public static final String ERROR_BLOCKED_IP = "dans isblocked IP, attemptsCache.get(key) = ";
 	public static final String NUMBER_IP_TENTATIVES = "NB de tentatives pour ip =";
 	public static final String ENTER_LOGIN_FAILED = "entree dans loginFailed...";
 	public static final String ENTER_LOGIN_SUCCEED = "entree dans loginSucceeded pour IP = ";
