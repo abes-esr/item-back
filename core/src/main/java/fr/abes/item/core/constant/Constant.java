@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 
 public class Constant implements Serializable {
+
 	@Serial
 	private static final long serialVersionUID = 1L;
 	//Type exemplarisation Monographie électronique
@@ -46,7 +47,6 @@ public class Constant implements Serializable {
 	public static final String EXEMPLAIRE_CREE = "exemplaire créé";
 	public static final String EXEMPLAIRE_MODIFIE = "Le traitement a été effectué.";
 	public static final String EXEMPLAIRE_SUPPRIME = "exemplaire supprimé";
-	public static final String MSG = "message : ";
 	public static final String FILE_END = "Fin du fichier.";
 	public static final String TEXTE_991_MODIF = "Exemplaire modifié automatiquement";
 	public static final String TEXTE_991_CREA = "Exemplaire créé en masse par ITEM";
@@ -101,6 +101,7 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_NOT_FOUND = "Fichier introuvable.";
 	public static final String ERR_FILE_NOINDEX = "L'en-tête du fichier est non conforme. Il ne contient pas d’index de recherche.";
 	public static final String ERR_FILE_NOREQUESTS = "Le fichier ne contient pas de requêtes. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
+	public static final String ERR_FILE_WRONGCONTENT = "Erreur de traitement : Merci de vérifier la conformité de vos fichiers. En cas de difficultés, merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 	public static final String ERR_FILE_NOTRAIT = "Aucun traitement associé à la demande.";
 	public static final String ERR_FILE_TOOMUCH_START = "Le fichier dépasse la limite des ";
 	public static final String ERR_FILE_TOOMUCH_END = " notices. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
@@ -164,8 +165,8 @@ public class Constant implements Serializable {
 	/**Specific messages on mails sents and stats*/
 	public static final String STAT_NBDEMANDESTRAITEES_FILENAME = "demandesTraiteesRCR";
 	public static final String STAT_NBEXEMPLAIRESTRAITES_FILENAME = "exemplairesTraitesTraitementRCR";
-	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires ";
-	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires ";
+	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires N° ";
+	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires N° ";
 	public static final String DEMANDE_EXEMPLARISATION_START = "Votre exemplarisation - ";
 	public static final String DEMANDE_EXEMPLARISATION_END = "Résultat de votre exemplarisation - ";
 	public static final String DEMANDE_RECOUVREMENT_START = "Votre taux de recouvrement - N°";
@@ -211,7 +212,6 @@ public class Constant implements Serializable {
 	public static final String SPRING_BATCH_TOTAL_TIME_EXECUTION_MINUTES = "temps total execution (minutes) = ";
 	public static final String ERROR_SENDING_MAIL_END_OF_TREATMENT = "Erreur lors de l'envoi du mail de fin traitement : ";
 	public static final String POUR_LA_DEMANDE = "...pour la demande ";
-	public static final String ENTER_DOFILTERINTERNAL = "ENTREE DANS doFilterInternal.............................";
 	public static final String ERROR_ATTACHMENT_NOT_FOUND = "Fichier PJ introuvable : ";
 	public static final String ERROR_ATTACHMENT_UNATTACHABLE = "Impossible d'ajouter la PJ au mail : ";
 	public static final String ERROR_CONVERSION_MAIL_TO_JSON = "Erreur lors de la conversion du mail en JSON : ";
@@ -242,9 +242,8 @@ public class Constant implements Serializable {
 	public static final String ENTER_CREATION_DEMANDE_BY_USERNUM = "entree dans autoriserCreationDemandeParUserNum..........";
 	public static final String ENTER_AUTORISER_MAJ_UTILISATEUR_BY_USERNUM = "entree dans autoriserMajUtilisateurParUserNum..........";
 	public static final String ENTER_AUTHENTICATE = "entree dans authenticate...";
-	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc";
+	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc ";
 	public static final String ERROR_AUTHENTICATION_IN_SECURITY_CONTEXT = "Could not set user authentication in security context";
-	public static final String ERROR_BLOCKED_IP = "dans isblocked IP, attemptsCache.get(key) = ";
 	public static final String NUMBER_IP_TENTATIVES = "NB de tentatives pour ip =";
 	public static final String ENTER_LOGIN_FAILED = "entree dans loginFailed...";
 	public static final String ENTER_LOGIN_SUCCEED = "entree dans loginSucceeded pour IP = ";

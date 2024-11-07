@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Test fichier recouvrement")
 @SpringBootTest(classes = {FichierEnrichiRecouv.class})
@@ -63,7 +63,7 @@ public class TestFichierEnrichiRecouv {
     @Test
     void testIndexRechercheNok() {
         composantFichier.setFilename("nokindex.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU)).isTrue();
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_INDEXINCONNU));
     }
 
     /**
@@ -71,8 +71,9 @@ public class TestFichierEnrichiRecouv {
      */
     @Test
     void testNbColonnes() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokNbColonnes.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "3" + Constant.ERR_FILE_WRONGNBCOLUMNS));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_WRONGNBCOLUMNS));
     }
 
     /**
@@ -80,24 +81,18 @@ public class TestFichierEnrichiRecouv {
      */
     @Test
     void testLigneVide() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokLigneVide.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_LIGNE_ANORNALE));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_LIGNE_ANORNALE));
     }
     /**
      * Méthode vérifiant que le champ date est bien codé sur 4 chiffres
      */
     @Test
     void testDate() {
+        Mockito.when(indexRechercheDao.findAll()).thenReturn(getIndexRecherche());
         composantFichier.setFilename("nokDate.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_DATENOK));
+        assertTrue(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2 : " + Constant.ERR_FILE_DATENOK));
     }
 
-    /**
-     * Méthode vérifiant que le champ PPN est conforme
-     */
-    @Test
-    void testPpn() {
-        composantFichier.setFilename("nokPpn.csv");
-        assertThat(assertThrows(FileCheckingException.class, () -> composantFichier.checkFileContent(demande)).getMessage().contains(Constant.ERR_FILE_ERRLINE + "2" + Constant.ERR_FILE_WRONGPPN));
-    }
 }

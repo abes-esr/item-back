@@ -68,7 +68,7 @@ public interface ILigneFichierSuppDao extends JpaRepository<LigneFichierSupp, In
      * @return Le nombre de ligne du fichier qui ont été traitées sur cette demande et dont le retour du sudoc à été
      * positif pour le traitement
      */
-    @Query("select count(lf) from LigneFichierSupp lf where lf.demandeSupp.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc = 'Le traitement a été effectué.'")
+    @Query("select count(lf) from LigneFichierSupp lf where lf.demandeSupp.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc = 'exemplaire supprimé'")
     int getNbLigneFichierSuccessByDemande(@Param("numDemande") Integer numDemande);
 
     /**
@@ -76,7 +76,7 @@ public interface ILigneFichierSuppDao extends JpaRepository<LigneFichierSupp, In
      * @return Le nombre de ligne du fichier qui ont été traitées sur cette demande et dont le retour du sudoc n'a pas
      * été positif pour le traitement
      */
-    @Query("select count(lf) from LigneFichierSupp lf where lf.demandeSupp.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc != 'Le traitement a été effectué.'")
+    @Query("select count(lf) from LigneFichierSupp lf where lf.demandeSupp.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc != 'exemplaire supprimé'")
     int getNbLigneFichierErrorByDemande(@Param("numDemande") Integer numDemande);
 
     /**
