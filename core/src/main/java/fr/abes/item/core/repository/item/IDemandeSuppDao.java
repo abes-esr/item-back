@@ -15,16 +15,15 @@ import java.util.Optional;
 @ItemConfiguration
 public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
 
-    @Query(value ="select d, (SELECT count(num_lignefichier) FROM ligne_fichier_supp WHERE ref_demande = demande_supp.num_demande) as nb_lignefichier from DemandeSupp d where d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
+    @Query("select d, (SELECT count(l.numLigneFichier) FROM LigneFichierSupp l WHERE l.demandeSupp.numDemande = d.numDemande) as nbLignes from DemandeSupp d where d.etatDemande.numEtat not in (9, 10)")
     List<DemandeDto> getAllActiveDemandesSuppForAdminExtended();
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_supp WHERE ref_demande = demande_supp.num_demande) as nb_lignefichier from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
+    @Query("select d, (SELECT count(l.numLigneFichier) FROM LigneFichierSupp l WHERE l.demandeSupp.numDemande = d.numDemande) as nbLignes from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)")
     List<DemandeDto> getAllActiveDemandesSuppForAdmin(@Param("iln") String iln);
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_supp WHERE ref_demande = demande_supp.num_demande) as nb_lignefichier from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat = 9", nativeQuery = true)
+    @Query("select d, (SELECT count(l.numLigneFichier) FROM LigneFichierSupp l WHERE l.demandeSupp.numDemande = d.numDemande) as nbLignes from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat = 9")
     List<DemandeDto> getAllArchivedDemandesSupp(@Param("iln") String iln);
     @Query("select d from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
-
     List<DemandeDto> getActiveDemandesSuppForUserExceptedPreparedStatus(@Param("iln") String iln);
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_supp WHERE ref_demande = demande_supp.num_demande) as nb_lignefichier from DemandeSupp d where d.etatDemande.numEtat = 9", nativeQuery = true)
+    @Query("select d, (SELECT count(l.numLigneFichier) FROM LigneFichierSupp l WHERE l.demandeSupp.numDemande = d.numDemande) as nbLignes from DemandeSupp d where d.etatDemande.numEtat = 9")
     List<DemandeDto> getAllArchivedDemandesSuppExtended();
     List<DemandeSupp> findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Integer id);
 

@@ -27,10 +27,10 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
     @Query("select e from TypeExemp e where e.numTypeExemp in (select d.typeExemp.numTypeExemp from DemandeExemp d where d.numDemande = :numDemande)")
     TypeExemp getTypeExemp(@Param("numDemande") Integer numDemande);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)", nativeQuery = true)
+    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = d.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)", nativeQuery = true)
     List<DemandeDto> getActiveDemandesExempForUserExceptedPreparedStatus(@Param("iln") String iln);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
+    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = d.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
     List<DemandeDto> getAllActiveDemandesExempForAdmin(@Param("iln") String iln);
 
     @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
