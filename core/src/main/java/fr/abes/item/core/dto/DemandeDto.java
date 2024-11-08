@@ -22,6 +22,11 @@ public class DemandeDto {
         this.nbLignes = nbLignes;
     }
 
+    public DemandeDto(Demande demande, Long nbLignes) {
+        this.demande = demande;
+        this.nbLignes = Math.toIntExact(nbLignes);
+    }
+
     public DemandeDto(Demande demande) {
         this.demande = demande;
     }

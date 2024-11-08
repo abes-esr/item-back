@@ -27,19 +27,19 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
     @Query("select e from TypeExemp e where e.numTypeExemp in (select d.typeExemp.numTypeExemp from DemandeExemp d where d.numDemande = :numDemande)")
     TypeExemp getTypeExemp(@Param("numDemande") Integer numDemande);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = d.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)", nativeQuery = true)
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeExemp d JOIN d.ligneFichierExemps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
     List<DemandeDto> getActiveDemandesExempForUserExceptedPreparedStatus(@Param("iln") String iln);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = d.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeExemp d JOIN d.ligneFichierExemps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesExempForAdmin(@Param("iln") String iln);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.etatDemande.numEtat not in (9, 10)", nativeQuery = true)
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeExemp d JOIN d.ligneFichierExemps l where d.etatDemande.numEtat not in (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesExempForAdminExtended();
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.iln = :iln and d.etatDemande.numEtat = 9", nativeQuery = true)
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeExemp d JOIN d.ligneFichierExemps l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesExemp(@Param("iln") String iln);
 
-    @Query(value = "select d, (SELECT count(num_lignefichier) FROM ligne_fichier_exemp WHERE ref_demande = demande_exemp.num_demande) as nb_lignefichier from DemandeExemp d where d.etatDemande.numEtat = 9", nativeQuery = true)
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeExemp d JOIN d.ligneFichierExemps l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesExempExtended();
 
     //Même si l'ide signale la requête elle est correcte, demandes en statut terminé avec une ancienneté de plus de 90 jours sur la dernière date de modification récupérées
