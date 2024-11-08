@@ -6,6 +6,7 @@ import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
@@ -61,11 +62,11 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeRecouv> demandeRecouvs = demandeRecouvDao.getAllActiveDemandesRecouvForAdmin(iln);
-        List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdmin(String iln) {
+        List<DemandeRecouv> listeDemandeRecouv = demandeRecouvDao.getAllActiveDemandesRecouvForAdmin(iln);
+        List<DemandeDto> listeDemandeDto = getListDemandeDtoFromListDemandeRecouv(listeDemandeRecouv);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     @Override
@@ -109,19 +110,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
      * @return liste des demandeModifs de l'utilisateur (hors demandeModifs archivées)
      */
     @Override
-    public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getActiveDemandesRecouvForUserExceptedPreparedStatus(iln);
-        List<Demande> listeDemande = new ArrayList<>(demandeRecouvs);
-        setIlnShortNameOnList(listeDemande);
-        return listeDemande;
+    public List<DemandeDto> getActiveDemandesForUser(String iln) {
+        List<DemandeRecouv> listeDemandeRecouv = this.demandeRecouvDao.getActiveDemandesRecouvForUserExceptedPreparedStatus(iln);
+        List<DemandeDto> listeDemandeDto = getListDemandeDtoFromListDemandeRecouv(listeDemandeRecouv);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeRecouv> demandeRecouv = demandeRecouvDao.getAllActiveDemandesRecouvForAdminExtended();
-        List<Demande> demandeList = new ArrayList<>(demandeRecouv);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdminExtended() {
+        List<DemandeRecouv> listeDemandeRecouv = demandeRecouvDao.getAllActiveDemandesRecouvForAdminExtended();
+        List<DemandeDto> listeDemandeDto = getListDemandeDtoFromListDemandeRecouv(listeDemandeRecouv);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     @Override
@@ -209,19 +210,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getAllArchivedDemandesRecouv(iln);
-        List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllArchivedDemandes(String iln) {
+        List<DemandeRecouv> listeDemandeRecouv = this.demandeRecouvDao.getAllArchivedDemandesRecouv(iln);
+        List<DemandeDto> listeDemandeDto = getListDemandeDtoFromListDemandeRecouv(listeDemandeRecouv);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeRecouv> demandeRecouvs = this.demandeRecouvDao.getAllArchivedDemandesRecouvExtended();
-        List<Demande> demandeList = new ArrayList<>(demandeRecouvs);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllArchivedDemandesAllIln() {
+        List<DemandeRecouv> listeDemandeRecouv = this.demandeRecouvDao.getAllArchivedDemandesRecouvExtended();
+        List<DemandeDto> listeDemandeDto = getListDemandeDtoFromListDemandeRecouv(listeDemandeRecouv);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     @Override
@@ -279,6 +280,14 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
             default -> 0;
         };
+    }
+
+    private List<DemandeDto> getListDemandeDtoFromListDemandeRecouv(List<DemandeRecouv> listeDemandeRecouv) {
+        List<DemandeDto> listeDemandeDto = new ArrayList<>();
+        for (DemandeRecouv demandeRecouv: listeDemandeRecouv) {
+            listeDemandeDto.add(new DemandeDto(demandeRecouv));
+        }
+        return listeDemandeDto;
     }
 
     public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {

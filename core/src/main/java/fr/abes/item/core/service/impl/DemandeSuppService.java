@@ -10,6 +10,7 @@ import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
@@ -238,11 +239,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
      * @return liste des demandesSupp de l'utilisateur (hors demandesSupp archivées)
      */
     @Override
-    public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getActiveDemandesSuppForUserExceptedPreparedStatus(iln);
-        List<Demande> listeDemande = new ArrayList<>(demandesSupp);
-        setIlnShortNameOnList(listeDemande);
-        return listeDemande;
+    public List<DemandeDto> getActiveDemandesForUser(String iln) {
+        List<DemandeDto> listeDemandesDto = this.demandeSuppDao.getActiveDemandesSuppForUserExceptedPreparedStatus(iln);
+        setIlnShortNameOnDemandeDtoList(listeDemandesDto);
+        return listeDemandesDto;
     }
 
     @Override
@@ -295,27 +295,24 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getAllArchivedDemandesSupp(iln);
-        List<Demande> listeDemandes = new ArrayList<>(demandesSupp);
-        setIlnShortNameOnList(listeDemandes);
-        return listeDemandes;
+    public List<DemandeDto> getAllArchivedDemandes(String iln) {
+        List<DemandeDto> listeDemandesDto = this.demandeSuppDao.getAllArchivedDemandesSupp(iln);
+        setIlnShortNameOnDemandeDtoList(listeDemandesDto);
+        return listeDemandesDto;
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeSupp> demandesSupp = this.demandeSuppDao.getAllArchivedDemandesSuppExtended();
-        List<Demande> listeDemandes = new ArrayList<>(demandesSupp);
-        setIlnShortNameOnList(listeDemandes);
-        return listeDemandes;
+    public List<DemandeDto> getAllArchivedDemandesAllIln() {
+        List<DemandeDto> listeDemandesDto = this.demandeSuppDao.getAllArchivedDemandesSuppExtended();
+        setIlnShortNameOnDemandeDtoList(listeDemandesDto);
+        return listeDemandesDto;
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeSupp> demandeSupps = demandeSuppDao.getAllActiveDemandesSuppForAdminExtended();
-        List<Demande> demandesList = new ArrayList<>(demandeSupps);
-        setIlnShortNameOnList(demandesList);
-        return demandesList;
+    public List<DemandeDto> getAllActiveDemandesForAdminExtended() {
+        List<DemandeDto> listeDemandesDto = demandeSuppDao.getAllActiveDemandesSuppForAdminExtended();
+        setIlnShortNameOnDemandeDtoList(listeDemandesDto);
+        return listeDemandesDto;
     }
 
     /**
@@ -327,11 +324,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
      * @return la liste de toutes les demandesSupp
      */
     @Override
-    public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeSupp> demandesSupp = demandeSuppDao.getAllActiveDemandesSuppForAdmin(iln);
-        List<Demande> demandeList = new ArrayList<>(demandesSupp);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdmin(String iln) {
+        List<DemandeDto> listeDemandesDto = demandeSuppDao.getAllActiveDemandesSuppForAdmin(iln);
+        setIlnShortNameOnDemandeDtoList(listeDemandesDto);
+        return listeDemandesDto;
     }
 
     @Override

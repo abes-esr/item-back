@@ -8,6 +8,7 @@ import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
@@ -60,11 +61,10 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeModif> demandeModif = demandeModifDao.getAllActiveDemandesModifForAdminExtended();
-        List<Demande> demandeList = new ArrayList<>(demandeModif);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdminExtended() {
+        List<DemandeDto> ListeDemandeDto = demandeModifDao.getAllActiveDemandesModifForAdminExtended();
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
 
@@ -75,27 +75,24 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return liste des demandeModifs de l'utilisateur (hors demandeModifs archivées)
      */
     @Override
-    public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeModif> demandeModifs = this.demandeModifDao.getActiveDemandesModifForUserExceptedPreparedStatus(iln);
-        List<Demande> listeDemande = new ArrayList<>(demandeModifs);
-        setIlnShortNameOnList(listeDemande);
-        return listeDemande;
+    public List<DemandeDto> getActiveDemandesForUser(String iln) {
+        List<DemandeDto> ListeDemandeDto = this.demandeModifDao.getActiveDemandesModifForUserExceptedPreparedStatus(iln);
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeModif> demandeModifs = this.demandeModifDao.getAllArchivedDemandesModif(iln);
-        List<Demande> listeDemandes = new ArrayList<>(demandeModifs);
-        setIlnShortNameOnList(listeDemandes);
-        return listeDemandes;
+    public List<DemandeDto> getAllArchivedDemandes(String iln) {
+        List<DemandeDto> ListeDemandeDto = this.demandeModifDao.getAllArchivedDemandesModif(iln);
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeModif> demandeModifs = this.demandeModifDao.getAllArchivedDemandesModifExtended();
-        List<Demande> listeDemandes = new ArrayList<>(demandeModifs);
-        setIlnShortNameOnList(listeDemandes);
-        return listeDemandes;
+    public List<DemandeDto> getAllArchivedDemandesAllIln() {
+        List<DemandeDto> ListeDemandeDto = this.demandeModifDao.getAllArchivedDemandesModifExtended();
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
     /**
@@ -326,11 +323,10 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      * @return la liste de toutes les demandeModifs
      */
     @Override
-    public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeModif> demandeModifs = demandeModifDao.getAllActiveDemandesModifForAdmin(iln);
-        List<Demande> demandeList = new ArrayList<>(demandeModifs);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdmin(String iln) {
+        List<DemandeDto> listeDemandeDto = demandeModifDao.getAllActiveDemandesModifForAdmin(iln);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     /**

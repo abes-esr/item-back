@@ -15,6 +15,7 @@ import lombok.Setter;
         @JsonSubTypes.Type(value = DemandeModifWebDto.class, name = "MODIF"),
         @JsonSubTypes.Type(value = DemandeExempWebDto.class, name = "EXEMP"),
         @JsonSubTypes.Type(value = DemandeRecouvWebDto.class, name = "RECOUV"),
+        @JsonSubTypes.Type(value = DemandeSuppWebDto.class, name = "SUPP"),
 })
 @AllArgsConstructor
 @NoArgsConstructor

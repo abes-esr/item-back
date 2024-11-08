@@ -2,6 +2,7 @@ package fr.abes.item.core.service;
 
 import fr.abes.cbs.exception.CBSException;
 import fr.abes.cbs.exception.ZoneException;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
@@ -35,7 +36,7 @@ public interface IDemandeService {
 
     Demande closeDemande(Demande demande) throws DemandeCheckingException;
 
-    List<Demande> getActiveDemandesForUser(String iln);
+    List<DemandeDto> getActiveDemandesForUser(String iln);
 
     Demande getIdNextDemandeToProceed(int minHour, int maxHour);
 
@@ -45,13 +46,13 @@ public interface IDemandeService {
 
     Demande changeStateCanceled(Demande demande, int etatDemande);
 
-    List<Demande> getAllArchivedDemandes(String iln);
+    List<DemandeDto> getAllArchivedDemandes(String iln);
 
-    List<Demande> getAllArchivedDemandesAllIln();
+    List<DemandeDto> getAllArchivedDemandesAllIln();
 
-    List<Demande> getAllActiveDemandesForAdminExtended();
+    List<DemandeDto> getAllActiveDemandesForAdminExtended();
 
-    List<Demande> getAllActiveDemandesForAdmin(String iln);
+    List<DemandeDto> getAllActiveDemandesForAdmin(String iln);
 
     Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException;
 
