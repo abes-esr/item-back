@@ -58,7 +58,7 @@ public class Constant implements Serializable {
 	public static final String ACCES_INTERDIT = "Accès interdit.";
 	public static final String ACCES_REFUSE = "Accès refusé.";
 	public static final String IP_BLOCKED = "Votre adresse IP est bloquée.";
-	public static final String WRONG_LOGIN_AND_OR_PASS = "Mauvais login et / ou mot de passe.";
+	public static final String WRONG_LOGIN_AND_OR_PASS = "Une erreur s'est produite : Identifiant ou mot de passe incorrect.";
 
 	/**Prefix name from files put on server*/
 	public static final String FIC_INITIAL_NAME = "fichier_initial_";
