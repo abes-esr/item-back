@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 @ItemConfiguration
@@ -17,14 +16,19 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
 
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l WHERE d.etatDemande.numEtat NOT IN (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesSuppForAdminExtended();
+
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesSuppForAdmin(@Param("iln") String iln);
+
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSupp(@Param("iln") String iln);
+
     @Query("select d from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
     List<DemandeDto> getActiveDemandesSuppForUserExceptedPreparedStatus(@Param("iln") String iln);
+
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSuppExtended();
+
     List<DemandeSupp> findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Integer id);
 
     @Query("select d from DemandeSupp d where d.etatDemande.numEtat = 7 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")

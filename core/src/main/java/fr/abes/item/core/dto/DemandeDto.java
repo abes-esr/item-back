@@ -2,7 +2,6 @@ package fr.abes.item.core.dto;
 
 import fr.abes.item.core.entities.baseXml.LibProfile;
 import fr.abes.item.core.entities.item.Demande;
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +13,6 @@ import java.util.Objects;
 public class DemandeDto {
     private Demande demande;
 
-    @Column(name = "NB_LIGNEFICHIER")
     private Integer nbLignes;
 
     public DemandeDto(Demande demande, Integer nbLignes) {
