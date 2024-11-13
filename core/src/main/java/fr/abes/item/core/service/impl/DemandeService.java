@@ -1,5 +1,6 @@
 package fr.abes.item.core.service.impl;
 
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.baseXml.LibProfile;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
@@ -25,6 +26,10 @@ public class DemandeService  {
      */
     public void setIlnShortNameOnList(List<Demande> demandeList) {
         setIlnShortNameOnDemandes(demandeList);
+    }
+
+    public void setIlnShortNameOnDemandeDtoList(List<DemandeDto> demandeDtoList) {
+        setIlnShortNameOnDemandesDto(demandeDtoList);
     }
 
     /**
@@ -71,6 +76,36 @@ public class DemandeService  {
         //Alimentation des attributs shortname et iln de chaque entité demande en cas de manquant / vide
         for (Demande demande : demandeList) {
             demande.feedIlnAndShortname(listLibProfile);
+        }
+    }
+
+    public void setIlnShortNameOnDemandesDto(List<DemandeDto> demandeDtoList) {
+        List<String> demandesIdListe = new ArrayList<>();
+
+        //Alimentation d'une liste de rcr
+        for (DemandeDto demandeDto : demandeDtoList) {
+            demandesIdListe.add(demandeDto.getRcr());
+        }
+
+        //Dédoublonnage de la liste de rcr
+        Set<String> set = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        Iterator<String> i = demandesIdListe.iterator();
+        while (i.hasNext()) {
+            String s = i.next();
+            if (set.contains(s)) {
+                i.remove();
+            }
+            else {
+                set.add(s);
+            }
+        }
+
+        //Récupération d'une liste d'entités LibProfile avec une liste rcr passée en paramètre
+        List<LibProfile> listLibProfile = libProfileDao.getShortnameAndIlnFromRcr(demandesIdListe);
+
+        //Alimentation des attributs shortname et iln de chaque entité demande en cas de manquant / vide
+        for (DemandeDto demandeDto : demandeDtoList) {
+            demandeDto.feedIlnAndShortname(listLibProfile);
         }
     }
 
