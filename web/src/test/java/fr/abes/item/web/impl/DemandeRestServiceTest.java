@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.service.impl.DemandeExempService;
 import fr.abes.item.core.service.impl.DemandeModifService;
@@ -58,7 +59,7 @@ class DemandeRestServiceTest {
     @Autowired
     ObjectMapper mapper;
 
-    List<Demande> demandeExemps = new ArrayList<>();
+    List<DemandeDto> demandeDto = new ArrayList<>();
 
     MockMvc mockMvc;
 
@@ -80,13 +81,17 @@ class DemandeRestServiceTest {
         demande2.setDateCreation(cal.getTime());
         cal.set(2024, Calendar.MARCH, 20);
         demande2.setDateModification(cal.getTime());
-        demandeExemps.addAll(Lists.newArrayList(demande1, demande2));
+
+        DemandeDto demandeDto1 = new DemandeDto(demande1, 1);
+        DemandeDto demandeDto2 = new DemandeDto(demande2, 2);
+        demandeDto.addAll(Lists.newArrayList(demandeDto1, demandeDto2));
+
     }
 
     @Test
     @WithMockUser(authorities = {"ADMIN"})
     void testGetAllActiveDemandesForAdmin() throws Exception {
-        Mockito.when(demandeExempService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeExemps);
+        Mockito.when(demandeExempService.getAllActiveDemandesForAdminExtended()).thenReturn(this.demandeDto);
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
@@ -101,7 +106,7 @@ class DemandeRestServiceTest {
     @Test
     @WithMockUser(authorities = {"ADMIN"})
     void testGetAllActiveDemandesForAdminExtender() throws Exception {
-        Mockito.when(demandeExempService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeExemps);
+        Mockito.when(demandeExempService.getAllActiveDemandesForAdmin("1")).thenReturn(this.demandeDto);
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
@@ -113,7 +118,7 @@ class DemandeRestServiceTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void testChercher() throws Exception {
-        Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
+        Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeDto);
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP/?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
@@ -125,7 +130,7 @@ class DemandeRestServiceTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void testGetAllArtiveDemandes() throws Exception {
-        Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeExemps);
+        Mockito.when(demandeExempService.getActiveDemandesForUser("1")).thenReturn(this.demandeDto);
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP?archive=false&extension=true").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
@@ -137,7 +142,7 @@ class DemandeRestServiceTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void testGetAllArchivedDemandes() throws Exception {
-        Mockito.when(demandeExempService.getAllArchivedDemandes("1")).thenReturn(this.demandeExemps);
+        Mockito.when(demandeExempService.getAllArchivedDemandes("1")).thenReturn(this.demandeDto);
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP?archive=true&extension=false").requestAttr("iln", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
@@ -150,7 +155,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testGetDemande() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         this.mockMvc.perform(get("/api/v1/demandes/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
@@ -162,7 +167,7 @@ class DemandeRestServiceTest {
     @WithMockUser(authorities = {"USER"})
     void testCreerDemande() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         this.mockMvc.perform(post("/api/v1/demandes/EXEMP?rcr=341720001").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
@@ -175,7 +180,7 @@ class DemandeRestServiceTest {
     void testModifDemandeRcr() throws Exception {
         Calendar cal = Calendar.getInstance();
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         EtatDemande etat = new EtatDemande(1, "A compléter");
         Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
         DemandeExemp demandeIn = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
@@ -195,7 +200,7 @@ class DemandeRestServiceTest {
     void testModifDemandeTypeExemp() throws Exception {
         Calendar cal = Calendar.getInstance();
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         EtatDemande etat = new EtatDemande(1, "A compléter");
         Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
         DemandeExemp demandeIn = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
@@ -233,7 +238,7 @@ class DemandeRestServiceTest {
     void testModifDemandeCommentaire() throws Exception {
         Calendar cal = Calendar.getInstance();
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         EtatDemande etat = new EtatDemande(1, "A compléter");
         Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
         DemandeExemp demandeIn = new DemandeExemp(1, "341720001", cal.getTime(), cal.getTime(), etat, "", utilisateur);
@@ -254,7 +259,7 @@ class DemandeRestServiceTest {
     void testModifDemandeTraitement() throws Exception {
         Calendar cal = Calendar.getInstance();
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.MODIF);
-        Mockito.when(demandeModifService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeModifService.creerDemande(Mockito.anyString(), Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         EtatDemande etat = new EtatDemande(1, "A compléter");
         Utilisateur utilisateur =  new Utilisateur(1, "test@test.com");
         Traitement traitement = new Traitement(1, "Créer nouvelle zone", "creerNouvelleZone");
@@ -298,7 +303,7 @@ class DemandeRestServiceTest {
     @Test
     void testSimulerLigne() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         Mockito.when(ligneFichierExempService.getLigneFichierbyDemandeEtPos(Mockito.any(), Mockito.anyInt())).thenReturn(new LigneFichierExemp());
         Mockito.when(demandeExempService.getNoticeExemplaireAvantApres(Mockito.any(), Mockito.any())).thenReturn(new String[]{"avant", "après"});
         this.mockMvc.perform(get("/api/v1/simulerLigne/EXEMP/1/1").requestAttr("userNum", "1"))
@@ -310,8 +315,8 @@ class DemandeRestServiceTest {
     @Test
     void testPasserEnAttente() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeExemps.get(0));
-        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
+        DemandeExemp demande = (DemandeExemp) this.demandeDto.get(0).getDemande();
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.changeState(Mockito.any(), Mockito.anyInt())).thenReturn(demande);
         this.mockMvc.perform(patch("/api/v1/passerEnAttente/EXEMP/1").requestAttr("userNum", "1"))
@@ -324,7 +329,7 @@ class DemandeRestServiceTest {
     @Test
     void testArchiver() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        DemandeExemp demande = (DemandeExemp) this.demandeDto.get(0).getDemande();
         demande.setEtatDemande(new EtatDemande(7, "Archivée"));
         Mockito.when(demandeExempService.archiverDemande(Mockito.any())).thenReturn(demande);
         this.mockMvc.perform(get("/api/v1/archiverDemande/EXEMP/1").requestAttr("userNum", "1"))
@@ -337,7 +342,7 @@ class DemandeRestServiceTest {
     @Test
     void testPreviousStep() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        DemandeExemp demande = (DemandeExemp) this.demandeDto.get(0).getDemande();
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.previousState(Mockito.any())).thenReturn(demande);
         this.mockMvc.perform(patch("/api/v1/etapePrecedente/EXEMP/1").requestAttr("userNum", "1"))
@@ -350,7 +355,7 @@ class DemandeRestServiceTest {
     @Test
     void testChosenStep() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        DemandeExemp demande = (DemandeExemp) this.demandeExemps.get(0);
+        DemandeExemp demande = (DemandeExemp) this.demandeDto.get(0).getDemande();
         demande.setEtatDemande(new EtatDemande(3, "En attente"));
         Mockito.when(demandeExempService.returnState(Mockito.anyInt(), Mockito.any())).thenReturn(demande);
         this.mockMvc.perform(patch("/api/v1/etapeChoisie/EXEMP/1").param("etape", "3").requestAttr("userNum", "1"))
@@ -363,7 +368,7 @@ class DemandeRestServiceTest {
     @Test
     void testGetNbLigneFichier() throws Exception {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
-        Mockito.when(demandeExempService.findById(Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeExemps.get(0));
+        Mockito.when(demandeExempService.findById(Mockito.anyInt())).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         Mockito.when(ligneFichierExempService.getNbLigneFichierTotalByDemande(Mockito.any())).thenReturn(30);
         this.mockMvc.perform(get("/api/v1/nbLignesFichier/EXEMP/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())

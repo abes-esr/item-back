@@ -13,6 +13,7 @@ import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
@@ -87,21 +88,19 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdmin(String iln) {
-        List<DemandeExemp> demandeExemps = demandeExempDao.getAllActiveDemandesExempForAdmin(iln);
-        List<Demande> demandeList = new ArrayList<>(demandeExemps);
+    public List<DemandeDto> getAllActiveDemandesForAdmin(String iln) {
+        List<DemandeDto> ListeDemandeDto = demandeExempDao.getAllActiveDemandesExempForAdmin(iln);
         //TODO 1 chopper les rcr en une iste string, 2 dao xml pour recuperer la liste des libelle avec un tableau mappé, 3 alimenter les entites LIB iteration
 
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllActiveDemandesForAdminExtended() {
-        List<DemandeExemp> demandeExemp = demandeExempDao.getAllActiveDemandesExempForAdminExtended();
-        List<Demande> demandeList = new ArrayList<>(demandeExemp);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllActiveDemandesForAdminExtended() {
+        List<DemandeDto> ListeDemandeDto = demandeExempDao.getAllActiveDemandesExempForAdminExtended();
+        setIlnShortNameOnDemandeDtoList(ListeDemandeDto);
+        return ListeDemandeDto;
     }
 
     public String getLibelleTypeExempDemande(Integer idDemande) {
@@ -140,11 +139,10 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return liste des demandeModifs de l'utilisateur (hors demandeModifs archivées)
      */
     @Override
-    public List<Demande> getActiveDemandesForUser(String iln) {
-        List<DemandeExemp> demandeExemps = demandeExempDao.getActiveDemandesExempForUserExceptedPreparedStatus(iln);
-        List<Demande> listeDemande = new ArrayList<>(demandeExemps);
-        setIlnShortNameOnList(listeDemande);
-        return listeDemande;
+    public List<DemandeDto> getActiveDemandesForUser(String iln) {
+        List<DemandeDto> listeDemandeDto = demandeExempDao.getActiveDemandesExempForUserExceptedPreparedStatus(iln);
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
     public boolean hasDonneeLocaleExistante() {
@@ -670,19 +668,17 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandes(String iln) {
-        List<DemandeExemp> demandeExemp = demandeExempDao.getAllArchivedDemandesExemp(iln);
-        List<Demande> demandeList = new ArrayList<>(demandeExemp);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllArchivedDemandes(String iln) {
+        List<DemandeDto> listDemandeDto = demandeExempDao.getAllArchivedDemandesExemp(iln);
+        setIlnShortNameOnDemandeDtoList(listDemandeDto);
+        return listDemandeDto;
     }
 
     @Override
-    public List<Demande> getAllArchivedDemandesAllIln() {
-        List<DemandeExemp> demandeExemp = demandeExempDao.getAllArchivedDemandesExempExtended();
-        List<Demande> demandeList = new ArrayList<>(demandeExemp);
-        setIlnShortNameOnList(demandeList);
-        return demandeList;
+    public List<DemandeDto> getAllArchivedDemandesAllIln() {
+        List<DemandeDto> listeDemandeDto = demandeExempDao.getAllArchivedDemandesExempExtended();
+        setIlnShortNameOnDemandeDtoList(listeDemandeDto);
+        return listeDemandeDto;
     }
 
 

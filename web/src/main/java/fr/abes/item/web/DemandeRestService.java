@@ -73,14 +73,14 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         if (role.equals("ADMIN")) {
             if (archive) {
-                return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
+                return (!extension) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList()) : service.getAllArchivedDemandesAllIln().stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList());
             }
             else {
-                return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
+                return (!extension) ? service.getAllActiveDemandesForAdmin(iln).stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList()) : service.getAllActiveDemandesForAdminExtended().stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList());
             }
         }
         //role USER
-        return (archive) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList()) : service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDemandeDto(element, type)).collect(Collectors.toList());
+        return (archive) ? service.getAllArchivedDemandes(iln).stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList()) : service.getActiveDemandesForUser(iln).stream().map(element -> builder.buildDemandeDtoWithNbLines(element, type)).collect(Collectors.toList());
     }
 
     /**
