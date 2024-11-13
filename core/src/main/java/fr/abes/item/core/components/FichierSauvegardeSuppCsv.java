@@ -39,6 +39,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
             // création de la liste de référence pour trouver l'emplacement de chaque zone et sous-zone
             List<String> listDeReference = referenceService.constructHeaderCsv();
             listDeReference.remove(0);
+            listDeReference.remove(0);
             // ajout de la ligne
             out.println(typeDoc + ";" + ppn + ";" + gererZones(listDeReference, exemplaire));
         } catch (IOException ex) {
