@@ -62,6 +62,7 @@ ENV LC_ALL fr_FR.UTF-8
 RUN dnf install -y cronie gettext && \
     crond -V && rm -rf /etc/cron.*/*
 COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
+RUN yum install -y procps
 # Le JAR et le script pour le batch de LN
 RUN dnf install -y java-11-openjdk
 
