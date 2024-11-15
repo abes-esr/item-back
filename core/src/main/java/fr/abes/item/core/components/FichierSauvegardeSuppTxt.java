@@ -27,7 +27,7 @@ public class FichierSauvegardeSuppTxt extends AbstractFichier implements Fichier
         try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
-            out.println(ppn);
+            out.println("PPN " + ppn);
             out.print("\n");
             out.println(exemplaire);
             out.println("\n");
