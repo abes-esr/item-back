@@ -29,7 +29,7 @@ jobs:
         run: |
           CURRENT_GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
           echo $CURRENT_GIT_BRANCH
-          [[ "$CURRENT_GIT_BRANCH" == "main-old" || "$CURRENT_GIT_BRANCH" == "master"]] && exit 0 || exit 1
+          [[ "$CURRENT_GIT_BRANCH" == "main-old" ]] && exit 0 || exit 1
       - name: 'Verify version is semver formatted (X.X.X)'
         env:
           NEW_TAG:  ${{ github.event.inputs.releaseVersion }}
@@ -72,9 +72,9 @@ jobs:
           git commit --amend -m "Version $NEW_TAG [skip ci]"
           git push
           
-          # merge la préparation de la nouvelle version sur develop
-          git switch develop
-          git merge main -m "Merge main to develop [skip ci]"
+          # merge la préparation de la nouvelle version sur develop-old
+          git switch develop-old
+          git merge main-old -m "Merge main to develop-old [skip ci]"
           git push
           
           # switch version to snapshot version
