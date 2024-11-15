@@ -38,10 +38,11 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
              PrintWriter out = new PrintWriter(bw)) {
             // création de la liste de référence pour trouver l'emplacement de chaque zone et sous-zone
             List<String> listDeReference = referenceService.constructHeaderCsv();
-            listDeReference.remove(0);
-            listDeReference.remove(0);
+            listDeReference.subList(0, 4).clear();
             // ajout de la ligne
-            out.println(typeDoc + ";" + ppn + ";" + gererZones(listDeReference, exemplaire));
+            String rcr = exemplaire.findZone("930", 0).findSubLabel("$b");
+            String epn = exemplaire.findZone("A99", 0).getValeur();
+            out.println(typeDoc + ";" + ppn + ";" + rcr + ";" + epn + ";" + gererZones(listDeReference, exemplaire));
         } catch (IOException ex) {
             throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
         }
