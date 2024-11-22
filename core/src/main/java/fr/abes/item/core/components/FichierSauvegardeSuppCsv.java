@@ -107,7 +107,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     public void writeHeader() {
-        if (!isHeaderAlreadyExist()) {
+        if (!isHeaderExist()) {
             try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
                  BufferedWriter bw = new BufferedWriter(fw);
                  PrintWriter out = new PrintWriter(bw)) {
@@ -119,7 +119,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
         }
     }
 
-    private boolean isHeaderAlreadyExist() {
+    private boolean isHeaderExist() {
         try (FileReader fr = new FileReader(this.getPath().resolve(this.getFilename()).toString());
              BufferedReader br = new BufferedReader(fr)) {
             String line = br.readLine();
