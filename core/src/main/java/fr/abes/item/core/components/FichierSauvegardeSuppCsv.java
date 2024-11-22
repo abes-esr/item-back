@@ -13,10 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -110,13 +107,25 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     public void writeHeader() {
-        try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw)) {
-            // ajout de la ligne
-            out.println(String.join(";", this.referenceService.constructHeaderCsv()));
-        } catch (IOException ex) {
-            throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
+        if (!isHeaderAlreadyExist()) {
+            try (FileWriter fw = new FileWriter(this.getPath().resolve(this.getFilename()).toString(), true);
+                 BufferedWriter bw = new BufferedWriter(fw);
+                 PrintWriter out = new PrintWriter(bw)) {
+                // ajout de la ligne
+                out.println(String.join(";", this.referenceService.constructHeaderCsv()));
+            } catch (IOException ex) {
+                throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
+            }
+        }
+    }
+
+    private boolean isHeaderAlreadyExist() {
+        try (FileReader fr = new FileReader(this.getPath().resolve(this.getFilename()).toString());
+             BufferedReader br = new BufferedReader(fr)) {
+            String line = br.readLine();
+            return line != null && line.startsWith("TYPE (008);PPN;");
+            } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }
