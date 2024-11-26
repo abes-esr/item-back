@@ -355,7 +355,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         DemandeSupp demandeSupp = (DemandeSupp) demande;
         try {
             traitementService.authenticate("M" + demandeSupp.getRcr());
-            List<Exemplaire> exemplairesExistants = getExemplairesExistants(ligneFichierSupp);
+            List<Exemplaire> exemplairesExistants = getExemplairesExistants(ligneFichierSupp.getPpn());
             //On ne conserve que les EPN de son RCR
             exemplairesExistants = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("930", 0).findSubLabel("$b").equals(demandeSupp.getRcr())).toList();
             if (exemplairesExistants.isEmpty()) {
@@ -393,15 +393,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         };
     }
 
-    public List<Exemplaire> getExemplairesExistants(LigneFichierSupp ligneFichierSupp) throws IOException, QueryToSudocException, CBSException, ZoneException {
-        return getExemplairesExistants(ligneFichierSupp.getPpn());
-    }
-
     public List<Exemplaire> getExemplairesExistants(String ppn) throws IOException, QueryToSudocException, CBSException, ZoneException {
-        return getExemplairesExistantsInternal(ppn);
-    }
-
-    private List<Exemplaire> getExemplairesExistantsInternal(String ppn) throws IOException, QueryToSudocException, CBSException, ZoneException {
         String query = "che ppn " + ppn;
         traitementService.getCbs().search(query);
         int nbReponses = traitementService.getCbs().getNbNotices();
