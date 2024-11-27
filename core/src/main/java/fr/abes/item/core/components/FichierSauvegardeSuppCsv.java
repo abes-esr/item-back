@@ -125,7 +125,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
             String line = br.readLine();
             return line != null && line.startsWith("TYPE (008);PPN;");
         } catch (IOException ex) {
-            throw new StorageException(Constant.ERR_FILE_WRITING + " de sauvegarde csv");
+            throw new StorageException(Constant.ERR_FILE_READING + " de sauvegarde csv");
         }
     }
 }
