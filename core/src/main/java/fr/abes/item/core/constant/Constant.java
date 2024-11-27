@@ -142,6 +142,7 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_STORAGE_FILE = "Echec de stockage du fichier suivant : ";
 	public static final String ERR_FILE_STORAGE_FILE_UNREADABLE = "Fichier illisible, verifier que le format du fichier est bien un fichier texte.";
 	public static final String ERR_FILE_READING = "Ne peut pas lire le fichier : ";
+	public static final String ERR_FILE_WRITING = "Echec de l'écriture dans le fichier ";
 
 	/**Specific errors on file checking*/
 	public static final String ERR_FILE_LIGNE_ANORNALE = "L'en-tête du fichier est non conforme : il contient des caractères parasites. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";

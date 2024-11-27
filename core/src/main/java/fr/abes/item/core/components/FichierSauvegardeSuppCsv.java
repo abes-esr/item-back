@@ -114,7 +114,7 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
                 // ajout de la ligne
                 out.println(String.join(";", this.referenceService.constructHeaderCsv()));
             } catch (IOException ex) {
-                throw new StorageException("Impossible d'écrire dans le fichier de sauvegarde csv");
+                throw new StorageException(Constant.ERR_FILE_WRITING + "de sauvegarde csv");
             }
         }
     }
@@ -124,8 +124,8 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
              BufferedReader br = new BufferedReader(fr)) {
             String line = br.readLine();
             return line != null && line.startsWith("TYPE (008);PPN;");
-            } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new StorageException(Constant.ERR_FILE_WRITING + " de sauvegarde csv");
         }
     }
 }
