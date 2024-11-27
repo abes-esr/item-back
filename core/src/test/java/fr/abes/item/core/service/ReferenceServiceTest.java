@@ -1,10 +1,7 @@
 package fr.abes.item.core.service;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.entities.item.SousZonesAutorisees;
 import fr.abes.item.core.entities.item.ZonesAutorisees;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.item.IEtatDemandeDao;
 import fr.abes.item.core.repository.item.ITraitementDao;
 import fr.abes.item.core.repository.item.ITypeExempDao;
@@ -15,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +61,7 @@ class ReferenceServiceTest {
         Mockito.when(iZonesAutoriseesDao.findAll()).thenReturn(zonesAutoriseesList);
 
         List<String> test = referenceService.constructHeaderCsv();
-        List<String> reference = List.of("TYPE (008);PPN;917$a;930$c;$d;".split(";"));
+        List<String> reference = List.of("TYPE (008);PPN;RCR;EPN;917$a;930$c;$d;".split(";"));
 
         assertEquals(reference,test);
 

@@ -5,7 +5,7 @@
         <!-- CONSOLE -->
         <Console name="Console">
             <PatternLayout
-                    pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{dark,yellow}: %msg%n%throwable" />
+                    pattern="%style{%d{ISO8601}}{white} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{dark,yellow}: %msg%n%throwable" />
         </Console>
         <ItemLogAppender name="ItemLogAppender" />
     </Appenders>
@@ -14,6 +14,7 @@
             <AppenderRef ref="Console"/>
         </Root>
         <Logger name="fr.abes.item" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="ItemLogAppender"/>
         </Logger>
     </Loggers>
