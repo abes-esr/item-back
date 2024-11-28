@@ -1,49 +1,35 @@
-# Item-Api
+# item-Api
 
 [![build-test-pubtodockerhub](https://github.com/abes-esr/item-api/actions/workflows/build-test-pubtodockerhub.yml/badge.svg)](https://github.com/abes-esr/item-api/actions/workflows/build-test-pubtodockerhub.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/abesesr/item.svg)](https://hub.docker.com/r/abesesr/item/)
 
+Vous êtes sur le README usager. Si vous souhaitez accéder au README développement,
+veuillez suivre ce lien : [README-developpement](README-developpement.md)
+
 Ce dépôt héberge le code source de l'API de Item.  
 Cette API fonctionne avec son interface utilisateur développée en VueJS (front) : https://github.com/abes-esr/item-client/  
-Et l'application Item complète peut être déployée via Docker à l'aide de ce dépôt : https://github.com/abes-esr/item-docker/  
+L'application Item complète peut être déployée via Docker à l'aide de ce dépôt : https://github.com/abes-esr/item-docker/  
 
-## Partie serveur de l'application item - Server part of the item application
+**item-api** est une API permettant de : 
+1. calculer un taux de recouvrement
+2. créer, modifier, supprimer des exemplaires par lot dans des notices
+3. récupérer les informations récapitulatives des demandes de recouvrement, de créations, de modification et de suppression
+4. récupérer les données des demandes de création, de modification et de suppression sous forme de fichiers
 
-### Note à l'attention des développeurs - Note to developers
+## Principe général de fonctionnement
 
-Les fichiers 
-* applications.properties
-* application-PROD.properties
-* application-TEST.properties
+### Webservices
 
-présents dans le dossier ressources du (main) dans les modules
-* web
-* batch
+Des webservices exposés permettent de récupérer les demandes de recouvrement, créations, modifications et suppressions 
+du client web item-client. Ces demandes et leurs informations associées sont stockées dans une base de données PostgreSQL. 
 
-présents dans le dossier ressources du test dans les modules
-* web
-* core
+### Traitements
 
-sont non-versionnés. Cela signifie que vous devrez avoir 
-votre propre base de donnée pour faire fonctionner l'application
-en local des variables indiquées dans le dossier documentation.
-Si besoin de précisions, vous adressez à item@abes.fr
+Un processus autonome (batch) se lance à interval régulier pour lire cette base de données et effectuer les traitements
+nécessaires à la réalisation des demandes (recouvrement, créations, modifications, suppressions). 
+Les données résultant des traitements sont ensuite écrites dans la base de données et des mails récapitulatifs 
+sont générés et envoyés à la personne ayant effectué la demande. 
 
----
+### Récapitulatifs des demandes
 
-The files 
-* applications.properties
-* application-PROD.properties
-* application-TEST.properties
-
-present in the resources' folder of the hand in modules
-* web
-* batch
-
-present in the test resources' folder in the modules
-* web
-* core
-
-are not versioned. This means that you will need to have 
-your own database to run the application
-locally of the variables indicated in the documentation file.
-If you need further information, please contact item@abes.fr.
+**item-api** permet d'accéder aux informations liées à une demande ainsi qu'aux fichiers initiaux (liste de PPN, liste d'EPN, etc.)
+qu'elle mettra à disposition du client item-client.
