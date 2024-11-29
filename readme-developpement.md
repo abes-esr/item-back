@@ -1,56 +1,63 @@
-# Utilisation des filtres de kibana-prod sur item pour travailler sur les logs
+# item-api
 
-## Guide pour voir les logs d'item de traitement des demandes en production pour comprendre en cas d'incident ou de bug pourquoi ça n'a pas fonctionné
+Le langage utilisé est Java, avec le framework Spring. 
 
-- se connecter sur https://kibana-prod.abes.fr/ avec vos identifiants
+**item-api** est une API permettant de :
+1. calculer un taux de recouvrement
+2. créer, modifier, supprimer des exemplaires par lot dans des notices
+3. récupérer les informations récapitulatives des demandes de recouvrement, de créations, de modification et de suppression
+4. récupérer les données des demandes de création, de modification et de suppression sous forme de fichiers
 
-![img.png](documentation/img.png)
+## Architecture de l'API
 
-- selectionner son espace qui a été préalablement crée par le SIRE (aller voir le SIRE pour créer son espace)
+**item-api** est composée de trois modules : `batch`, `core`, `web` et d'un répertoire `docker`.
+Chaque demande envoyée par le client item-client se voit attribuer un numéro de demande et un état. 
+Ce dernier changera en fonction de l'avancée de la saisie et du traitement de la demande.
 
-![img.png](documentation/imgr.png)
+### Module `batch`
 
-- dans son espace, cliquer sur les elements suivants pour permettre d'avoir une visualisation des logs qui suivent un élément qu'on recherche dans le champ message
-- dans **message** : on retrouve les logs qui sont dans item-batch
+Le module `batch` permet d'effectuer les traitements de création, de modification et de suppression permettant 
+l'aboutissement des demandes enregistrées dans la base de données PostgreSQL. 
+Il se lance à intervals réguliers, qui sont définis dans le fichier `item-api/docker/batch/tasks.tmpl`.
 
-![img_1.png](documentation/img_1.png)
+### Module `core`
 
-- prendre item-batch
+Le module `core` permet de mettre à jour les informations de la demande au fur et à mesure que celle-ci est saisie
+dans le client **item-client**. Ces informations sont enregistrées dans la base de données PostgreSQL.
 
-![img_7.png](documentation/img_7.png)
+Le fichier `core/src/main/java/fr/abes/item/core/constant/Constant.java` contient la plupart des associations 
+paramètres/valeurs intangibles qui seront utilisées dans **item-api**. 
+On y trouvera notamment les numéros des différents états qu'une demande peut avoir (ex : `ETATDEM_PREPARATION = 1`)
+avec la signification de l'état. Il s'y trouve aussi la plupart des messages de complétion ou d'erreur que l'api 
+sera amenée à renvoyer, les REGEX et le nombre maximal de lignes par fichier que chaque type de demande peut accepter.
 
-![img_3.png](documentation/img_3.png)
+### Module `web`
 
-![img_4.png](documentation/img_4.png)
+Le module `web` permet d'exposer les webservices permettant au client **item-client** d'intéragir avec l'API. 
+Ces webservices se trouvent dans le package `web/src/main/java/fr/abes/item/web`.
+C'est également dans ce module que l'on trouvera le service d'authentification 
+(dans le package `web/src/main/java/fr/abes/item/security`) 
+Le fichier `web/src/main/resources/application.properties` contient le paramètre spécifiant le nom 
+du répertoire de stockage sur le disque des fichiers liés aux demandes (`files.upload.path=/workdir/`)
 
-![img_6.png](documentation/img_6.png)
+### Répertoire `docker`
 
-- le + à coté du timestamp va permettre de partir de l'heure d'origine du premier message recherché qui correspond au match effectué dans le champ de la recherche
+Le répertoire `docker` contient les scripts shell de traitement, d'archivage, d'export de statistiques et les fichiers
+***docker-entrypoint.sh*** et ***tasks.tmpl***
 
-![img_8.png](documentation/img_8.png)
+## Configuration de l'API
 
-- sort old new pour les avoir dans l'ordre chronologique
+Les fichiers :
+* application.properties
+* application-dev.properties
+* application-prod.properties
+* application-test.properties
 
-![img_9.png](documentation/img_9.png)
+sont présents dans les dossiers ```src/main/ressources``` des modules :
+* web
+* batch
 
-- editer le filtre pour créer une plage de temps de recherche
-
-![img_10.png](documentation/img_10.png)
-
-![img_11.png](documentation/img_11.png)
-
-- supprimer le filtre de recherche et refresh
-
-![img_12.png](documentation/img_12.png)
-
-- replacer le filtre du timestamp en chronologique
-
-![img_13.png](documentation/img_13.png)
-
-- on peut maintenant avoir toutes les lignes qui suivent la recherche par filtre effectuée (soit toutes les lignes qui suivent le traitement d'une demande)
-
-## Pour retrouver les lignes traitées par le batch sur une demande spécifique comprise dans un plage (exemple le filtre dbeaver sur la demande 11548382)
-
-![img.png](img.png)
-
-- faire ensuite un filtre dans kibana avec en paramètre le num_lignefichier pour retrouver ce qui s'est passé
+Ces fichiers sont non-versionnés. Cela signifie que certains paramètres
+sont définis sans variables et qu'il vous appartiendra de les définir vous-même selon vos usages,
+notamment concernant les accès aux bases de données.
+Si vous avez besoin de plus de précisions, vous pouvez vous adresser à [envoyer un mail à item@abes.fr](item@abes.fr)
