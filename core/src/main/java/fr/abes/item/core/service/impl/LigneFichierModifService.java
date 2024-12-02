@@ -1,5 +1,8 @@
 package fr.abes.item.core.service.impl;
 
+import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.ZoneException;
+import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
@@ -7,8 +10,10 @@ import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeModif;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.entities.item.LigneFichierModif;
+import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.item.ILigneFichierModifDao;
 import fr.abes.item.core.service.ILigneFichierService;
+import fr.abes.item.core.service.TraitementService;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
 import org.mozilla.universalchardet.ReaderFactory;
@@ -28,9 +33,11 @@ import java.util.regex.Pattern;
 @Service
 public class LigneFichierModifService implements ILigneFichierService {
     private final ILigneFichierModifDao dao;
+    private final TraitementService traitementService;
 
-    public LigneFichierModifService(ILigneFichierModifDao dao) {
+    public LigneFichierModifService(ILigneFichierModifDao dao, TraitementService traitementService) {
         this.dao = dao;
+        this.traitementService = traitementService;
     }
 
     @Override
@@ -151,5 +158,72 @@ public class LigneFichierModifService implements ILigneFichierService {
     @Transactional
     public void deleteByDemande(Demande demande) {
         dao.deleteByDemandeModif((DemandeModif) demande);
+    }
+
+    @Override
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
+        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
+        String noticeInit = getNoticeInitiale(demande, ligneFichierModif.getEpn());
+        Exemplaire noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
+
+        return new String[]{
+                traitementService.getCbs().getPpnEncours(),
+                noticeInit.replace("\r", "\r\n"),
+                noticeTraitee.toString().replace("\r", "\r\n")
+        };
+    }
+
+    @Override
+    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
+        //not implemented
+        return null;
+    }
+
+    /**
+     * Méthode de récupération d'une notice par son EPN
+     *
+     * @param demandeModif utilisée pour récupérer le RCR qui servira pour la construction du login Manager CBS
+     * @param epn          epn de la notice à chercher
+     * @return La notice trouvée dans le CBS
+     * @throws CBSException : erreur CBS
+     */
+    public String getNoticeInitiale(Demande demandeModif, String epn) throws CBSException, IOException {
+        try {
+            traitementService.authenticate('M' + demandeModif.getRcr());
+            // appel getNoticeFromEPN sur EPN récupéré
+            String notice = traitementService.getNoticeFromEPN(epn);
+            return notice.substring(1, notice.length() - 1);
+        } finally {
+            // déconnexion du CBS après avoir lancé la requête
+            traitementService.disconnect();
+        }
+    }
+
+    /**
+     * Méthode de modification d'une notice en fonction du traitement
+     *
+     * @param demande      permet de récupérer le traitement à lancer sur la notice
+     * @param exemplaire   notice récupérée du Sudoc sur laquelle on effectue le traitement
+     * @param ligneFichier informations à intégrer à la notice à traiter
+     * @return la notice modifiée
+     */
+    public Exemplaire getNoticeTraitee(Demande demande, String exemplaire, LigneFichier ligneFichier) throws ZoneException {
+        DemandeModif demandeModif = (DemandeModif) demande;
+        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
+        String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
+        switch (demandeModif.getTraitement().getNomMethode()) {
+            case "creerNouvelleZone":
+                return traitementService.creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            case "supprimerZone":
+                return traitementService.supprimerZone(exempStr, demandeModif.getZone());
+            case "supprimerSousZone":
+                return traitementService.supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
+            case "ajoutSousZone":
+                return traitementService.creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            case "remplacerSousZone":
+                return traitementService.remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            default:
+        }
+        return null;
     }
 }

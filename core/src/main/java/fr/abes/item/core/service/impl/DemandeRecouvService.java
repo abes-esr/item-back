@@ -10,11 +10,9 @@ import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeRecouvDao;
 import fr.abes.item.core.service.*;
@@ -166,11 +164,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) {
-        return new String[]{"Simulation impossible pour le recouvrement", ""};
-    }
-
-    @Override
     public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         List<DemandeRecouv> listeDemandes;
@@ -290,36 +283,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         return listeDemandeDto;
     }
 
-    public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
-        String[] tabvaleurs = valeurs.split(";");
-        String query = getQueryToSudoc(codeIndex, null, tabvaleurs);
-        traitementService.getCbs().search(query);
-        return traitementService.getCbs().getNbNotices();
-    }
 
-    /**
-     * Méthode construisant la requête che en fonction des paramètres d'une demande d'exemplarisation
-     * @param codeIndex code de l'index de la recherche
-     * @param type : non utilisé dans cette implementation
-     * @param valeur tableau des valeurs utilisées pour construire la requête
-     * @return requête che prête à être lancée vers le CBS
-     */
-    @Override
-    public String getQueryToSudoc(String codeIndex, Integer type, String[] valeur) throws QueryToSudocException {
-        return switch (codeIndex) {
-            case "ISBN" -> "che isb " + valeur[0];
-            case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];
-            case "PPN" -> "che ppn " + valeur[0];
-            case "SOU" -> "tno t; tdo b; che sou " + valeur[0];
-            case "DAT" -> {
-                if (valeur[1].isEmpty()) {
-                    yield "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
-                }
-                yield "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
-            }
-            default -> throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
-        };
-    }
+
+
 
     /** méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage

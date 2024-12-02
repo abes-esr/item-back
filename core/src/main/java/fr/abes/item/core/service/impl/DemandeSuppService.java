@@ -1,9 +1,5 @@
 package fr.abes.item.core.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.notices.Exemplaire;
-import fr.abes.cbs.notices.NoticeConcrete;
 import fr.abes.item.core.components.*;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
@@ -11,17 +7,17 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.dto.DemandeDto;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,8 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -349,76 +347,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return save(demandeSupp);
     }
 
-    @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException {
-        LigneFichierSupp ligneFichierSupp = (LigneFichierSupp) ligneFichier;
-        DemandeSupp demandeSupp = (DemandeSupp) demande;
-        try {
-            traitementService.authenticate("M" + demandeSupp.getRcr());
-            List<Exemplaire> exemplairesExistants = getExemplairesExistants(ligneFichierSupp.getPpn());
-            //On ne conserve que les EPN de son RCR
-            exemplairesExistants = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("930", 0).findSubLabel("$b").equals(demandeSupp.getRcr())).toList();
-            if (exemplairesExistants.isEmpty()) {
-                return new String[] {
-                        ligneFichierSupp.getPpn(),
-                        "Pas d'exemplaire pour ce RCR",
-                        "Pas d'exemplaire pour ce RCR"
-                };
-            }
-            List<Exemplaire> exemplairesRestants = suppExemlaire(exemplairesExistants, ligneFichierSupp.getEpn());
 
-            return new String[]{
-                    ligneFichierSupp.getPpn(),
-                    exemplairesExistants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n")),
-                    exemplairesRestants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n"))
-            };
-        }catch (QueryToSudocException ex) {
-            throw new CBSException(Level.ERROR, ex.getMessage());
-        } finally {
-            traitementService.disconnect();
-        }
-    }
-
-    public String getTypeDocumentFromPpn(String ppn) throws CBSException, IOException, QueryToSudocException, ZoneException {
-        String query = "che ppn " + ppn;
-        traitementService.getCbs().search(query);
-        int nbReponses = traitementService.getCbs().getNbNotices();
-        return switch (nbReponses) {
-            case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
-            case 1 -> {
-                NoticeConcrete notice = traitementService.getCbs().editerNoticeConcrete("1");
-                yield notice.getNoticeBiblio().findZone("008", 0).findSubLabel("$a").substring(0,2);
-            }
-            default -> throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
-        };
-    }
-
-    public List<Exemplaire> getExemplairesExistants(String ppn) throws IOException, QueryToSudocException, CBSException, ZoneException {
-        String query = "che ppn " + ppn;
-        traitementService.getCbs().search(query);
-        int nbReponses = traitementService.getCbs().getNbNotices();
-        return switch (nbReponses) {
-            case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
-            case 1 -> {
-                String notice = traitementService.getCbs().getClientCBS().mod("1", String.valueOf(traitementService.getCbs().getLotEncours()));
-                String exemplaires = Utilitaires.getExemplairesExistants(notice);
-                List<Exemplaire> exempList = new ArrayList<>();
-                if (!exemplaires.isEmpty()) {
-                    for (String s : exemplaires.split("\r\r\r")) {
-                        if (!s.isEmpty())
-                            exempList.add(new Exemplaire(s));
-                    }
-                }
-                yield exempList;
-            }
-            default ->
-                    throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
-        };
-    }
-
-    private List<Exemplaire> suppExemlaire(List<Exemplaire> exemplairesExistants, String epn) {
-        return exemplairesExistants.stream().filter(exemplaire -> !exemplaire.findZone("A99", 0).getValeur().equals(epn)).collect(Collectors.toList());
-    }
 
     @Override
     public List<? extends Demande> getDemandesToArchive() {
@@ -444,10 +373,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return null;
     }
 
-    @Override
-    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
-        return null;
-    }
 
     public Demande majTypeSupp(Integer demandeId, TYPE_SUPPRESSION typeSuppression) {
         DemandeSupp demandeSupp = this.findById(demandeId);

@@ -305,7 +305,7 @@ class DemandeRestServiceTest {
         Mockito.doNothing().when(checkAccessToServices).autoriserAccesDemandeParIln(1, "1", TYPE_DEMANDE.EXEMP);
         Mockito.when(demandeExempService.findById(1)).thenReturn((DemandeExemp) this.demandeDto.get(0).getDemande());
         Mockito.when(ligneFichierExempService.getLigneFichierbyDemandeEtPos(Mockito.any(), Mockito.anyInt())).thenReturn(new LigneFichierExemp());
-        Mockito.when(demandeExempService.getNoticeExemplaireAvantApres(Mockito.any(), Mockito.any())).thenReturn(new String[]{"avant", "après"});
+        Mockito.when(ligneFichierExempService.getNoticeExemplaireAvantApres(Mockito.any(), Mockito.any())).thenReturn(new String[]{"avant", "après"});
         this.mockMvc.perform(get("/api/v1/simulerLigne/EXEMP/1/1").requestAttr("userNum", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0]").value("avant"))

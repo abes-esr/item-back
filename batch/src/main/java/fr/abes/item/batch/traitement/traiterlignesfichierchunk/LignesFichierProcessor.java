@@ -12,12 +12,14 @@ import fr.abes.item.core.components.FichierSauvegardeSuppTxt;
 import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
+import fr.abes.item.core.dto.ExemplaireWithTypeDto;
 import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.exception.StorageException;
 import fr.abes.item.core.service.IDemandeService;
+import fr.abes.item.core.service.ILigneFichierService;
 import fr.abes.item.core.service.ReferenceService;
-import fr.abes.item.core.service.impl.DemandeSuppService;
+import fr.abes.item.core.service.impl.LigneFichierSuppService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -45,7 +47,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
 
     private Demande demande;
 
-    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry,ReferenceService referenceService) {
+    public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
         this.referenceService = referenceService;
@@ -153,24 +155,14 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         DemandeSupp demandeSupp = (DemandeSupp) this.demande;
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
         //récupération des exemplaires existants pour cette ligne
-        List<Exemplaire> exemplairesExistants = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
-                .getExemplairesExistants(ligneFichierDtoSupp.getPpn());
+        LigneFichierSuppService service = ((LigneFichierSuppService) strategyFactory.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.SUPP));
+        ExemplaireWithTypeDto exemplaireWithType = service.getExemplairesAndTypeDoc(ligneFichierDtoSupp.getPpn());
         if (ligneFichierDtoSupp.getEpn() != null) {
-            Optional<Exemplaire> exemplaireASupprimerOpt = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
+            Optional<Exemplaire> exemplaireASupprimerOpt = exemplaireWithType.getExemplaires().stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
             if (exemplaireASupprimerOpt.isPresent()) {
                 //Type de document non présent dans le fichier de sauvegarde txt, seulement dans le csv
                 this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
-                try{
-                    String typeDoc = ((DemandeSuppService) strategyFactory.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP))
-                            .getTypeDocumentFromPpn(ligneFichierDtoSupp.getPpn());
-                    this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), typeDoc);
-                } catch (CBSException | IOException | ZoneException | QueryToSudocException e) {
-                    if(e.getClass().equals(QueryToSudocException.class)){
-                        this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), e.getMessage());
-                    }else{
-                        this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), "");
-                    }
-                }
+                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), exemplaireWithType.getType());
             }
             //supprimer l'exemplaire
             this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);

@@ -15,9 +15,9 @@ import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.service.TraitementService;
-import fr.abes.item.core.service.impl.DemandeExempService;
-import fr.abes.item.core.service.impl.DemandeModifService;
-import fr.abes.item.core.service.impl.DemandeRecouvService;
+import fr.abes.item.core.service.impl.LigneFichierExempService;
+import fr.abes.item.core.service.impl.LigneFichierModifService;
+import fr.abes.item.core.service.impl.LigneFichierRecouvService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -33,17 +33,17 @@ import java.util.List;
 public class ProxyRetry {
     private final StrategyFactory factory;
     private final TraitementService traitementService;
-    private final DemandeModifService demandeModifService;
-    private final DemandeExempService demandeExempService;
-    private final DemandeRecouvService demandeRecouvService;
+    private final LigneFichierModifService ligneFichierModifService;
+    private final LigneFichierExempService ligneFichierExempService;
+    private final LigneFichierRecouvService ligneFichierRecouvService;
 
 
-    public ProxyRetry(TraitementService traitementService, StrategyFactory strategyFactory, DemandeModifService demandeModifService, DemandeExempService demandeExempService, DemandeRecouvService demandeRecouvService) {
+    public ProxyRetry(TraitementService traitementService, StrategyFactory strategyFactory, LigneFichierModifService ligneFichierModifService, LigneFichierExempService ligneFichierExempService, LigneFichierRecouvService ligneFichierRecouvService) {
         this.traitementService = traitementService;
         this.factory = strategyFactory;
-        this.demandeModifService = demandeModifService;
-        this.demandeExempService = demandeExempService;
-        this.demandeRecouvService = demandeRecouvService;
+        this.ligneFichierModifService = ligneFichierModifService;
+        this.ligneFichierExempService = ligneFichierExempService;
+        this.ligneFichierRecouvService = ligneFichierRecouvService;
     }
 
     /**
@@ -55,7 +55,7 @@ public class ProxyRetry {
      */
     @Retryable(retryFor = IOException.class, noRetryFor = CBSException.class, backoff = @Backoff(delay = 1000, multiplier = 2))
     public void authenticate(String login) throws CBSException, IOException {
-        log.warn(Constant.PROXY_AUTHENTICATION_WITH_LOGIN + login);
+        log.warn(Constant.PROXY_AUTHENTICATION_WITH_LOGIN + "{}", login);
         traitementService.authenticate(login);
     }
 
@@ -78,10 +78,10 @@ public class ProxyRetry {
             //récupération de la exemplaire correpondant à la ligne du fichier en cours
             String exemplaire = traitementService.getNoticeFromEPN(ligneFichierDtoModif.getEpn());
             //modification de la exemplaire d'exemplaire
-            Exemplaire noticeTraitee = demandeModifService.getNoticeTraitee(demande, exemplaire, ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
+            Exemplaire noticeTraitee = ligneFichierModifService.getNoticeTraitee(demande, exemplaire, ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
             traitementService.saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());
         } catch (IOException ex) {
-            log.error("Erreur de communication avec le CBS sur demande modif " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoModif.getNumLigneFichier() + " / epn : " + ligneFichierDtoModif.getEpn());
+            log.error("Erreur de communication avec le CBS sur demande modif {} / ligne fichier n°{} / epn : {}", demande.getId(), ligneFichierDtoModif.getNumLigneFichier(), ligneFichierDtoModif.getEpn());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();
             this.authenticate("M" + demande.getRcr());
@@ -101,23 +101,23 @@ public class ProxyRetry {
             noRetryFor = {CBSException.class, ZoneException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void newExemplaire(DemandeExemp demande, LigneFichierDtoExemp ligneFichierDtoExemp) throws CBSException, ZoneException, IOException {
         try {
-            ligneFichierDtoExemp.setRequete(demandeExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+            ligneFichierDtoExemp.setRequete(ligneFichierExempService.getQueryToSudoc(demande.getIndexRecherche().getCode(), demande.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
             //lancement de la requête de récupération de la notice dans le CBS
-            String numEx = demandeExempService.launchQueryToSudoc(demande, ligneFichierDtoExemp.getIndexRecherche());
-            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
+            String numEx = ligneFichierExempService.launchQueryToSudoc(demande, ligneFichierDtoExemp.getIndexRecherche());
+            ligneFichierDtoExemp.setNbReponses(ligneFichierExempService.getNbReponses());
             if (ligneFichierDtoExemp.getNbReponses() == 1) {
                 ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getPpnEncours());
             } else {
                 ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString());
             }
 
-            String exemplaire = demandeExempService.creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demande.getRcr(), numEx);
-            String donneeLocale = demandeExempService.creerDonneesLocalesFromHeaderEtValeur(demande.getListeZones(), ligneFichierDtoExemp.getValeurZone());
+            String exemplaire = ligneFichierExempService.creerExemplaireFromHeaderEtValeur(demande.getListeZones(), ligneFichierDtoExemp.getValeurZone(), demande.getRcr(), numEx);
+            String donneeLocale = ligneFichierExempService.creerDonneesLocalesFromHeaderEtValeur(demande.getListeZones(), ligneFichierDtoExemp.getValeurZone());
             traitementService.getCbs().creerExemplaire(numEx);
             traitementService.getCbs().newExemplaire(exemplaire);
             if (!donneeLocale.isEmpty()) {
                 //s'il y a des données locales existantes, on modifie
-                if (demandeExempService.hasDonneeLocaleExistante()) {
+                if (ligneFichierExempService.hasDonneeLocaleExistante()) {
                     traitementService.getCbs().modLoc(donneeLocale);
                 } else {
                     //s'il n'y a pas de donnée locale dans la notice, on crée le bloc
@@ -129,16 +129,16 @@ public class ProxyRetry {
             ligneFichierDtoExemp.setL035(getL035fromDonneesLocales(donneeLocale));
             ligneFichierDtoExemp.setRetourSudoc(Constant.EXEMPLAIRE_CREE);
         } catch (QueryToSudocException e) {
-            ligneFichierDtoExemp.setNbReponses(demandeExempService.getNbReponses());
+            ligneFichierDtoExemp.setNbReponses(ligneFichierExempService.getNbReponses());
             ligneFichierDtoExemp.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
             ligneFichierDtoExemp.setRetourSudoc("");
         } catch (DataAccessException d) {
             if (d.getRootCause() instanceof SQLException sqlEx) {
-                log.error("Erreur SQL : " + sqlEx.getErrorCode());
-                log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
+                log.error("Erreur SQL : {}", sqlEx.getErrorCode());
+                log.error("{}|{}|{}", sqlEx.getSQLState(), sqlEx.getMessage(), sqlEx.getLocalizedMessage());
             }
         } catch (IOException ex) {
-            log.error("Erreur de communication avec le CBS sur demande exemp " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoExemp.getNumLigneFichier());
+            log.error("Erreur de communication avec le CBS sur demande exemp {} / ligne fichier n°{}", demande.getId(), ligneFichierDtoExemp.getNumLigneFichier());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();
             this.authenticate("M" + demande.getRcr());
@@ -166,9 +166,9 @@ public class ProxyRetry {
     @Retryable(maxAttempts = 4, retryFor = IOException.class,
             noRetryFor = {CBSException.class, QueryToSudocException.class}, backoff = @Backoff(delay = 1000, multiplier = 2) )
     public void recouvExemplaire(DemandeRecouv demande, LigneFichierDtoRecouv ligneFichierDtoRecouv) throws IOException, QueryToSudocException, CBSException {
-        ligneFichierDtoRecouv.setRequete(demandeRecouvService.getQueryToSudoc(demande.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+        ligneFichierDtoRecouv.setRequete(ligneFichierRecouvService.getQueryToSudoc(demande.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
         try {
-            ligneFichierDtoRecouv.setNbReponses(demandeRecouvService.launchQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
+            ligneFichierDtoRecouv.setNbReponses(ligneFichierRecouvService.launchQueryToSudoc(demande.getIndexRecherche().getCode(), ligneFichierDtoRecouv.getIndexRecherche()));
             switch (ligneFichierDtoRecouv.getNbReponses()) {
                 case 0 -> ligneFichierDtoRecouv.setListePpn("");
                 case 1 -> ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getPpnEncours());
@@ -176,7 +176,7 @@ public class ProxyRetry {
                         ligneFichierDtoRecouv.setListePpn(traitementService.getCbs().getListePpn().toString().replace(';', ','));
             }
         } catch (IOException ex) {
-            log.error("Erreur de communication avec le CBS sur demande recouv " + demande.getId() + " / ligne fichier n°" + ligneFichierDtoRecouv.getNumLigneFichier());
+            log.error("Erreur de communication avec le CBS sur demande recouv {} / ligne fichier n°{}", demande.getId(), ligneFichierDtoRecouv.getNumLigneFichier());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode
             this.disconnect();
             this.authenticate("M" + demande.getRcr());
@@ -189,7 +189,7 @@ public class ProxyRetry {
         try {
             traitementService.deleteExemplaire(ligneFichierDtoSupp.getEpn());
         } catch (IOException e) {
-            log.error("Erreur de communication avec le CBS sur demande de suppression " + demandeSupp.getId() + " / ligne fichier n°" + ligneFichierDtoSupp.getNumLigneFichier() + " / epn : " + ligneFichierDtoSupp.getEpn());
+            log.error("Erreur de communication avec le CBS sur demande de suppression {} / ligne fichier n°{} / epn : {}", demandeSupp.getId(), ligneFichierDtoSupp.getNumLigneFichier(), ligneFichierDtoSupp.getEpn());
             this.disconnect();
             this.authenticate("M"+ demandeSupp.getRcr());
             throw e;
