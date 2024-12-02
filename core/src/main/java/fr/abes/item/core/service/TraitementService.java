@@ -34,6 +34,8 @@ public class TraitementService {
 	@Getter
 	private ProcessCBS cbs;
 
+    @Value("${sudoc.pass}")
+    private String passsudoc;
 
 	public TraitementService() {
 		cbs = new ProcessCBS();
@@ -41,7 +43,7 @@ public class TraitementService {
 
     public void authenticate(String login) throws CBSException, IOException {
         this.cbs = new ProcessCBS();
-        this.cbs.authenticate(serveurSudoc, portSudoc, login, Constant.PASSSUDOC);
+        this.cbs.authenticate(serveurSudoc, portSudoc, login, passsudoc);
     }
 
     /**
