@@ -121,12 +121,15 @@ public class FichierSauvegardeSuppCsv extends AbstractFichier implements Fichier
     }
 
     private boolean isHeaderExist() {
-        try (FileReader fr = new FileReader(this.getPath().resolve(this.getFilename()).toString());
-             BufferedReader br = new BufferedReader(fr)) {
-            String line = br.readLine();
-            return line != null && line.startsWith("TYPE (008);PPN;");
-        } catch (IOException ex) {
-            throw new StorageException(Constant.ERR_FILE_READING + " de sauvegarde csv");
-        }
+        File file = new File(this.getPath().resolve(this.getFilename()).toString());
+        if(file.exists()) {
+            try (FileReader fr = new FileReader(this.getPath().resolve(this.getFilename()).toString());
+                 BufferedReader br = new BufferedReader(fr)) {
+                String line = br.readLine();
+                return line != null && line.startsWith("TYPE (008);PPN;");
+            } catch (IOException ex) {
+                throw new StorageException(Constant.ERR_FILE_READING + " de sauvegarde csv");
+            }
+        } else return false;
     }
 }
