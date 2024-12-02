@@ -157,9 +157,6 @@ public class Constant implements Serializable {
 	public static final String ERR_FILE_ZONEINCOMPLETE = "L'en-tête du fichier est non conforme. Les données d’exemplaires sont incomplètes : il manque une ou plusieurs sous-zones. Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 	public static final String ERR_FILE_CARACTERES = "L'en-tête du fichier est non conforme : il ne contient pas de données d’exemplaires Merci de consulter la documentation utilisateur à cette adresse : <a href=\"http://documentation.abes.fr/aideitem/index.html\" target=\"_blank\" style=\"color:white\">http://documentation.abes.fr/aideitem/index.html</a>";
 
-	/**Sudoc pass*/
-	public static final String PASSSUDOC = "pabnot6";
-
 	/**PPN, RCR, EPN max size*/
 	public static final int TAILLEMAX = 9;
 
