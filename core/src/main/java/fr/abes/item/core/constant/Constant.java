@@ -38,6 +38,9 @@ public class Constant implements Serializable {
 	public static final int ETATDEM_ARCHIVEE = 9;
 	//Demande supprimée mais conservée en base
 	public static final int ETATDEM_SUPPRIMEE = 10;
+	//Demande interompu
+	public static final int ETATDEM_INTEROMPU = 11;
+
 
 
 	/**Generic messages*/
