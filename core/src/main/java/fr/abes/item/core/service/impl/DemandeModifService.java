@@ -1,19 +1,18 @@
 package fr.abes.item.core.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.notices.Exemplaire;
 import fr.abes.item.core.components.*;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.dto.DemandeDto;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeModif;
+import fr.abes.item.core.entities.item.EtatDemande;
+import fr.abes.item.core.entities.item.Traitement;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeModifDao;
 import fr.abes.item.core.service.*;
@@ -26,7 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -35,7 +37,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private final IDemandeModifDao demandeModifDao;
     private final FileSystemStorageService storageService;
     private final ILigneFichierService ligneFichierService;
-    private final TraitementService traitementService;
     private final JournalService journalService;
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
@@ -48,12 +49,11 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
-    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, TraitementService traitementService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
         super(libProfileDao);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
         this.ligneFichierService = ligneFichierModifService;
-        this.traitementService = traitementService;
         this.journalService = journalService;
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
@@ -266,53 +266,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         }
     }
 
-    /**
-     * Méthode de récupération d'une notice par son EPN
-     *
-     * @param demandeModif utilisée pour récupérer le RCR qui servira pour la construction du login Manager CBS
-     * @param epn          epn de la notice à chercher
-     * @return La notice trouvée dans le CBS
-     * @throws CBSException : erreur CBS
-     */
-    public String getNoticeInitiale(Demande demandeModif, String epn) throws CBSException, IOException {
-        try {
-            traitementService.authenticate('M' + demandeModif.getRcr());
-            // appel getNoticeFromEPN sur EPN récupéré
-            String notice = traitementService.getNoticeFromEPN(epn);
-            return notice.substring(1, notice.length() - 1);
-        } finally {
-            // déconnexion du CBS après avoir lancé la requête
-            traitementService.disconnect();
-        }
-    }
-
-    /**
-     * Méthode de modification d'une notice en fonction du traitement
-     *
-     * @param demande      permet de récupérer le traitement à lancer sur la notice
-     * @param exemplaire   notice récupérée du Sudoc sur laquelle on effectue le traitement
-     * @param ligneFichier informations à intégrer à la notice à traiter
-     * @return la notice modifiée
-     */
-    public Exemplaire getNoticeTraitee(Demande demande, String exemplaire, LigneFichier ligneFichier) throws ZoneException {
-        DemandeModif demandeModif = (DemandeModif) demande;
-        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
-        String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
-        switch (demandeModif.getTraitement().getNomMethode()) {
-            case "creerNouvelleZone":
-                return traitementService.creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            case "supprimerZone":
-                return traitementService.supprimerZone(exempStr, demandeModif.getZone());
-            case "supprimerSousZone":
-                return traitementService.supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
-            case "ajoutSousZone":
-                return traitementService.creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            case "remplacerSousZone":
-                return traitementService.remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            default:
-        }
-        return null;
-    }
 
     /**
      * Lance une requête pour récupérer l'ensemble des demandeModifs
@@ -391,17 +344,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         return changeState(demande, Constant.ETATDEM_TERMINEE);
     }
 
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
-        LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
-        String noticeInit = getNoticeInitiale(this.findById(demande.getId()), ligneFichierModif.getEpn());
-        Exemplaire noticeTraitee = getNoticeTraitee(findById(demande.getId()), noticeInit, ligneFichier);
 
-        return new String[]{
-                traitementService.getCbs().getPpnEncours(),
-                noticeInit.replace("\r", "\r\n"),
-                noticeTraitee.toString().replace("\r", "\r\n")
-        };
-    }
 
     /**
      * Permet de changer l'état d'une demandeModif
@@ -560,12 +503,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
-        return null;
-    }
-
-    @Override
-    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
-        //not implemented
         return null;
     }
 

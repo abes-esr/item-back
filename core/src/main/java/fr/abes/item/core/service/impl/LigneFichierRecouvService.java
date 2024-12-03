@@ -1,13 +1,16 @@
 package fr.abes.item.core.service.impl;
 
 import fr.abes.item.core.configuration.factory.Strategy;
+import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.entities.item.LigneFichierRecouv;
+import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.item.ILigneFichierRecouvDao;
 import fr.abes.item.core.service.ILigneFichierService;
+import fr.abes.item.core.service.TraitementService;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +28,11 @@ import java.util.List;
 @Strategy(type= ILigneFichierService.class, typeDemande = {TYPE_DEMANDE.RECOUV})
 public class LigneFichierRecouvService implements ILigneFichierService {
     private final ILigneFichierRecouvDao dao;
+    private final TraitementService traitementService;
 
-    public LigneFichierRecouvService(ILigneFichierRecouvDao dao) {
+    public LigneFichierRecouvService(ILigneFichierRecouvDao dao, TraitementService traitementService) {
         this.dao = dao;
+        this.traitementService = traitementService;
     }
 
 
@@ -137,5 +142,41 @@ public class LigneFichierRecouvService implements ILigneFichierService {
     @Override
     public int getNbReponseMultipleByDemande(Demande demande) {
         return 0;
+    }
+
+    public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
+        String[] tabvaleurs = valeurs.split(";");
+        String query = getQueryToSudoc(codeIndex, null, tabvaleurs);
+        traitementService.getCbs().search(query);
+        return traitementService.getCbs().getNbNotices();
+    }
+
+    /**
+     * Méthode construisant la requête che en fonction des paramètres d'une demande d'exemplarisation
+     * @param codeIndex code de l'index de la recherche
+     * @param type : non utilisé dans cette implementation
+     * @param valeur tableau des valeurs utilisées pour construire la requête
+     * @return requête che prête à être lancée vers le CBS
+     */
+    @Override
+    public String getQueryToSudoc(String codeIndex, Integer type, String[] valeur) throws QueryToSudocException {
+        return switch (codeIndex) {
+            case "ISBN" -> "che isb " + valeur[0];
+            case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];
+            case "PPN" -> "che ppn " + valeur[0];
+            case "SOU" -> "tno t; tdo b; che sou " + valeur[0];
+            case "DAT" -> {
+                if (valeur[1].isEmpty()) {
+                    yield "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
+                }
+                yield "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
+            }
+            default -> throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
+        };
+    }
+
+    @Override
+    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) {
+        return new String[]{"Simulation impossible pour le recouvrement", ""};
     }
 }

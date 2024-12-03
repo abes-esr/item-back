@@ -187,7 +187,6 @@ public class DemandeRestService {
      * @param type       type de demande concernée par le webservice
      * @param file       : fichier à uploader
      * @param numDemande : demandeModif à laquelle rattacher le fichier
-     * @return : messager indiquant le résultat de l'upload
      * @throws ForbiddenException    accès interdit à l'utilisateur (mauvaise authentification)
      * @throws UserExistException    utilisateur non présent dans la base de donnée (id inconnu)
      * @throws FileTypeException     le type de fichier est incorrect, non supporté pour le traitement
@@ -228,7 +227,7 @@ public class DemandeRestService {
         try {
             Demande demande = service.findById(numDemande);
             LigneFichier ligneFichier = ligneFichierService.getLigneFichierbyDemandeEtPos(demande, numLigne);
-            return service.getNoticeExemplaireAvantApres(demande, ligneFichier);
+            return ligneFichierService.getNoticeExemplaireAvantApres(demande, ligneFichier);
         } catch (CBSException e) {
             //adaptation du message en cas de login manager manquant
             if (e.getMessage().equals("Code d'accès non reconnu"))
