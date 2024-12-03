@@ -51,9 +51,6 @@ public class LigneFichierDtoExemp extends LigneFichierDto implements ILigneFichi
     }
 
     public Integer getNbReponses() {
-        if(nbReponses==null){
-            return 0;
-        }
-        return nbReponses;
+        return (nbReponses==null) ? 0 : nbReponses;
     }
 }
