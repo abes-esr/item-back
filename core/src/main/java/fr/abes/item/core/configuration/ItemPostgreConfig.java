@@ -1,5 +1,6 @@
 package fr.abes.item.core.configuration;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +62,12 @@ public class ItemPostgreConfig extends AbstractConfig {
 		final JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 		return transactionManager;
+	}
+
+	@Bean
+	@Primary
+	public EntityManager itemEntityManager(EntityManagerFactory entityManagerFactory) {
+		return entityManagerFactory.createEntityManager();
 	}
 
 	@Bean(name = "itemJdbcTemplate")

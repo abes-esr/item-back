@@ -12,6 +12,7 @@ import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileLineException;
 import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.ILigneFichierService;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -29,14 +30,15 @@ import java.util.List;
 @Slf4j
 public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory factory;
-
+    private final EntityManager entityManager;
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
     private Demande demande;
     private Integer demandeId;
 
-    public LignesFichierWriter(StrategyFactory factory) {
+    public LignesFichierWriter(StrategyFactory factory, EntityManager itemEntityManagerFactory) {
+        this.entityManager = itemEntityManagerFactory;
         this.factory = factory;
     }
 
@@ -57,6 +59,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
             this.demande = demandeService.findById(demandeId);
+            entityManager.detach(this.demande);
             if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 demandeService.closeDemande(this.demande);
             }
@@ -79,6 +82,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
                 this.demande = demandeService.findById(demandeId);
+
                 this.majLigneFichier(ligneFichierDto);
                 this.majPourcentageTraitementDemande();
             } catch (DataAccessException d){

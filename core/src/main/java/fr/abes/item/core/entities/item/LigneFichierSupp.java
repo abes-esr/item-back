@@ -20,7 +20,7 @@ public class LigneFichierSupp extends LigneFichier implements Serializable, ILig
     private String rcr;
     @Column(name="EPN")
     private String epn;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "REF_DEMANDE") @NotNull
     private DemandeSupp demandeSupp;
 

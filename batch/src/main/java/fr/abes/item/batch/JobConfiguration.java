@@ -14,6 +14,7 @@ import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.service.ReferenceService;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -54,7 +55,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-
+    private final EntityManager itemEntityManager;
     private final ReferenceService referenceService;
     @Value("${batch.min.hour}")
     int minHour;
@@ -71,9 +72,10 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, EntityManager itemEntityManager, ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
+        this.itemEntityManager = itemEntityManager;
         this.referenceService = referenceService;
     }
 
@@ -95,7 +97,7 @@ public class JobConfiguration {
     }
     @Bean
     public LignesFichierWriter writer() {
-        return new LignesFichierWriter(strategyFactory);
+        return new LignesFichierWriter(strategyFactory, itemEntityManager);
     }
 
     // ------------- TASKLETS -----------------------
