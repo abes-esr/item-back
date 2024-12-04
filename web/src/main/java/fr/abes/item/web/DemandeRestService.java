@@ -32,6 +32,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -348,10 +350,15 @@ public class DemandeRestService {
     public DemandeWebDto stopDemandeSupp(@PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException, DemandeCheckingException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.SUPP);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP);
+        Lock lock = new ReentrantLock();
+        lock.lock();
         DemandeSupp demandeSupp = (DemandeSupp) service.findById(id);
         if(demandeSupp != null){
-            return builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTEROMPU),TYPE_DEMANDE.SUPP);
+            DemandeWebDto dto = builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTEROMPU),TYPE_DEMANDE.SUPP);
+            lock.unlock();
+            return dto;
         }
+        lock.unlock();
         throw new UnknownDemandeException("Demande inconnue");
 
     }
