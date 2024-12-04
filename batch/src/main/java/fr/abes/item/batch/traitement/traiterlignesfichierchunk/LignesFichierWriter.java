@@ -12,7 +12,6 @@ import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileLineException;
 import fr.abes.item.core.service.IDemandeService;
 import fr.abes.item.core.service.ILigneFichierService;
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
@@ -59,7 +58,6 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
-            this.demande = demandeService.findById(demandeId);
             if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 demandeService.closeDemande(this.demande);
             }
@@ -82,7 +80,9 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public void write(Chunk<? extends LigneFichierDto> liste) {
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
-                this.demande = demandeService.findById(demandeId);
+                demandeService.refreshEntity(this.demande);
+                this.demande = demandeService.findById(this.demandeId);
+                demandeService.refreshEntity(this.demande);
                 log.debug("write {}", this.demande.toString());
                 if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                     this.majLigneFichier(ligneFichierDto);

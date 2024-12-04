@@ -17,7 +17,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeModifDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,7 +43,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final Ppntoepn procStockee;
-
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
@@ -49,7 +51,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
-    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
@@ -58,6 +60,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
         this.procStockee = procStockee;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -522,5 +525,10 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }

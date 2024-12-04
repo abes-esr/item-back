@@ -17,7 +17,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeRecouvDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,23 +36,22 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final IDemandeRecouvDao demandeRecouvDao;
     private final FileSystemStorageService storageService;
     private final ReferenceService referenceService;
-    private final TraitementService traitementService;
     private final ILigneFichierService ligneFichierService;
     private final UtilisateurService utilisateurService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
-
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
-        this.traitementService = traitementService;
         this.utilisateurService = utilisateurService;
+        this.entityManager = entityManager;
     }
 
     public List<Demande> findAll() {
@@ -336,5 +337,10 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }

@@ -17,7 +17,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +41,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
-    private final TraitementService traitementService;
+    private final EntityManager entityManager;
 
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
@@ -49,7 +51,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, TraitementService traitementService) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
@@ -58,7 +60,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         this.procStockeePpnToEpn = procStockeePpnToEpn;
         this.procStockeeEpnToPpn = procStockeeEpnToPpn;
         this.ligneFichierService = ligneFichierSuppService;
-        this.traitementService = traitementService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -385,5 +387,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             return this.save(demandeSupp);
         }
         return null;
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }
