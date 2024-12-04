@@ -46,6 +46,8 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     private FichierSauvegardeSuppCsv fichierSauvegardeSuppcsv;
 
     private Demande demande;
+    private Integer demandeId;
+    private IDemandeService demandeService;
 
     public LignesFichierProcessor(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
@@ -60,9 +62,9 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
                 .getJobExecution()
                 .getExecutionContext();
         TYPE_DEMANDE typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
-        IDemandeService demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
-        Integer demandeId = (Integer) executionContext.get("demandeId");
-        this.demande = demandeService.findById(demandeId);
+        this.demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = this.demandeService.findById(this.demandeId);
         this.fichierSauvegardeSuppTxt = new FichierSauvegardeSuppTxt();
         this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
         this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
@@ -152,24 +154,26 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @throws IOException  : erreur de communication avec le CBS
      */
     private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException, ZoneException, QueryToSudocException, StorageException {
-        DemandeSupp demandeSupp = (DemandeSupp) this.demande;
+        DemandeSupp demandeSupp = (DemandeSupp) this.demandeService.findById(this.demandeId);
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
-        //récupération des exemplaires existants pour cette ligne
-        LigneFichierSuppService service = ((LigneFichierSuppService) strategyFactory.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.SUPP));
-        ExemplaireWithTypeDto exemplaireWithType = service.getExemplairesAndTypeDoc(ligneFichierDtoSupp.getPpn());
-        if (ligneFichierDtoSupp.getEpn() != null) {
-            Optional<Exemplaire> exemplaireASupprimerOpt = exemplaireWithType.getExemplaires().stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
-            if (exemplaireASupprimerOpt.isPresent()) {
-                //Type de document non présent dans le fichier de sauvegarde txt, seulement dans le csv
-                this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
-                this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), exemplaireWithType.getType());
-            }
-            //supprimer l'exemplaire
-            this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
-            ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
-        } else {
-            //si pas d'epn dans la ligne du fichier, on ne fait pas le traitement et on écrit directement le message dans le retour sudoc pour le fichier résultat
-            ligneFichierDtoSupp.setRetourSudoc("Exemplaire inexistant");
+        if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+                //récupération des exemplaires existants pour cette ligne
+                LigneFichierSuppService service = ((LigneFichierSuppService) strategyFactory.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.SUPP));
+                ExemplaireWithTypeDto exemplaireWithType = service.getExemplairesAndTypeDoc(ligneFichierDtoSupp.getPpn());
+                if (ligneFichierDtoSupp.getEpn() != null) {
+                    Optional<Exemplaire> exemplaireASupprimerOpt = exemplaireWithType.getExemplaires().stream().filter(exemplaire -> exemplaire.findZone("A99", 0).getValeur().equals(ligneFichierDtoSupp.getEpn())).findFirst();
+                    if (exemplaireASupprimerOpt.isPresent()) {
+                        //Type de document non présent dans le fichier de sauvegarde txt, seulement dans le csv
+                        this.fichierSauvegardeSuppTxt.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get());
+                        this.fichierSauvegardeSuppcsv.writePpnInFile(ligneFichierDtoSupp.getPpn(), exemplaireASupprimerOpt.get(), exemplaireWithType.getType());
+                    }
+                    //supprimer l'exemplaire
+                    this.proxyRetry.deleteExemplaire(demandeSupp, ligneFichierDtoSupp);
+                    ligneFichierDtoSupp.setRetourSudoc(Constant.EXEMPLAIRE_SUPPRIME);
+                } else {
+                    //si pas d'epn dans la ligne du fichier, on ne fait pas le traitement et on écrit directement le message dans le retour sudoc pour le fichier résultat
+                    ligneFichierDtoSupp.setRetourSudoc("Exemplaire inexistant");
+                }
         }
         return ligneFichierDtoSupp;
     }

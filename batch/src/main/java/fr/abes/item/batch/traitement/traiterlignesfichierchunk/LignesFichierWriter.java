@@ -34,6 +34,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
     private Demande demande;
+    private Integer demandeId;
 
     public LignesFichierWriter(StrategyFactory factory) {
         this.factory = factory;
@@ -47,15 +48,18 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
         this.lignesFichier = (List<LigneFichierDto>) executionContext.get("lignes");
         TYPE_DEMANDE typeDemande = TYPE_DEMANDE.valueOf((String) executionContext.get("typeDemande"));
         this.demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
-        Integer demandeId = (Integer) executionContext.get("demandeId");
-        this.demande = demandeService.findById(demandeId);
+        this.demandeId = (Integer) executionContext.get("demandeId");
+        this.demande = demandeService.findById(this.demandeId);
         this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
     }
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
-            demandeService.closeDemande(this.demande);
+            this.demande = demandeService.findById(demandeId);
+            if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+                demandeService.closeDemande(this.demande);
+            }
         } catch (DataAccessException d){
             if(d.getRootCause() instanceof SQLException sqlEx){
                 log.error("Erreur SQL : " + sqlEx.getErrorCode());
@@ -74,6 +78,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public void write(Chunk<? extends LigneFichierDto> liste) {
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
+                this.demande = demandeService.findById(demandeId);
                 this.majLigneFichier(ligneFichierDto);
                 this.majPourcentageTraitementDemande();
             } catch (DataAccessException d){

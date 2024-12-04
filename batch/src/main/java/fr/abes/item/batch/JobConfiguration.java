@@ -167,7 +167,8 @@ public class JobConfiguration {
     // ---------- STEP --------------------------------------------
 
     @Bean
-    public Step stepRecupererNextDemandeModif(JobRepository jobRepository, @Qualifier("getNextDemandeModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepRecupererNextDemandeModif(JobRepository jobRepository,
+                                              @Qualifier("getNextDemandeModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeModif", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
@@ -345,15 +346,23 @@ public class JobConfiguration {
 
     // Job de lancement d'un traitement de modification
     @Bean
-    public Job jobTraiterLigneFichier(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeModif") Step step1, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
+    public Job jobTraiterLigneFichier(JobRepository jobRepository,
+                                      @Qualifier("stepRecupererNextDemandeModif") Step step1,
+                                      @Qualifier("stepLireLigneFichier") Step step2,
+                                      @Qualifier("stepAuthentifierSurSudoc") Step step3,
+                                      @Qualifier("stepTraiterLigneFichier") Step step4,
+                                      @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierModif", jobRepository ).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
                 .from(step1).on(Constant.COMPLETED).to(step2)
+
                 .from(step2).on(Constant.FAILED).end()
                 .from(step2).on(Constant.COMPLETED).to(step3)
+
                 .from(step3).on(Constant.FAILED).end()
                 .from(step3).on(Constant.COMPLETED).to(step4)
+
                 .from(step4).on(Constant.FAILED).end()
                 .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
@@ -393,17 +402,27 @@ public class JobConfiguration {
 
     //job de lancement d'une demande de suppression
     @Bean
-    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository, @Qualifier("stepRecupererNextDemandeSupp") Step step1, @Qualifier("stepCreerFichierSauvegarde") Step stepCreerFichier, @Qualifier("stepLireLigneFichier") Step step2, @Qualifier("stepAuthentifierSurSudoc") Step step3, @Qualifier("stepTraiterLigneFichier") Step step4, @Qualifier("stepGenererFichier") Step step5) {
+    public Job jobTraiterLigneFichierSupp(JobRepository jobRepository,
+                                          @Qualifier("stepRecupererNextDemandeSupp") Step step1,
+                                          @Qualifier("stepCreerFichierSauvegarde") Step stepCreerFichier,
+                                          @Qualifier("stepLireLigneFichier") Step step2,
+                                          @Qualifier("stepAuthentifierSurSudoc") Step step3,
+                                          @Qualifier("stepTraiterLigneFichier") Step step4,
+                                          @Qualifier("stepGenererFichier") Step step5) {
         return new JobBuilder("traiterLigneFichierSupp", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
                 .from(step1).on(Constant.COMPLETED).to(stepCreerFichier)
+
                 .from(stepCreerFichier).on(Constant.COMPLETED).to(step2)
                 .from(stepCreerFichier).on(Constant.FAILED).end()
+
                 .from(step2).on(Constant.FAILED).end()
                 .from(step2).on(Constant.COMPLETED).to(step3)
+
                 .from(step3).on(Constant.FAILED).end()
                 .from(step3).on(Constant.COMPLETED).to(step4)
+
                 .from(step4).on(Constant.FAILED).end()
                 .from(step4).on(Constant.COMPLETED).to(step5)
                 .build().build();
