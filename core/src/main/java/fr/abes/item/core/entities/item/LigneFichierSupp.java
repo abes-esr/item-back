@@ -37,9 +37,7 @@ public class LigneFichierSupp extends LigneFichier implements Serializable, ILig
     @Override
     public void setEntityAfterBatch(LigneFichier ligneFichier) {
         LigneFichierSupp ligneFichierSupp = (LigneFichierSupp) ligneFichier;
-        if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
-            this.setRetourSudoc(ligneFichierSupp.getRetourSudoc());
-            this.setTraitee(1);
-        }
+        this.setRetourSudoc(ligneFichierSupp.getRetourSudoc());
+        this.setTraitee(1);
     }
 }

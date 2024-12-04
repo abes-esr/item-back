@@ -30,6 +30,8 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -65,6 +67,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
         this.demandeService = strategyFactory.getStrategy(IDemandeService.class, typeDemande);
         this.demandeId = (Integer) executionContext.get("demandeId");
         this.demande = this.demandeService.findById(this.demandeId);
+        log.debug("beforeStep processor {}", this.demande.toString());
         this.fichierSauvegardeSuppTxt = new FichierSauvegardeSuppTxt();
         this.fichierSauvegardeSuppTxt.setPath(Path.of(String.valueOf(executionContext.get("fichierTxtPath"))));
         this.fichierSauvegardeSuppTxt.setFilename(String.valueOf(executionContext.get("fichierTxtName")));
@@ -82,6 +85,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public LigneFichierDto process(@NonNull LigneFichierDto ligneFichierDto) {
         try {
             return switch (ligneFichierDto.getTypeDemande()) {
@@ -153,8 +157,10 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
      * @throws CBSException : erreur CBS
      * @throws IOException  : erreur de communication avec le CBS
      */
+
     private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException, ZoneException, QueryToSudocException, StorageException {
         DemandeSupp demandeSupp = (DemandeSupp) this.demandeService.findById(this.demandeId);
+        log.debug("processor {}", demandeSupp.toString());
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
         if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 //récupération des exemplaires existants pour cette ligne

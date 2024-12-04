@@ -55,8 +55,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
-    @Qualifier("itemEntityManager")
-    private final EntityManager itemEntityManager;
     private final ReferenceService referenceService;
     @Value("${batch.min.hour}")
     int minHour;
@@ -73,10 +71,9 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, EntityManager itemEntityManager, ReferenceService referenceService) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
-        this.itemEntityManager = itemEntityManager;
         this.referenceService = referenceService;
     }
 
@@ -98,7 +95,7 @@ public class JobConfiguration {
     }
     @Bean
     public LignesFichierWriter writer() {
-        return new LignesFichierWriter(strategyFactory, itemEntityManager);
+        return new LignesFichierWriter(strategyFactory);
     }
 
     // ------------- TASKLETS -----------------------

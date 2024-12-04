@@ -23,6 +23,8 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -30,15 +32,13 @@ import java.util.List;
 @Slf4j
 public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory factory;
-    private final EntityManager itemEntityManager;
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
     private Demande demande;
     private Integer demandeId;
 
-    public LignesFichierWriter(StrategyFactory factory, EntityManager itemEntityManager) {
-        this.itemEntityManager = itemEntityManager;
+    public LignesFichierWriter(StrategyFactory factory) {
         this.factory = factory;
     }
 
@@ -52,6 +52,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
         this.demandeService = factory.getStrategy(IDemandeService.class, typeDemande);
         this.demandeId = (Integer) executionContext.get("demandeId");
         this.demande = demandeService.findById(this.demandeId);
+        log.debug("beforeStep writer {}", this.demande.toString());
         this.ligneFichierService = factory.getStrategy(ILigneFichierService.class, demande.getTypeDemande());
     }
 
@@ -59,7 +60,6 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
             this.demande = demandeService.findById(demandeId);
-            itemEntityManager.detach(this.demande);
             if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 demandeService.closeDemande(this.demande);
             }
@@ -78,13 +78,16 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void write(Chunk<? extends LigneFichierDto> liste) {
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
                 this.demande = demandeService.findById(demandeId);
-
-                this.majLigneFichier(ligneFichierDto);
-                this.majPourcentageTraitementDemande();
+                log.debug("write {}", this.demande.toString());
+                if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+                    this.majLigneFichier(ligneFichierDto);
+                    this.majPourcentageTraitementDemande();
+                }
             } catch (DataAccessException d){
                 if(d.getRootCause() instanceof SQLException sqlEx){
                     log.error("Erreur SQL : " + sqlEx.getErrorCode());
