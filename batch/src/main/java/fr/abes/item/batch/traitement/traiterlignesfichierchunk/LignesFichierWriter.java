@@ -30,15 +30,15 @@ import java.util.List;
 @Slf4j
 public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExecutionListener {
     private final StrategyFactory factory;
-    private final EntityManager entityManager;
+    private final EntityManager itemEntityManager;
     private ILigneFichierService ligneFichierService;
     private IDemandeService demandeService;
     private List<LigneFichierDto> lignesFichier;
     private Demande demande;
     private Integer demandeId;
 
-    public LignesFichierWriter(StrategyFactory factory, EntityManager itemEntityManagerFactory) {
-        this.entityManager = itemEntityManagerFactory;
+    public LignesFichierWriter(StrategyFactory factory, EntityManager itemEntityManager) {
+        this.itemEntityManager = itemEntityManager;
         this.factory = factory;
     }
 
@@ -59,7 +59,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
             this.demande = demandeService.findById(demandeId);
-            entityManager.detach(this.demande);
+            itemEntityManager.detach(this.demande);
             if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 demandeService.closeDemande(this.demande);
             }
