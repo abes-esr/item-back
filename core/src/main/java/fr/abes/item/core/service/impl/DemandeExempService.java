@@ -450,4 +450,10 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
     }
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeExemp demandeExemp = (DemandeExemp) demande;
+        ligneFichierService.deleteByDemande(demandeExemp);
+    }
 }
