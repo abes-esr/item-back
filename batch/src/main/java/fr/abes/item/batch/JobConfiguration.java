@@ -55,6 +55,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
+    @Qualifier("itemEntityManager")
     private final EntityManager itemEntityManager;
     private final ReferenceService referenceService;
     @Value("${batch.min.hour}")
