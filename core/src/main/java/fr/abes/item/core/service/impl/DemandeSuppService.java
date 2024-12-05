@@ -265,7 +265,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
         if ((etatDemande == Constant.ETATDEM_ERREUR)
                 || (etatDemande == Constant.ETATDEM_INTERROMPUE && (demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ENCOURS || demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ATTENTE))
-                || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+                || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))
+                || (etatDemande == Constant.ETATDEM_ARCHIVEE && demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_INTERROMPUE)) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             return save(demande);
