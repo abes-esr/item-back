@@ -161,7 +161,7 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
     private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException, ZoneException, QueryToSudocException, StorageException {
         DemandeSupp demandeSupp = (DemandeSupp) this.demandeService.findById(this.demandeId);
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
-        if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+        if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTERROMPUE) {
                 //récupération des exemplaires existants pour cette ligne
                 LigneFichierSuppService service = ((LigneFichierSuppService) strategyFactory.getStrategy(ILigneFichierService.class, TYPE_DEMANDE.SUPP));
                 ExemplaireWithTypeDto exemplaireWithType = service.getExemplairesAndTypeDoc(ligneFichierDtoSupp.getPpn());

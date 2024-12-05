@@ -58,7 +58,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
-            if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+            if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTERROMPUE) {
                 demandeService.closeDemande(this.demande);
             }
         } catch (DataAccessException d) {
@@ -78,7 +78,7 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
             try {
                 this.demande = demandeService.findById(this.demandeId);
                 demandeService.refreshEntity(this.demande);
-                if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+                if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTERROMPUE) {
                     this.majLigneFichier(ligneFichierDto);
                     this.majPourcentageTraitementDemande();
                 }

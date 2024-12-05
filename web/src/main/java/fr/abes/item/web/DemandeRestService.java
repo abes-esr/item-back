@@ -350,7 +350,7 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP);
         DemandeSupp demandeSupp = (DemandeSupp) service.findById(id);
         if(demandeSupp != null){
-            return builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTEROMPU),TYPE_DEMANDE.SUPP);
+            return builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTERROMPUE),TYPE_DEMANDE.SUPP);
         }
         throw new UnknownDemandeException("Demande inconnue");
 
