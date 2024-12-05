@@ -41,5 +41,13 @@ public class EtatDemande implements Serializable, GenericEntity<Integer> {
 
 	@Override
 	public Integer getId() { return numEtat; }
-	
+
+
+	@Override
+	public String toString() {
+		return "EtatDemande{" +
+				"libelle='" + libelle + '\'' +
+				", numEtat=" + numEtat +
+				'}';
+	}
 }

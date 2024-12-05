@@ -19,7 +19,7 @@ public class EtatDemandeRestService {
 	}
 
 	@GetMapping(value="/etatsDemande")
-	@Operation(summary = "permet de récupérer la liste des états possible d'une demandeModif")
+	@Operation(summary = "permet de récupérer la liste des états possible d'une demande")
 	public List<EtatDemande> getEtatDemandes() {
 		return referenceService.findAllEtatDemande();
 	}

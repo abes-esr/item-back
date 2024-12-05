@@ -7,6 +7,7 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.*;
 import fr.abes.item.core.service.IDemandeService;
@@ -341,5 +342,18 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
         return ligneFichierService.getNbLigneFichierTotalByDemande(service.findById(id));
+    }
+
+
+    @PatchMapping("stopDemandeSupp/{id}")
+    public DemandeWebDto stopDemandeSupp(@PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException, DemandeCheckingException {
+        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.SUPP);
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP);
+        DemandeSupp demandeSupp = (DemandeSupp) service.findById(id);
+        if(demandeSupp != null){
+            return builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTERROMPUE),TYPE_DEMANDE.SUPP);
+        }
+        throw new UnknownDemandeException("Demande inconnue");
+
     }
 }

@@ -59,4 +59,6 @@ public interface IDemandeService {
     List<? extends Demande> getDemandesToDelete();
 
 
+    void refreshEntity(Demande demande);
+
 }
