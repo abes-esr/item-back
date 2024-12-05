@@ -339,6 +339,11 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
+    public Demande restaurerDemande(Demande demande) {
+        return null;
+    }
+
+    @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
     }

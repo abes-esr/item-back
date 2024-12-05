@@ -378,6 +378,11 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return null;
     }
 
+    @Override
+    public Demande restaurerDemande(Demande demande) {
+        return null;
+    }
+
 
     public Demande majTypeSupp(Integer demandeId, TYPE_SUPPRESSION typeSuppression) {
         DemandeSupp demandeSupp = this.findById(demandeId);

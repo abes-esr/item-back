@@ -6,7 +6,10 @@ import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.dto.DemandeDto;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeModif;
+import fr.abes.item.core.entities.item.EtatDemande;
+import fr.abes.item.core.entities.item.Traitement;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
@@ -500,6 +503,11 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         List<DemandeModif> listeDemandes = demandeModifDao.getNextDemandeToDelete();
         if (!listeDemandes.isEmpty())
             return listeDemandes;
+        return null;
+    }
+
+    @Override
+    public Demande restaurerDemande(Demande demande) {
         return null;
     }
 

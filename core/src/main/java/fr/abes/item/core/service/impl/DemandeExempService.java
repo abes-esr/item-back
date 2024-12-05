@@ -394,6 +394,11 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     }
 
     @Override
+    public Demande restaurerDemande(Demande demande) {
+        return null;
+    }
+
+    @Override
     public DemandeExemp creerDemande(String rcr, Integer userNum) {
         Calendar calendar = Calendar.getInstance();
         DemandeExemp demandeExemp = new DemandeExemp(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), null, utilisateurService.findById(userNum));
