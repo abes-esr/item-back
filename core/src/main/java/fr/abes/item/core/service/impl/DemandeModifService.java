@@ -17,7 +17,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeModifDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,7 +43,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final Ppntoepn procStockee;
-
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
@@ -49,7 +51,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
-    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee) {
+    public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
@@ -58,6 +60,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
         this.procStockee = procStockee;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -173,6 +176,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -463,7 +467,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeModif demandeModif = (DemandeModif) demande;
-        ligneFichierService.deleteByDemande(demandeModif);
         return changeState(demandeModif, Constant.ETATDEM_ARCHIVEE);
     }
 
@@ -540,5 +543,10 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public void cleanLignesFichierDemande(Demande demande) {
         DemandeModif demandeModif = (DemandeModif) demande;
         ligneFichierService.deleteByDemande(demandeModif);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }

@@ -59,4 +59,7 @@ public interface IDemandeService {
     List<? extends Demande> getDemandesToDelete();
 
     Demande restaurerDemande(Demande demande) throws DemandeCheckingException;
+
+    void refreshEntity(Demande demande);
+
 }

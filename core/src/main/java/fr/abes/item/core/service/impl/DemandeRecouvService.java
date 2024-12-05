@@ -17,7 +17,9 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeRecouvDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,24 +36,23 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final IDemandeRecouvDao demandeRecouvDao;
     private final FileSystemStorageService storageService;
     private final ReferenceService referenceService;
-    private final TraitementService traitementService;
     private final ILigneFichierService ligneFichierService;
     private final UtilisateurService utilisateurService;
     private final JournalService journalService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
-
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService, JournalService journalService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
-        this.traitementService = traitementService;
         this.utilisateurService = utilisateurService;
+        this.entityManager = entityManager;
         this.journalService = journalService;
     }
 
@@ -277,6 +278,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -302,7 +304,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        ligneFichierService.deleteByDemande(demandeRecouv);
         return changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
     }
 
@@ -360,5 +361,10 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     public void cleanLignesFichierDemande(Demande demande) {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         ligneFichierService.deleteByDemande(demandeRecouv);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }

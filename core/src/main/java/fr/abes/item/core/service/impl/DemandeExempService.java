@@ -20,7 +20,9 @@ import fr.abes.item.core.repository.item.ILigneFichierExempDao;
 import fr.abes.item.core.repository.item.IZonesAutoriseesDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,11 +47,12 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     private final UtilisateurService utilisateurService;
     private final IZonesAutoriseesDao zonesAutoriseesDao;
     private final ILigneFichierExempDao ligneFichierExempDao;
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, UtilisateurService utilisateurService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao) {
+    public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, UtilisateurService utilisateurService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeExempDao = demandeExempDao;
         this.storageService = storageService;
@@ -60,6 +63,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         this.utilisateurService = utilisateurService;
         this.zonesAutoriseesDao = zonesAutoriseesDao;
         this.ligneFichierExempDao = ligneFichierExempDao;
+        this.entityManager = entityManager;
     }
 
     public List<Demande> findAll() {
@@ -268,6 +272,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -455,13 +460,17 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeExemp demandeExemp = (DemandeExemp) demande;
-        ligneFichierService.deleteByDemande(demandeExemp);
         return changeState(demandeExemp, Constant.ETATDEM_ARCHIVEE);
     }
 
     @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 
     @Override

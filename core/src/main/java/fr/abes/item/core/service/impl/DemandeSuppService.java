@@ -17,9 +17,14 @@ import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,6 +45,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
     private final JournalService journalService;
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
@@ -49,6 +56,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager) {
     public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, JournalService journalService) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
@@ -59,6 +67,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         this.procStockeeEpnToPpn = procStockeeEpnToPpn;
         this.ligneFichierService = ligneFichierSuppService;
         this.journalService = journalService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -71,6 +80,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public DemandeSupp findById(Integer id) {
         Optional<DemandeSupp> demandeSupp = demandeSuppDao.findById(id);
         demandeSupp.ifPresent(this::setIlnShortNameOnDemande);
@@ -96,7 +106,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
-        ligneFichierService.deleteByDemande(demandeSupp);
         return changeState(demandeSupp, Constant.ETATDEM_ARCHIVEE);
     }
 
@@ -258,7 +267,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR)
+                || (etatDemande == Constant.ETATDEM_INTERROMPUE && (demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ENCOURS || demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ATTENTE))
+                || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))
+                || (etatDemande == Constant.ETATDEM_ARCHIVEE && demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_INTERROMPUE)) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeSupp) demande, etat);
@@ -285,6 +297,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -401,6 +414,12 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         }
         return null;
     }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
+    }
+
 
     @Override
     public void cleanLignesFichierDemande(Demande demande) {

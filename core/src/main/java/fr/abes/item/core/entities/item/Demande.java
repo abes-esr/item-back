@@ -136,4 +136,12 @@ public abstract class Demande implements Serializable, GenericEntity<Integer> {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "Demande{" +
+                "numDemande=" + numDemande +
+                ", etatDemande=" + etatDemande +
+                '}';
+    }
 }
