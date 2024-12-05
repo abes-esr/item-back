@@ -200,6 +200,7 @@ public class DemandeRestService {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(numDemande);
+        service.cleanLignesFichierDemande(demande);
         if (demande.getUtilisateur().getNumUser().equals(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()))) {
             service.initFiles(demande);
             service.stockerFichier(file, demande);
