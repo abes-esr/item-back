@@ -8,7 +8,6 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeModif;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.exception.DemandeCheckingException;
@@ -38,13 +37,14 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final TraitementService traitementService;
     private final ILigneFichierService ligneFichierService;
     private final UtilisateurService utilisateurService;
+    private final JournalService journalService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
 
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService, JournalService journalService) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
@@ -52,6 +52,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         this.ligneFichierService = ligneFichierRecouvService;
         this.traitementService = traitementService;
         this.utilisateurService = utilisateurService;
+        this.journalService = journalService;
     }
 
     public List<Demande> findAll() {
@@ -99,7 +100,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), null, utilisateurService.findById(userNum));
         demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeRecouv);
-        return (DemandeRecouv) save(demandeRecouv);
+        DemandeRecouv demToReturn = (DemandeRecouv) save(demandeRecouv);
+        journalService.addEntreeJournal(demToReturn, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
+        return demToReturn;
     }
 
     /**
@@ -189,6 +192,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
+            journalService.addEntreeJournal((DemandeRecouv) demande, etat);
             return this.save(demande);
         }
         else {
@@ -200,6 +204,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     public Demande changeStateCanceled(Demande demande, int etatDemande) {
         EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
         demande.setEtatDemande(etat);
+        journalService.addEntreeJournal((DemandeRecouv) demande, etat);
         return this.save(demande);
     }
 
