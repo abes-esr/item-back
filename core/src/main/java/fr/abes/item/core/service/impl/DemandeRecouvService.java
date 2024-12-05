@@ -8,7 +8,6 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeModif;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.exception.DemandeCheckingException;
@@ -299,7 +298,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        ligneFichierService.deleteByDemande(demandeRecouv);
         return changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
     }
 
