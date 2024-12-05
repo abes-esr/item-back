@@ -460,4 +460,10 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     public void refreshEntity(Demande demande) {
         entityManager.refresh(demande);
     }
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeExemp demandeExemp = (DemandeExemp) demande;
+        ligneFichierService.deleteByDemande(demandeExemp);
+    }
 }

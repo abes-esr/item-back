@@ -32,6 +32,8 @@ public interface IDemandeService {
 
     Demande closeDemande(Demande demande) throws DemandeCheckingException;
 
+    void cleanLignesFichierDemande(Demande demande);
+
     List<DemandeDto> getActiveDemandesForUser(String iln);
 
     Demande getIdNextDemandeToProceed(int minHour, int maxHour);

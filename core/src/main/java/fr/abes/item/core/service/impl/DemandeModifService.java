@@ -6,10 +6,7 @@ import fr.abes.item.core.configuration.factory.Strategy;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.dto.DemandeDto;
-import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.DemandeModif;
-import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.Traitement;
+import fr.abes.item.core.entities.item.*;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
@@ -525,6 +522,12 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeModif demandeModif = (DemandeModif) demande;
+        ligneFichierService.deleteByDemande(demandeModif);
     }
 
     @Override

@@ -8,6 +8,7 @@ import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.exception.DemandeCheckingException;
@@ -400,4 +401,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         entityManager.refresh(demande);
     }
 
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        ligneFichierService.deleteByDemande(demandeSupp);
+    }
 }
