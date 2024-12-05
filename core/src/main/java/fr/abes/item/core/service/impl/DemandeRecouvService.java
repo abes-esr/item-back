@@ -45,7 +45,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;

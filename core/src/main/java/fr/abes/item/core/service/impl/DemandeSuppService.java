@@ -56,8 +56,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager) {
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, JournalService journalService) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
