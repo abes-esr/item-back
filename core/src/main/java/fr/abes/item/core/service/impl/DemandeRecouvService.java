@@ -339,8 +339,16 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public Demande restaurerDemande(Demande demande) {
-        return null;
+    public Demande restaurerDemande(Demande demande) throws DemandeCheckingException {
+        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
+        if (demandeRecouv.getEtatDemande().getNumEtat() != Constant.ETATDEM_ARCHIVEE)
+            throw new DemandeCheckingException("La demande doit être en état archivée !");
+        EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeRecouv);
+        if (etat != null) {
+            demandeRecouv.setEtatDemande(etat);
+            return save(demandeRecouv);
+        }
+        return demande;
     }
 
     @Override

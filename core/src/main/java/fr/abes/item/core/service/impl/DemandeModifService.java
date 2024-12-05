@@ -507,8 +507,16 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     }
 
     @Override
-    public Demande restaurerDemande(Demande demande) {
-        return null;
+    public Demande restaurerDemande(Demande demande) throws DemandeCheckingException {
+        DemandeModif demandeModif = (DemandeModif) demande;
+        if (demandeModif.getEtatDemande().getNumEtat() != Constant.ETATDEM_ARCHIVEE)
+            throw new DemandeCheckingException("La demande doit être en état archivée !");
+        EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeModif);
+        if (etat != null) {
+            demandeModif.setEtatDemande(etat);
+            return save(demandeModif);
+        }
+        return demande;
     }
 
     public Demande majTraitement(Integer demandeId, Integer traitementId) {

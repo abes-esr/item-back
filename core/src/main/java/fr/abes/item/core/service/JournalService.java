@@ -8,6 +8,7 @@ import fr.abes.item.core.repository.item.IJournalDemandeSuppDao;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
+import java.util.List;
 
 @Service
 public class JournalService {
@@ -37,5 +38,37 @@ public class JournalService {
 
     public void addEntreeJournal(DemandeSupp demandeSupp, EtatDemande etat) {
         journalDemandeSuppDao.save(new JournalDemandeSupp(Calendar.getInstance().getTime(), demandeSupp.getUtilisateur(), etat, demandeSupp));
+    }
+
+    public EtatDemande getDernierEtatConnuAvantArchivage(DemandeSupp demandeSupp) {
+        List<JournalDemandeSupp> journalDemandeSuppList = journalDemandeSuppDao.findAllByDemandeSupp_NumDemandeOrderByDateEntreeDesc(demandeSupp.getNumDemande());
+        if (journalDemandeSuppList.size() > 1) {
+            return journalDemandeSuppList.get(1).getEtatDemande();
+        }
+        return null;
+    }
+
+    public EtatDemande getDernierEtatConnuAvantArchivage(DemandeModif demandeModif) {
+        List<JournalDemandeModif> journalDemandeModifList = journalDemandeModifDao.findAllByDemandeModif_NumDemandeOrderByDateEntreeDesc(demandeModif.getNumDemande());
+        if (journalDemandeModifList.size() > 1) {
+            return journalDemandeModifList.get(1).getEtatDemande();
+        }
+        return null;
+    }
+
+    public EtatDemande getDernierEtatConnuAvantArchivage(DemandeRecouv demandeRecouv) {
+        List<JournalDemandeRecouv> journalDemandeRecouvList = journalDemandeRecouvDao.findAllByDemandeRecouv_NumDemandeOrderByDateEntreeDesc(demandeRecouv.getNumDemande());
+        if (journalDemandeRecouvList.size() > 1) {
+            return journalDemandeRecouvList.get(1).getEtatDemande();
+        }
+        return null;
+    }
+
+    public EtatDemande getDernierEtatConnuAvantArchivage(DemandeExemp demandeExemp) {
+        List<JournalDemandeExemp> journalDemandeExempList = journalDemandeExempDao.findAllByDemandeExemp_NumDemandeOrderByDateEntreeDesc(demandeExemp.getNumDemande());
+        if (journalDemandeExempList.size() > 1) {
+            return journalDemandeExempList.get(1).getEtatDemande();
+        }
+        return null;
     }
 }

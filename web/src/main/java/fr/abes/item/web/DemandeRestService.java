@@ -351,11 +351,12 @@ public class DemandeRestService {
      * @return la demande modifiée
      * @throws UserExistException utilisateur non trouve
      * @throws ForbiddenException controle d'accès échoué
+     * @throws DemandeCheckingException demande dans le mauvais état
      */
     @PatchMapping("/restaurerDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     @Operation(summary = "Permet de restaurer une demande archivée dans son état précédent")
-    public DemandeWebDto restaurerDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException {
+    public DemandeWebDto restaurerDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException, DemandeCheckingException {
         checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         return builder.buildDemandeDto(service.restaurerDemande(service.findById(id)), type);

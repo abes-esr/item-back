@@ -379,8 +379,16 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public Demande restaurerDemande(Demande demande) {
-        return null;
+    public Demande restaurerDemande(Demande demande) throws DemandeCheckingException {
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        if (demandeSupp.getEtatDemande().getNumEtat() != Constant.ETATDEM_ARCHIVEE)
+            throw new DemandeCheckingException("La demande doit être en état archivée !");
+        EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeSupp);
+        if (etat != null) {
+            demandeSupp.setEtatDemande(etat);
+            return save(demandeSupp);
+        }
+        return demande;
     }
 
 

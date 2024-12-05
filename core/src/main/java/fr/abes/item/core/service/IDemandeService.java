@@ -58,5 +58,5 @@ public interface IDemandeService {
     List<? extends Demande> getDemandesToPlaceInDeletedStatus();
     List<? extends Demande> getDemandesToDelete();
 
-    Demande restaurerDemande(Demande demande);
+    Demande restaurerDemande(Demande demande) throws DemandeCheckingException;
 }
