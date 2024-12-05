@@ -1,6 +1,5 @@
 package fr.abes.item.core.entities.item;
 
-import fr.abes.item.core.constant.Constant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,5 +38,15 @@ public class LigneFichierSupp extends LigneFichier implements Serializable, ILig
         LigneFichierSupp ligneFichierSupp = (LigneFichierSupp) ligneFichier;
         this.setRetourSudoc(ligneFichierSupp.getRetourSudoc());
         this.setTraitee(1);
+    }
+
+    @Override
+    public String toString() {
+        return "LigneFichierSupp{" +
+                "numLigneFichier=" + numLigneFichier +
+                ", traitee=" + traitee +
+                ", ppn='" + ppn + '\'' +
+                ", demandeSupp=" + demandeSupp +
+                '}';
     }
 }

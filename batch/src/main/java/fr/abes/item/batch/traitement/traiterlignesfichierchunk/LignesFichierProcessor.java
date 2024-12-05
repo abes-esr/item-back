@@ -160,7 +160,6 @@ public class LignesFichierProcessor implements ItemProcessor<LigneFichierDto, Li
 
     private LigneFichierDtoSupp processDemandeSupp(LigneFichierDto ligneFichierDto) throws CBSException, IOException, ZoneException, QueryToSudocException, StorageException {
         DemandeSupp demandeSupp = (DemandeSupp) this.demandeService.findById(this.demandeId);
-        log.debug("processor {}", demandeSupp.toString());
         LigneFichierDtoSupp ligneFichierDtoSupp = (LigneFichierDtoSupp) ligneFichierDto;
         if(demandeSupp.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 //récupération des exemplaires existants pour cette ligne

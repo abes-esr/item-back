@@ -58,17 +58,13 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         try {
-            if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+            if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                 demandeService.closeDemande(this.demande);
             }
-        } catch (DataAccessException d){
-            if(d.getRootCause() instanceof SQLException sqlEx){
-                log.error("Erreur SQL : " + sqlEx.getErrorCode());
-                log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
-            }
-        }
-        catch (DemandeCheckingException e) {
-            log.error(Constant.ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE + e);
+        } catch (DataAccessException d) {
+            logSqlError(d);
+        } catch (DemandeCheckingException e) {
+            log.error(Constant.ERROR_TREATMENT_LIGNE_FICHIER_WHEN_UPDATE_DEMANDE_STATE + "{}", String.valueOf(e));
             return ExitStatus.FAILED;
         }
         stepExecution.getJobExecution().getExecutionContext().put("lignes", this.lignesFichier);
@@ -80,27 +76,22 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
     public void write(Chunk<? extends LigneFichierDto> liste) {
         for (LigneFichierDto ligneFichierDto : liste) {
             try {
-                demandeService.refreshEntity(this.demande);
                 this.demande = demandeService.findById(this.demandeId);
                 demandeService.refreshEntity(this.demande);
-                log.debug("write {}", this.demande.toString());
-                if(demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
+                if (demande.getEtatDemande().getId() != Constant.ETATDEM_INTEROMPU) {
                     this.majLigneFichier(ligneFichierDto);
                     this.majPourcentageTraitementDemande();
                 }
-            } catch (DataAccessException d){
-                if(d.getRootCause() instanceof SQLException sqlEx){
-                    log.error("Erreur SQL : " + sqlEx.getErrorCode());
-                    log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
-                }
+            } catch (DataAccessException d) {
+                logSqlError(d);
             } catch (Exception e) {
-                log.error(Constant.ERROR_MAJ_LIGNE_FICHIER_WRITE + e);
+                log.error(Constant.ERROR_MAJ_LIGNE_FICHIER_WRITE + "{}", String.valueOf(e));
             }
         }
     }
 
-    private void majPourcentageTraitementDemande(){
-        Integer percent = (int) Math.round((double)this.ligneFichierService.getNbLigneFichierTraiteeByDemande(demande) / (double)this.ligneFichierService.getNbLigneFichierTotalByDemande(demande)*100);
+    private void majPourcentageTraitementDemande() {
+        Integer percent = (int) Math.round((double) this.ligneFichierService.getNbLigneFichierTraiteeByDemande(demande) / (double) this.ligneFichierService.getNbLigneFichierTotalByDemande(demande) * 100);
         demande.setPourcentageProgressionTraitement(percent);
         demandeService.save(demande);
     }
@@ -110,21 +101,22 @@ public class LignesFichierWriter implements ItemWriter<LigneFichierDto>, StepExe
             ILigneFichier ligneFichier = (ILigneFichier) ligneFichierService.findById(item.getNumLigneFichier());
             ILigneFichierDtoMapper ligneFichierDtoMapper = factory.getStrategy(ILigneFichierDtoMapper.class, demande.getTypeDemande());
             ligneFichier.setEntityAfterBatch(ligneFichierDtoMapper.getLigneFichierEntity(item));
-            ligneFichierService.save((LigneFichier)ligneFichier);
-            log.info(Constant.LIGNE_TRAITEE + item.getNumLigneFichier());
-        } catch (JDBCConnectionException | ConstraintViolationException j){
+            ligneFichierService.save((LigneFichier) ligneFichier);
+            log.info(Constant.LIGNE_TRAITEE + "{}", item.getNumLigneFichier());
+        } catch (JDBCConnectionException | ConstraintViolationException j) {
             log.error("Erreur hibernate JDBC");
             log.error(j.toString());
         } catch (DataAccessException e) {
-            if(e.getRootCause() instanceof SQLException sqlEx){
-                log.error("Erreur SQL : " + sqlEx.getErrorCode());
-                log.error(sqlEx.getSQLState() + "|" + sqlEx.getMessage() + "|" + sqlEx.getLocalizedMessage());
-            }
-            log.error(Constant.ERROR_MAJ_LIGNE + item.getNumLigneFichier()
-                    + " pour la demande " + item.getRefDemande()
-                    + " "
-                    + e);
+            logSqlError(e);
+            log.error(Constant.ERROR_MAJ_LIGNE + "{} pour la demande {} {}", item.getNumLigneFichier(), item.getRefDemande(), e);
             throw new FileLineException(Constant.ERR_FILE_LINEFILE);
+        }
+    }
+
+    private static void logSqlError(DataAccessException d) {
+        if (d.getRootCause() instanceof SQLException sqlEx) {
+            log.error("Erreur SQL : {}", sqlEx.getErrorCode());
+            log.error("{}|{}|{}", sqlEx.getSQLState(), sqlEx.getMessage(), sqlEx.getLocalizedMessage());
         }
     }
 }

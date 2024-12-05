@@ -18,10 +18,13 @@ import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -41,6 +44,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
+    @PersistenceContext
     private final EntityManager entityManager;
 
     private FichierInitialSupp fichierInit;
@@ -73,6 +77,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public DemandeSupp findById(Integer id) {
         Optional<DemandeSupp> demandeSupp = demandeSuppDao.findById(id);
         demandeSupp.ifPresent(this::setIlnShortNameOnDemande);
@@ -393,4 +398,5 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     public void refreshEntity(Demande demande) {
         entityManager.refresh(demande);
     }
+
 }
