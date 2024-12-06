@@ -164,10 +164,13 @@ public class LigneFichierModifService implements ILigneFichierService {
     public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, IOException, ZoneException {
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String noticeInit = getNoticeInitiale(demande, ligneFichierModif.getEpn());
-        Exemplaire noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
+        Exemplaire noticeTraitee = new Exemplaire();
+        if (noticeInit != "") {
+            noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
+        }
         return new String[]{
                 traitementService.getCbs().getPpnEncours(),
-                noticeInit.replace("\r", "\r\n"),
+                (noticeInit.equals("")) ? "Exemplaire inexistant" : noticeInit.replace("\r", "\r\n"),
                 noticeTraitee.toString().replace("\r", "\r\n")
         };
     }
