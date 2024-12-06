@@ -18,7 +18,6 @@ import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,9 +44,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
     private final JournalService journalService;
-    @PersistenceContext
-    private final EntityManager entityManager;
-
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
     private final Ppntoepn procStockeePpnToEpn;
@@ -57,7 +53,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private String uploadPath;
 
     public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
-        super(libProfileDao);
+        super(libProfileDao, entityManager);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
@@ -66,7 +62,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         this.procStockeeEpnToPpn = procStockeeEpnToPpn;
         this.ligneFichierService = ligneFichierSuppService;
         this.journalService = journalService;
-        this.entityManager = entityManager;
     }
 
     @Override
@@ -266,7 +261,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR)
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (etatDemande == Constant.ETATDEM_SUPPRIMEE)
                 || (etatDemande == Constant.ETATDEM_INTERROMPUE && (demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ENCOURS || demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ATTENTE))
                 || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))
                 || (etatDemande == Constant.ETATDEM_ARCHIVEE && demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_INTERROMPUE)) {
@@ -299,14 +294,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
-    }
-
-    @Override
-    public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
-        demande.setEtatDemande(etat);
-        journalService.addEntreeJournal((DemandeSupp) demande, etat);
-        return this.save(demande);
     }
 
     @Override

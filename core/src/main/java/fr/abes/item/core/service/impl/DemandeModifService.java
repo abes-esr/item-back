@@ -43,7 +43,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final Ppntoepn procStockee;
-    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
@@ -52,7 +51,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     private FichierPrepare fichierPrepare;
 
     public DemandeModifService(ILibProfileDao libProfileDao, IDemandeModifDao demandeModifDao, FileSystemStorageService storageService, LigneFichierModifService ligneFichierModifService, JournalService journalService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockee, @Qualifier("itemEntityManager") EntityManager entityManager) {
-        super(libProfileDao);
+        super(libProfileDao, entityManager);
         this.demandeModifDao = demandeModifDao;
         this.storageService = storageService;
         this.ligneFichierService = ligneFichierModifService;
@@ -60,7 +59,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         this.referenceService = referenceService;
         this.utilisateurService = utilisateurService;
         this.procStockee = procStockee;
-        this.entityManager = entityManager;
     }
 
     @Override
@@ -325,14 +323,6 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         return demToReturn;
     }
 
-    @Override
-    public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
-        demande.setEtatDemande(etat);
-        journalService.addEntreeJournal((DemandeModif) demande, etat);
-        return this.save(demande);
-    }
-
     /**
      * Méthode permettant de passer une demandeModif dans l'état terminée
      *
@@ -359,7 +349,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
      */
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (etatDemande == Constant.ETATDEM_SUPPRIMEE) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeModif) demande, etat);

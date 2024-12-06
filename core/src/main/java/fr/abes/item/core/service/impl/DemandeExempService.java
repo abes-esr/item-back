@@ -47,13 +47,12 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     private final UtilisateurService utilisateurService;
     private final IZonesAutoriseesDao zonesAutoriseesDao;
     private final ILigneFichierExempDao ligneFichierExempDao;
-    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
     public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, UtilisateurService utilisateurService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao, @Qualifier("itemEntityManager") EntityManager entityManager) {
-        super(libProfileDao);
+        super(libProfileDao, entityManager);
         this.demandeExempDao = demandeExempDao;
         this.storageService = storageService;
         this.ligneFichierService = ligneFichierExempService;
@@ -63,7 +62,6 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         this.utilisateurService = utilisateurService;
         this.zonesAutoriseesDao = zonesAutoriseesDao;
         this.ligneFichierExempDao = ligneFichierExempDao;
-        this.entityManager = entityManager;
     }
 
     public List<Demande> findAll() {
@@ -238,7 +236,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      */
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (etatDemande == Constant.ETATDEM_SUPPRIMEE) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeExemp) demande, etat);
@@ -246,14 +244,6 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         } else {
             throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
         }
-    }
-
-    @Override
-    public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
-        demande.setEtatDemande(etat);
-        journalService.addEntreeJournal((DemandeExemp) demande, etat);
-        return this.save(demande);
     }
 
     /**

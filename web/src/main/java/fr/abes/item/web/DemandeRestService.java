@@ -164,13 +164,13 @@ public class DemandeRestService {
     @GetMapping(value = "/supprimerDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
-    public DemandeWebDto supprimerAvecConservationEnBase(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto supprimerAvecConservationEnBase(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException, DemandeCheckingException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
         Demande demande = service.findById(numDemande);
         ligneFichierService.deleteByDemande(demande);
-        return builder.buildDemandeDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
+        return builder.buildDemandeDto(service.changeState(demande, Constant.ETATDEM_SUPPRIMEE), type);
     }
 
     @GetMapping(value = "/getTypeExemplarisationDemande/{id}")

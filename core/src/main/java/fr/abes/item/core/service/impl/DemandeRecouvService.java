@@ -40,19 +40,17 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final UtilisateurService utilisateurService;
     private final JournalService journalService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
-    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
     public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
-        super(libProfileDao);
+        super(libProfileDao, entityManager);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
         this.utilisateurService = utilisateurService;
-        this.entityManager = entityManager;
         this.journalService = journalService;
     }
 
@@ -143,7 +141,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         if (etatDemande == Constant.ETATDEM_ACOMPLETER) {
             demandeRecouv.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-            save(demandeRecouv);
+            this.save(demandeRecouv);
         }
         else {
             throw new DemandeCheckingException(Constant.GO_BACK_TO_PREVIOUS_STEP_ON_DEMAND_FAILED);
@@ -190,7 +188,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (etatDemande == Constant.ETATDEM_SUPPRIMEE) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             journalService.addEntreeJournal((DemandeRecouv) demande, etat);
@@ -199,14 +197,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         else {
             throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
         }
-    }
-
-    @Override
-    public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
-        demande.setEtatDemande(etat);
-        journalService.addEntreeJournal((DemandeRecouv) demande, etat);
-        return this.save(demande);
     }
 
     @Override

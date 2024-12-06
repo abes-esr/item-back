@@ -42,8 +42,6 @@ public interface IDemandeService {
 
     Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 
-    Demande changeStateCanceled(Demande demande, int etatDemande);
-
     List<DemandeDto> getAllArchivedDemandes(String iln);
 
     List<DemandeDto> getAllArchivedDemandesAllIln();
