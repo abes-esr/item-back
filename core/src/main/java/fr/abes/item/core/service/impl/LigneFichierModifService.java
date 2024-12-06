@@ -165,7 +165,7 @@ public class LigneFichierModifService implements ILigneFichierService {
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String noticeInit = getNoticeInitiale(demande, ligneFichierModif.getEpn());
         Exemplaire noticeTraitee = new Exemplaire();
-        if (noticeInit != "") {
+        if (!noticeInit.equals("")) {
             noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
         }
         return new String[]{
