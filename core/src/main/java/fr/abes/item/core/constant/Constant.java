@@ -164,8 +164,10 @@ public class Constant implements Serializable {
 	public static final int TAILLEMAX = 9;
 
 	/**Specific messages on mails sents and stats*/
-	public static final String STAT_NBDEMANDESTRAITEES_FILENAME = "demandesTraiteesRCR";
-	public static final String STAT_NBEXEMPLAIRESTRAITES_FILENAME = "exemplairesTraitesTraitementRCR";
+	public static final String STAT_NBDEMANDESMODIFTRAITEES_FILENAME = "demandesTraiteesModifRCR";
+	public static final String STAT_NBEXEMPLAIRESMODIFTRAITES_FILENAME = "exemplairesModifTraitesTraitementRCR";
+	public static final String STAT_NBDEMANDESSUPPTRAITEES_FILENAME = "demandesSuppTraiteesRCR";
+	public static final String STAT_NBEXEMPLAIRESSUPPTRAITES_FILENAME = "exemplairesSuppTraitesRCR";
 	public static final String DEMANDE_MODIFICATION_START = "Demande de modification d'exemplaires N° ";
 	public static final String DEMANDE_SUPPRESSION_START = "Demande de suppression d'exemplaires N° ";
 	public static final String DEMANDE_EXEMPLARISATION_START = "Votre exemplarisation - ";
@@ -200,8 +202,10 @@ public class Constant implements Serializable {
 	public static final String STRATEGY_ANNOTATION_FOR_BEAN_FAILED ="Ne peut résoudre l'annotation strategy pour ce bean.";
 	public static final String STRATEGY_RETURN_DEFAULT_STRATEGY_NO_TYPE_DEMANDE_SELECTED = "No type_demande selected, returning default strategy";
 	public static final String STRATEGY_RETURN_DEFAULT_STRATEGY_NO_TYPE_DEMANDE_SPECIFIC_STRATEGY_SELECTED = "No type_demande specific strategy found, returning default strategy";
-	public static final String ERROR_OPENING_FILE_FOR_NUMBER_OF_REQUESTS_PROCESSED_BY_RCR = "Erreur dans l'ouverture du fichier pour nb demandeModifs traitées par RCR.";
-	public static final String ERROR_OPENING_FILE_FOR_NUMBER_OF_EXEMPLARIES_PROCESSES_BY_RCR_AND_TREATMENT = "Erreur dans l'ouverture du fichier pour nb exemplaires traites par RCR et Traitement.";
+	public static final String ERR_FILE_STAT_MODIF_DEMANDES = "Erreur dans l'ouverture du fichier pour nb demande modif traitées par RCR.";
+	public static final String ERR_FILE_STAT_MODIF_EXEMP = "Erreur dans l'ouverture du fichier pour nb exemplaires de demande de modif traites par RCR et Traitement.";
+	public static final String ERR_FILE_STAT_SUPP_DEMANDES = "Erreur dans l'ouverture du fichier pour nb demande supp traitées par RCR.";
+	public static final String ERR_FILE_STAT_SUPP_EXEMP = "Erreur dans l'ouverture du fichier pour nb exemplaires de demande de supp traites par RCR.";
 	public static final String ERROR_RESPONDING_WITH_UNAUTHORIZED_ERROR = "Erreur : répond avec une erreur d'autorisation : message - {0}";
 	public static final String ERROR_ACCESS_DATABASE = "Erreur acces a la base";
 	public static final String ERROR_GENERIC_TECHNICAL_PROBLEMS = "Nous rencontrons actuellement des problèmes techniques.";
