@@ -7,6 +7,7 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
 import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.*;
 import fr.abes.item.core.service.IDemandeService;
@@ -187,7 +188,6 @@ public class DemandeRestService {
      * @param type       type de demande concernée par le webservice
      * @param file       : fichier à uploader
      * @param numDemande : demandeModif à laquelle rattacher le fichier
-     * @return : messager indiquant le résultat de l'upload
      * @throws ForbiddenException    accès interdit à l'utilisateur (mauvaise authentification)
      * @throws UserExistException    utilisateur non présent dans la base de donnée (id inconnu)
      * @throws FileTypeException     le type de fichier est incorrect, non supporté pour le traitement
@@ -201,6 +201,7 @@ public class DemandeRestService {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         Demande demande = service.findById(numDemande);
+        service.cleanLignesFichierDemande(demande);
         if (demande.getUtilisateur().getNumUser().equals(Integer.parseInt(request.getAttribute(Constant.USER_NUM).toString()))) {
             service.initFiles(demande);
             service.stockerFichier(file, demande);
@@ -228,7 +229,7 @@ public class DemandeRestService {
         try {
             Demande demande = service.findById(numDemande);
             LigneFichier ligneFichier = ligneFichierService.getLigneFichierbyDemandeEtPos(demande, numLigne);
-            return service.getNoticeExemplaireAvantApres(demande, ligneFichier);
+            return ligneFichierService.getNoticeExemplaireAvantApres(demande, ligneFichier);
         } catch (CBSException e) {
             //adaptation du message en cas de login manager manquant
             if (e.getMessage().equals("Code d'accès non reconnu"))
@@ -341,5 +342,18 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
         return ligneFichierService.getNbLigneFichierTotalByDemande(service.findById(id));
+    }
+
+
+    @PatchMapping("stopDemandeSupp/{id}")
+    public DemandeWebDto stopDemandeSupp(@PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException, UnknownDemandeException, DemandeCheckingException {
+        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), TYPE_DEMANDE.SUPP);
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, TYPE_DEMANDE.SUPP);
+        DemandeSupp demandeSupp = (DemandeSupp) service.findById(id);
+        if(demandeSupp != null){
+            return builder.buildDemandeDto(service.changeState(demandeSupp, Constant.ETATDEM_INTERROMPUE),TYPE_DEMANDE.SUPP);
+        }
+        throw new UnknownDemandeException("Demande inconnue");
+
     }
 }

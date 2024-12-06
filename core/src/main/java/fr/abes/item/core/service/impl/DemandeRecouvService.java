@@ -10,16 +10,16 @@ import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.DemandeRecouv;
 import fr.abes.item.core.entities.item.EtatDemande;
-import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeRecouvDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,23 +36,22 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final IDemandeRecouvDao demandeRecouvDao;
     private final FileSystemStorageService storageService;
     private final ReferenceService referenceService;
-    private final TraitementService traitementService;
     private final ILigneFichierService ligneFichierService;
     private final UtilisateurService utilisateurService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
-
+    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, TraitementService traitementService, UtilisateurService utilisateurService) {
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
-        this.traitementService = traitementService;
         this.utilisateurService = utilisateurService;
+        this.entityManager = entityManager;
     }
 
     public List<Demande> findAll() {
@@ -166,11 +165,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) {
-        return new String[]{"Simulation impossible pour le recouvrement", ""};
-    }
-
-    @Override
     public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         List<DemandeRecouv> listeDemandes;
@@ -278,6 +272,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -290,36 +285,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         return listeDemandeDto;
     }
 
-    public int launchQueryToSudoc(String codeIndex, String valeurs) throws IOException, QueryToSudocException {
-        String[] tabvaleurs = valeurs.split(";");
-        String query = getQueryToSudoc(codeIndex, null, tabvaleurs);
-        traitementService.getCbs().search(query);
-        return traitementService.getCbs().getNbNotices();
-    }
 
-    /**
-     * Méthode construisant la requête che en fonction des paramètres d'une demande d'exemplarisation
-     * @param codeIndex code de l'index de la recherche
-     * @param type : non utilisé dans cette implementation
-     * @param valeur tableau des valeurs utilisées pour construire la requête
-     * @return requête che prête à être lancée vers le CBS
-     */
-    @Override
-    public String getQueryToSudoc(String codeIndex, Integer type, String[] valeur) throws QueryToSudocException {
-        return switch (codeIndex) {
-            case "ISBN" -> "che isb " + valeur[0];
-            case "ISSN" -> "tno t; tdo t; che isn " + valeur[0];
-            case "PPN" -> "che ppn " + valeur[0];
-            case "SOU" -> "tno t; tdo b; che sou " + valeur[0];
-            case "DAT" -> {
-                if (valeur[1].isEmpty()) {
-                    yield "tno t; tdo b; apu " + valeur[0] + "; che mti " + Utilitaires.replaceDiacritical(valeur[2]);
-                }
-                yield "tno t; tdo b; apu " + valeur[0] + "; che aut " + Utilitaires.replaceDiacritical(valeur[1]) + " et mti " + Utilitaires.replaceDiacritical(valeur[2]);
-            }
-            default -> throw new QueryToSudocException(Constant.ERR_FILE_SEARCH_INDEX_CODE_NOT_COMPLIANT);
-        };
-    }
+
+
 
     /** méthode d'archivage d'une demande
      * supprime les lignes fichiers au moment de l'archivage
@@ -330,7 +298,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
-        ligneFichierService.deleteByDemande(demandeRecouv);
         return changeState(demandeRecouv, Constant.ETATDEM_ARCHIVEE);
     }
 
@@ -369,5 +336,16 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public void modifierShortNameDemande(Demande demande) {
         setIlnShortNameOnDemande(demande);
+    }
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
+        ligneFichierService.deleteByDemande(demandeRecouv);
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
     }
 }

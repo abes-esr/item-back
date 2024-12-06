@@ -1,9 +1,13 @@
 package fr.abes.item.core.service;
 
+import fr.abes.cbs.exception.CBSException;
+import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.entities.item.LigneFichier;
+import fr.abes.item.core.exception.QueryToSudocException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public interface ILigneFichierService {
@@ -38,4 +42,9 @@ public interface ILigneFichierService {
     LigneFichier getLigneFichierbyDemandeEtPos(Demande demande, Integer numLigne);
 
     int getNbLigneFichierNonTraitee(Demande demande);
+
+    String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException;
+
+    String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException;
+
 }

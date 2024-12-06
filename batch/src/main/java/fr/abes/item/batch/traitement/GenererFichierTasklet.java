@@ -110,13 +110,13 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
      * @throws FileTypeException : erreur de type de fichier
      */
     private String genererFichier() throws IOException, FileTypeException, QueryToSudocException {
-        FichierResultatModif fichierResultatModif;
+        FichierResultatModif fichierResultat;
 
-        fichierResultatModif = (FichierResultatModif) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
-        fichierResultatModif.generateFileName(demande);
-        fichierResultatModif.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
+        fichierResultat = (FichierResultatModif) FichierFactory.getFichier(Constant.ETATDEM_ENCOURS, demande.getTypeDemande());
+        fichierResultat.generateFileName(demande);
+        fichierResultat.setPath(Paths.get(uploadPath + demande.getTypeDemande().toString().toLowerCase() + "/" +  demande.getId()));
 
-        try (FileWriter fw = new FileWriter(fichierResultatModif.getPath().resolve(fichierResultatModif.getFilename()).toString(), false);
+        try (FileWriter fw = new FileWriter(fichierResultat.getPath().resolve(fichierResultat.getFilename()).toString(), false);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             // en tête du fichier
@@ -127,7 +127,7 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                         DemandeExemp demandeExemp = (DemandeExemp) demande;
                         LigneFichierDtoExemp ligneFichierDtoExemp = new LigneFichierDtoExemp((LigneFichierExemp) ligne);
                         log.warn(ligneFichierDtoExemp.getIndexRecherche());
-                        ligneFichierDtoExemp.setRequete(demandeService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
+                        ligneFichierDtoExemp.setRequete(this.ligneFichierService.getQueryToSudoc(demandeExemp.getIndexRecherche().getCode(), demandeExemp.getTypeExemp().getNumTypeExemp(), ligneFichierDtoExemp.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoExemp.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                     }
                     case MODIF -> {
@@ -141,13 +141,13 @@ public class GenererFichierTasklet implements Tasklet, StepExecutionListener {
                     default -> {
                         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
                         LigneFichierDtoRecouv ligneFichierDtoRecouv = new LigneFichierDtoRecouv((LigneFichierRecouv) ligne);
-                        ligneFichierDtoRecouv.setRequete(demandeService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
+                        ligneFichierDtoRecouv.setRequete(this.ligneFichierService.getQueryToSudoc(demandeRecouv.getIndexRecherche().getCode(), null, ligneFichierDtoRecouv.getIndexRecherche().split(";")));
                         out.println(ligneFichierDtoRecouv.getValeurToWriteInFichierResultat(demande, nbPpnInFileResult));
                     }
                 }
                 //ligne correspondant au résultat du traitement de chaque ligne du fichier d'origine
             }
-            return fichierResultatModif.getFilename();
+            return fichierResultat.getFilename();
         } catch (IOException | QueryToSudocException | DataAccessException ex) {
             log.error(Constant.ERROR_WHILE_CREATING_RESULT_FILE_IN_EXECUTE + ex);
             throw ex;

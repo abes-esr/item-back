@@ -8,6 +8,7 @@ insert into ETAT_DEMANDE(NUM_ETAT, LIBELLE) values(7, 'Terminé');
 insert into ETAT_DEMANDE(NUM_ETAT, LIBELLE) values(8, 'En erreur');
 insert into ETAT_DEMANDE(NUM_ETAT, LIBELLE) values(9, 'Archivé');
 insert into ETAT_DEMANDE(NUM_ETAT, LIBELLE) values(10, 'Supprimé');
+insert into ETAT_DEMANDE(NUM_ETAT, LIBELLE) values(11, 'Annulé');
 
 insert into INDEX_RECHERCHE(NUM_INDEX_RECHERCHE, LIBELLE, CODE, INDEX_ZONES) values (1, 'ISBN', 'ISBN', 1);
 insert into INDEX_RECHERCHE(NUM_INDEX_RECHERCHE, LIBELLE, CODE, INDEX_ZONES) values (2, 'ISSN', 'ISSN', 1);

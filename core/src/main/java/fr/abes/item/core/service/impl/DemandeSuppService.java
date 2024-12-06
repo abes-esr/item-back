@@ -1,9 +1,5 @@
 package fr.abes.item.core.service.impl;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
-import fr.abes.cbs.notices.Exemplaire;
-import fr.abes.cbs.notices.NoticeConcrete;
 import fr.abes.item.core.components.*;
 import fr.abes.item.core.configuration.factory.FichierFactory;
 import fr.abes.item.core.configuration.factory.Strategy;
@@ -11,26 +7,33 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.constant.TYPE_SUPPRESSION;
 import fr.abes.item.core.dto.DemandeDto;
-import fr.abes.item.core.entities.item.*;
+import fr.abes.item.core.entities.item.Demande;
+import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.EtatDemande;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
 import fr.abes.item.core.repository.item.IDemandeSuppDao;
 import fr.abes.item.core.service.*;
 import fr.abes.item.core.utilitaire.Utilitaires;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Level;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -41,7 +44,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     private final ReferenceService referenceService;
     private final UtilisateurService utilisateurService;
     private final FileSystemStorageService storageService;
-    private final TraitementService traitementService;
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     private FichierInitialSupp fichierInit;
     private FichierPrepareSupp fichierPrepare;
@@ -51,7 +55,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, TraitementService traitementService) {
+    public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao);
         this.demandeSuppDao = demandeSuppDao;
         this.storageService = storageService;
@@ -60,7 +64,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         this.procStockeePpnToEpn = procStockeePpnToEpn;
         this.procStockeeEpnToPpn = procStockeeEpnToPpn;
         this.ligneFichierService = ligneFichierSuppService;
-        this.traitementService = traitementService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -73,6 +77,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public DemandeSupp findById(Integer id) {
         Optional<DemandeSupp> demandeSupp = demandeSuppDao.findById(id);
         demandeSupp.ifPresent(this::setIlnShortNameOnDemande);
@@ -96,7 +101,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public Demande archiverDemande(Demande demande) throws DemandeCheckingException {
         DemandeSupp demandeSupp = (DemandeSupp) demande;
-        ligneFichierService.deleteByDemande(demandeSupp);
         return changeState(demandeSupp, Constant.ETATDEM_ARCHIVEE);
     }
 
@@ -258,7 +262,10 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR)
+                || (etatDemande == Constant.ETATDEM_INTERROMPUE && (demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ENCOURS || demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_ATTENTE))
+                || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))
+                || (etatDemande == Constant.ETATDEM_ARCHIVEE && demande.getEtatDemande().getNumEtat() == Constant.ETATDEM_INTERROMPUE)) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
             return save(demande);
@@ -284,6 +291,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             case Constant.ETATDEM_ERREUR -> Constant.ETATDEM_ERREUR;
             case Constant.ETATDEM_ARCHIVEE -> Constant.ETATDEM_TERMINEE;
             case Constant.ETATDEM_SUPPRIMEE -> Constant.ETATDEM_ARCHIVEE;
+            // case Constant.ETATDEM_INTEROMPU -> 0; // cas couvert par default
             default -> 0;
         };
     }
@@ -349,76 +357,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return save(demandeSupp);
     }
 
-    @Override
-    public String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException {
-        LigneFichierSupp ligneFichierSupp = (LigneFichierSupp) ligneFichier;
-        DemandeSupp demandeSupp = (DemandeSupp) demande;
-        try {
-            traitementService.authenticate("M" + demandeSupp.getRcr());
-            List<Exemplaire> exemplairesExistants = getExemplairesExistants(ligneFichierSupp.getPpn());
-            //On ne conserve que les EPN de son RCR
-            exemplairesExistants = exemplairesExistants.stream().filter(exemplaire -> exemplaire.findZone("930", 0).findSubLabel("$b").equals(demandeSupp.getRcr())).toList();
-            if (exemplairesExistants.isEmpty()) {
-                return new String[] {
-                        ligneFichierSupp.getPpn(),
-                        "Pas d'exemplaire pour ce RCR",
-                        "Pas d'exemplaire pour ce RCR"
-                };
-            }
-            List<Exemplaire> exemplairesRestants = suppExemlaire(exemplairesExistants, ligneFichierSupp.getEpn());
 
-            return new String[]{
-                    ligneFichierSupp.getPpn(),
-                    exemplairesExistants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n")),
-                    exemplairesRestants.stream().map(exemplaire -> exemplaire.toString().replace("\r", "\r\n")).collect(Collectors.joining("\r\n\r\n"))
-            };
-        }catch (QueryToSudocException ex) {
-            throw new CBSException(Level.ERROR, ex.getMessage());
-        } finally {
-            traitementService.disconnect();
-        }
-    }
-
-    public String getTypeDocumentFromPpn(String ppn) throws CBSException, IOException, QueryToSudocException, ZoneException {
-        String query = "che ppn " + ppn;
-        traitementService.getCbs().search(query);
-        int nbReponses = traitementService.getCbs().getNbNotices();
-        return switch (nbReponses) {
-            case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
-            case 1 -> {
-                NoticeConcrete notice = traitementService.getCbs().editerNoticeConcrete("1");
-                yield notice.getNoticeBiblio().findZone("008", 0).findSubLabel("$a").substring(0,2);
-            }
-            default -> throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
-        };
-    }
-
-    public List<Exemplaire> getExemplairesExistants(String ppn) throws IOException, QueryToSudocException, CBSException, ZoneException {
-        String query = "che ppn " + ppn;
-        traitementService.getCbs().search(query);
-        int nbReponses = traitementService.getCbs().getNbNotices();
-        return switch (nbReponses) {
-            case 0 -> throw new QueryToSudocException(Constant.ERR_FILE_NOTICE_NOT_FOUND);
-            case 1 -> {
-                String notice = traitementService.getCbs().getClientCBS().mod("1", String.valueOf(traitementService.getCbs().getLotEncours()));
-                String exemplaires = Utilitaires.getExemplairesExistants(notice);
-                List<Exemplaire> exempList = new ArrayList<>();
-                if (!exemplaires.isEmpty()) {
-                    for (String s : exemplaires.split("\r\r\r")) {
-                        if (!s.isEmpty())
-                            exempList.add(new Exemplaire(s));
-                    }
-                }
-                yield exempList;
-            }
-            default ->
-                    throw new QueryToSudocException(Constant.ERR_FILE_MULTIPLES_NOTICES_FOUND + traitementService.getCbs().getListePpn());
-        };
-    }
-
-    private List<Exemplaire> suppExemlaire(List<Exemplaire> exemplairesExistants, String epn) {
-        return exemplairesExistants.stream().filter(exemplaire -> !exemplaire.findZone("A99", 0).getValeur().equals(epn)).collect(Collectors.toList());
-    }
 
     @Override
     public List<? extends Demande> getDemandesToArchive() {
@@ -444,10 +383,6 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         return null;
     }
 
-    @Override
-    public String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException {
-        return null;
-    }
 
     public Demande majTypeSupp(Integer demandeId, TYPE_SUPPRESSION typeSuppression) {
         DemandeSupp demandeSupp = this.findById(demandeId);
@@ -457,5 +392,17 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
             return this.save(demandeSupp);
         }
         return null;
+    }
+
+    @Override
+    public void refreshEntity(Demande demande) {
+        entityManager.refresh(demande);
+    }
+
+
+    @Override
+    public void cleanLignesFichierDemande(Demande demande) {
+        DemandeSupp demandeSupp = (DemandeSupp) demande;
+        ligneFichierService.deleteByDemande(demandeSupp);
     }
 }

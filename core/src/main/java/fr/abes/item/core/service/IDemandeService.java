@@ -1,14 +1,10 @@
 package fr.abes.item.core.service;
 
-import fr.abes.cbs.exception.CBSException;
-import fr.abes.cbs.exception.ZoneException;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.Demande;
-import fr.abes.item.core.entities.item.LigneFichier;
 import fr.abes.item.core.exception.DemandeCheckingException;
 import fr.abes.item.core.exception.FileCheckingException;
 import fr.abes.item.core.exception.FileTypeException;
-import fr.abes.item.core.exception.QueryToSudocException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -36,6 +32,8 @@ public interface IDemandeService {
 
     Demande closeDemande(Demande demande) throws DemandeCheckingException;
 
+    void cleanLignesFichierDemande(Demande demande);
+
     List<DemandeDto> getActiveDemandesForUser(String iln);
 
     Demande getIdNextDemandeToProceed(int minHour, int maxHour);
@@ -56,11 +54,11 @@ public interface IDemandeService {
 
     Demande returnState(Integer etape, Demande demande) throws DemandeCheckingException;
 
-    String[] getNoticeExemplaireAvantApres(Demande demande, LigneFichier ligneFichier) throws CBSException, ZoneException, IOException;
-
     List<? extends Demande> getDemandesToArchive();
     List<? extends Demande> getDemandesToPlaceInDeletedStatus();
     List<? extends Demande> getDemandesToDelete();
 
-    String getQueryToSudoc(String code, Integer type, String[] valeurs) throws QueryToSudocException;
+
+    void refreshEntity(Demande demande);
+
 }

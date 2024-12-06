@@ -39,3 +39,6 @@ hibernate.cfg.xml
 ## Ce fichier en local ne doit jamais être poussé sur le dépot il contient les identifiants mdp, le demander en interne pour la configuration
 **/resources/application-localhost.properties
 **/resources/log4j2-localhost.xml
+.vscode/launch.json
+.vscode/settings.json
+amplicode.xml
