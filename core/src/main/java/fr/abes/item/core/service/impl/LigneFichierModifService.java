@@ -194,11 +194,7 @@ public class LigneFichierModifService implements ILigneFichierService {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
             String notice = traitementService.getNoticeFromEPN(epn);
-            if (notice != null) {
-                return notice.substring(1, notice.length() - 1);
-            } else {
-                return "";
-            }
+            return (notice != null) ? notice.substring(1, notice.length() - 1) : "";
         } finally {
             // déconnexion du CBS après avoir lancé la requête
             traitementService.disconnect();
@@ -217,19 +213,17 @@ public class LigneFichierModifService implements ILigneFichierService {
         DemandeModif demandeModif = (DemandeModif) demande;
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String exempStr = Utilitaires.getExempFromNotice(exemplaire, ligneFichierModif.getEpn());
-        switch (demandeModif.getTraitement().getNomMethode()) {
-            case "creerNouvelleZone":
-                return traitementService.creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            case "supprimerZone":
-                return traitementService.supprimerZone(exempStr, demandeModif.getZone());
-            case "supprimerSousZone":
-                return traitementService.supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
-            case "ajoutSousZone":
-                return traitementService.creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            case "remplacerSousZone":
-                return traitementService.remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
-            default:
-        }
-        return null;
+        return switch (demandeModif.getTraitement().getNomMethode()) {
+            case "creerNouvelleZone" ->
+                    traitementService.creerNouvelleZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            case "supprimerZone" -> traitementService.supprimerZone(exempStr, demandeModif.getZone());
+            case "supprimerSousZone" ->
+                    traitementService.supprimerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone());
+            case "ajoutSousZone" ->
+                    traitementService.creerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            case "remplacerSousZone" ->
+                    traitementService.remplacerSousZone(exempStr, demandeModif.getZone(), demandeModif.getSousZone(), ligneFichierModif.getValeurZone());
+            default -> null;
+        };
     }
 }

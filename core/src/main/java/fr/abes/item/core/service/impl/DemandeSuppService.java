@@ -385,6 +385,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeSupp);
         if (etat != null) {
             demandeSupp.setEtatDemande(etat);
+            journalService.addEntreeJournal(demandeSupp,etat);
             return save(demandeSupp);
         }
         return demande;

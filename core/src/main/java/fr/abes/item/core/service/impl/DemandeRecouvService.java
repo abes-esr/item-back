@@ -337,6 +337,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeRecouv);
         if (etat != null) {
             demandeRecouv.setEtatDemande(etat);
+            journalService.addEntreeJournal(demandeRecouv,etat);
             return save(demandeRecouv);
         }
         return demande;

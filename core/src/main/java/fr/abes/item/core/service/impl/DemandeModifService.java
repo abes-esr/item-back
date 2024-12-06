@@ -507,6 +507,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeModif);
         if (etat != null) {
             demandeModif.setEtatDemande(etat);
+            journalService.addEntreeJournal(demandeModif,etat);
             return save(demandeModif);
         }
         return demande;

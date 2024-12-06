@@ -396,6 +396,7 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeExemp);
         if (etat != null) {
             demandeExemp.setEtatDemande(etat);
+            journalService.addEntreeJournal(demandeExemp,etat);
             return save(demandeExemp);
         }
         return demande;
