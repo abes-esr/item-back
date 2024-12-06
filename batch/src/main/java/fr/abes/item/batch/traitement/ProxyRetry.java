@@ -78,8 +78,10 @@ public class ProxyRetry {
             //récupération de la exemplaire correpondant à la ligne du fichier en cours
             String exemplaire = traitementService.getNoticeFromEPN(ligneFichierDtoModif.getEpn());
             //modification de la exemplaire d'exemplaire
-            Exemplaire noticeTraitee = ligneFichierModifService.getNoticeTraitee(demande, exemplaire, ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
-            traitementService.saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());
+            if (exemplaire != null) {
+                Exemplaire noticeTraitee = ligneFichierModifService.getNoticeTraitee(demande, exemplaire, ligneFichierDtoMapper.getLigneFichierEntity(ligneFichierDtoModif));
+                traitementService.saveExemplaire(noticeTraitee.toString(), ligneFichierDtoModif.getEpn());
+            }
         } catch (IOException ex) {
             log.error("Erreur de communication avec le CBS sur demande modif {} / ligne fichier n°{} / epn : {}", demande.getId(), ligneFichierDtoModif.getNumLigneFichier(), ligneFichierDtoModif.getEpn());
             //si un pb de communication avec le CBS est détecté, on se reconnecte, et on renvoie l'exception pour que le retry retente la méthode

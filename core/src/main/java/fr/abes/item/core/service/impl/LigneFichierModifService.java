@@ -165,7 +165,6 @@ public class LigneFichierModifService implements ILigneFichierService {
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String noticeInit = getNoticeInitiale(demande, ligneFichierModif.getEpn());
         Exemplaire noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
-
         return new String[]{
                 traitementService.getCbs().getPpnEncours(),
                 noticeInit.replace("\r", "\r\n"),
@@ -192,7 +191,11 @@ public class LigneFichierModifService implements ILigneFichierService {
             traitementService.authenticate('M' + demandeModif.getRcr());
             // appel getNoticeFromEPN sur EPN récupéré
             String notice = traitementService.getNoticeFromEPN(epn);
-            return notice.substring(1, notice.length() - 1);
+            if (notice != null) {
+                return notice.substring(1, notice.length() - 1);
+            } else {
+                return "";
+            }
         } finally {
             // déconnexion du CBS après avoir lancé la requête
             traitementService.disconnect();
