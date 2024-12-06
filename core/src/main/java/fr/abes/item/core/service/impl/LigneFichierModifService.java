@@ -165,12 +165,12 @@ public class LigneFichierModifService implements ILigneFichierService {
         LigneFichierModif ligneFichierModif = (LigneFichierModif) ligneFichier;
         String noticeInit = getNoticeInitiale(demande, ligneFichierModif.getEpn());
         Exemplaire noticeTraitee = new Exemplaire();
-        if (!noticeInit.equals("")) {
+        if (!noticeInit.isEmpty()) {
             noticeTraitee = getNoticeTraitee(demande, noticeInit, ligneFichier);
         }
         return new String[]{
                 traitementService.getCbs().getPpnEncours(),
-                (noticeInit.equals("")) ? "Exemplaire inexistant" : noticeInit.replace("\r", "\r\n"),
+                (noticeInit.isEmpty()) ? "Exemplaire inexistant" : noticeInit.replace("\r", "\r\n"),
                 noticeTraitee.toString().replace("\r", "\r\n")
         };
     }
