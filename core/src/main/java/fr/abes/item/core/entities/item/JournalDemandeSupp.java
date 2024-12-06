@@ -12,9 +12,10 @@ import java.util.Date;
 
 @Entity
 @NoArgsConstructor
-@Table(name="JOURNAL_DEMANDE_EXEMP")
-@Getter @Setter
-public class JournalDemandeExemp implements Serializable, GenericEntity<Integer> {
+@Table(name="JOURNAL_DEMANDE_SUPP")
+@Getter
+@Setter
+public class JournalDemandeSupp implements Serializable, GenericEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="NUM_JOURNAL")
@@ -24,18 +25,19 @@ public class JournalDemandeExemp implements Serializable, GenericEntity<Integer>
     @ManyToOne @JoinColumn(name="JOU_USER_ID") @NotNull
     private Utilisateur user;
     @ManyToOne @JoinColumn(name="JOU_DEM_ID") @NotNull
-    private DemandeExemp demandeExemp;
+    private DemandeSupp demandeSupp;
     @ManyToOne @JoinColumn(name="JOU_ETA_ID") @NotNull
     private EtatDemande etatDemande;
 
-
-    public JournalDemandeExemp(Date dateEntree, Utilisateur user, EtatDemande etatDemande, DemandeExemp demandeExemp) {
+    public JournalDemandeSupp(Date dateEntree, Utilisateur utilisateur, EtatDemande etatDemande, DemandeSupp demandeSupp) {
         this.dateEntree = dateEntree;
-        this.user = user;
+        this.user = utilisateur;
+        this.demandeSupp = demandeSupp;
         this.etatDemande = etatDemande;
-        this.demandeExemp = demandeExemp;
     }
 
     @Override
-    public Integer getId() { return numJournal; }
+    public Integer getId() {
+        return numJournal;
+    }
 }

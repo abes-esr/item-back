@@ -65,8 +65,8 @@ public class TraitementService {
             return Constants.STR_1F + resu2.substring(resu2.indexOf("e" + numEx)) + Constants.STR_0D + Constants.STR_1E;
         } else {
             log.error(epn + " pas trouvé");
-            throw new IOException(Constant.ERR_FILE_NOTICE_EPN_NUMBER);
         }
+        return null;
     }
 
     /**

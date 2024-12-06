@@ -19,7 +19,7 @@ public class JournalDemandeModif implements Serializable, GenericEntity<Integer>
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="NUM_JOURNAL")
 	private Integer numJournal;
-	@Temporal(TemporalType.DATE) @Column(name="DATE_ENTREE")
+	@Temporal(TemporalType.TIMESTAMP) @Column(name="DATE_ENTREE")
 	private Date dateEntree;
 	@ManyToOne @JoinColumn(name="JOU_USER_ID") @NotNull
 	private Utilisateur user;
@@ -30,7 +30,6 @@ public class JournalDemandeModif implements Serializable, GenericEntity<Integer>
 	
 	
 	public JournalDemandeModif(Date dateEntree, Utilisateur user, EtatDemande etatDemande, DemandeModif demandeModif) {
-		super();
 		this.dateEntree = dateEntree;
 		this.user = user;
 		this.etatDemande = etatDemande;

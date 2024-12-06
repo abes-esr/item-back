@@ -14,7 +14,6 @@ import fr.abes.item.core.configuration.factory.StrategyFactory;
 import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.service.ReferenceService;
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -38,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -56,6 +56,7 @@ public class JobConfiguration {
     private final StrategyFactory strategyFactory;
     private final ProxyRetry proxyRetry;
     private final ReferenceService referenceService;
+    private final JdbcTemplate jdbcTemplate;
     @Value("${batch.min.hour}")
     int minHour;
 
@@ -71,10 +72,11 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService, @Qualifier("itemJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
         this.referenceService = referenceService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Bean
@@ -123,7 +125,7 @@ public class JobConfiguration {
 
     //statistiques application
     @Bean
-    public Tasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(); }
+    public Tasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(jdbcTemplate); }
 
 
     //Archivage automatique des demandes
