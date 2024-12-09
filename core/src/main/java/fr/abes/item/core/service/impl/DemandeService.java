@@ -4,6 +4,8 @@ import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.baseXml.LibProfile;
 import fr.abes.item.core.entities.item.Demande;
 import fr.abes.item.core.repository.baseXml.ILibProfileDao;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,9 +15,12 @@ import java.util.*;
 @Getter
 public class DemandeService  {
     protected final ILibProfileDao libProfileDao;
+    @PersistenceContext
+    protected final EntityManager entityManager;
 
-    public DemandeService(ILibProfileDao libProfileDao) {
+    public DemandeService(ILibProfileDao libProfileDao, EntityManager entityManager) {
         this.libProfileDao = libProfileDao;
+        this.entityManager = entityManager;
     }
 
     /**

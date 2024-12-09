@@ -42,8 +42,6 @@ public interface IDemandeService {
 
     Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException;
 
-    Demande changeStateCanceled(Demande demande, int etatDemande);
-
     List<DemandeDto> getAllArchivedDemandes(String iln);
 
     List<DemandeDto> getAllArchivedDemandesAllIln();
@@ -58,6 +56,7 @@ public interface IDemandeService {
     List<? extends Demande> getDemandesToPlaceInDeletedStatus();
     List<? extends Demande> getDemandesToDelete();
 
+    Demande restaurerDemande(Demande demande) throws DemandeCheckingException;
 
     void refreshEntity(Demande demande);
 

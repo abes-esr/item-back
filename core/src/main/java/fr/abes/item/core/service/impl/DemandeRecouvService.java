@@ -38,20 +38,20 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private final ReferenceService referenceService;
     private final ILigneFichierService ligneFichierService;
     private final UtilisateurService utilisateurService;
+    private final JournalService journalService;
     private FichierEnrichiRecouv fichierEnrichiRecouv;
-    private final EntityManager entityManager;
 
     @Value("${files.upload.path}")
     private String uploadPath;
 
-    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager) {
-        super(libProfileDao);
+    public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
+        super(libProfileDao, entityManager);
         this.demandeRecouvDao = demandeRecouvDao;
         this.storageService = storageService;
         this.referenceService = referenceService;
         this.ligneFichierService = ligneFichierRecouvService;
         this.utilisateurService = utilisateurService;
-        this.entityManager = entityManager;
+        this.journalService = journalService;
     }
 
     public List<Demande> findAll() {
@@ -99,7 +99,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         DemandeRecouv demandeRecouv = new DemandeRecouv(rcr, calendar.getTime(), calendar.getTime(), referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION), null, utilisateurService.findById(userNum));
         demandeRecouv.setIln(Objects.requireNonNull(libProfileDao.findById(rcr).orElse(null)).getIln());
         setIlnShortNameOnDemande(demandeRecouv);
-        return (DemandeRecouv) save(demandeRecouv);
+        DemandeRecouv demToReturn = (DemandeRecouv) save(demandeRecouv);
+        journalService.addEntreeJournal(demToReturn, referenceService.findEtatDemandeById(Constant.ETATDEM_PREPARATION));
+        return demToReturn;
     }
 
     /**
@@ -139,7 +141,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
         if (etatDemande == Constant.ETATDEM_ACOMPLETER) {
             demandeRecouv.setEtatDemande(new EtatDemande(Constant.ETATDEM_PREPARATION));
-            save(demandeRecouv);
+            this.save(demandeRecouv);
         }
         else {
             throw new DemandeCheckingException(Constant.GO_BACK_TO_PREVIOUS_STEP_ON_DEMAND_FAILED);
@@ -186,21 +188,15 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
 
     @Override
     public Demande changeState(Demande demande, int etatDemande) throws DemandeCheckingException {
-        if ((etatDemande == Constant.ETATDEM_ERREUR) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
+        if ((etatDemande == Constant.ETATDEM_ERREUR) || (etatDemande == Constant.ETATDEM_SUPPRIMEE) || (demande.getEtatDemande().getNumEtat() == getPreviousState(etatDemande))) {
             EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
             demande.setEtatDemande(etat);
+            journalService.addEntreeJournal((DemandeRecouv) demande, etat);
             return this.save(demande);
         }
         else {
             throw new DemandeCheckingException(Constant.DEMANDE_IS_NOT_IN_STATE + getPreviousState(etatDemande));
         }
-    }
-
-    @Override
-    public Demande changeStateCanceled(Demande demande, int etatDemande) {
-        EtatDemande etat = referenceService.findEtatDemandeById(etatDemande);
-        demande.setEtatDemande(etat);
-        return this.save(demande);
     }
 
     @Override
@@ -331,6 +327,20 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         if (!listeDemandes.isEmpty())
             return listeDemandes;
         return null;
+    }
+
+    @Override
+    public Demande restaurerDemande(Demande demande) throws DemandeCheckingException {
+        DemandeRecouv demandeRecouv = (DemandeRecouv) demande;
+        if (demandeRecouv.getEtatDemande().getNumEtat() != Constant.ETATDEM_ARCHIVEE)
+            throw new DemandeCheckingException("La demande doit être en état archivée !");
+        EtatDemande etat = journalService.getDernierEtatConnuAvantArchivage(demandeRecouv);
+        if (etat != null) {
+            demandeRecouv.setEtatDemande(etat);
+            journalService.addEntreeJournal(demandeRecouv,etat);
+            return save(demandeRecouv);
+        }
+        return demande;
     }
 
     @Override

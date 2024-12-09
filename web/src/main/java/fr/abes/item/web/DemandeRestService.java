@@ -164,13 +164,13 @@ public class DemandeRestService {
     @GetMapping(value = "/supprimerDemande/{type}/{id}")
     @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @Operation(summary = "permet de supprimer une demande tout en la conservant en base, elle passe en statut 10 invisible pour l'utilisateur sur l'interface web")
-    public DemandeWebDto supprimerAvecConservationEnBase(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException {
+    public DemandeWebDto supprimerAvecConservationEnBase(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer numDemande, HttpServletRequest request) throws UserExistException, ForbiddenException, DemandeCheckingException {
         checkAccessToServices.autoriserAccesDemandeParIln(numDemande, request.getAttribute(Constant.USER_NUM).toString(), type);
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         ILigneFichierService ligneFichierService = strategy.getStrategy(ILigneFichierService.class, type);
         Demande demande = service.findById(numDemande);
         ligneFichierService.deleteByDemande(demande);
-        return builder.buildDemandeDto(service.changeStateCanceled(demande, Constant.ETATDEM_SUPPRIMEE), type);
+        return builder.buildDemandeDto(service.changeState(demande, Constant.ETATDEM_SUPPRIMEE), type);
     }
 
     @GetMapping(value = "/getTypeExemplarisationDemande/{id}")
@@ -355,5 +355,24 @@ public class DemandeRestService {
         }
         throw new UnknownDemandeException("Demande inconnue");
 
+    }
+
+    /**
+     * Webservice permettant de restaurer une demande archivée en la refaisant passer à son dernier état connu
+     * @param type type de la demande concernée
+     * @param id id de la demande
+     * @param request requête http
+     * @return la demande modifiée
+     * @throws UserExistException utilisateur non trouve
+     * @throws ForbiddenException controle d'accès échoué
+     * @throws DemandeCheckingException demande dans le mauvais état
+     */
+    @PatchMapping("/restaurerDemande/{type}/{id}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @Operation(summary = "Permet de restaurer une demande archivée dans son état précédent")
+    public DemandeWebDto restaurerDemande(@PathVariable("type") TYPE_DEMANDE type, @PathVariable("id") Integer id, HttpServletRequest request) throws ForbiddenException, UserExistException, DemandeCheckingException {
+        checkAccessToServices.autoriserAccesDemandeParIln(id, request.getAttribute(Constant.USER_NUM).toString(), type);
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        return builder.buildDemandeDto(service.restaurerDemande(service.findById(id)), type);
     }
 }
