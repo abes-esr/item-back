@@ -23,7 +23,7 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSupp(@Param("iln") String iln);
 
-    @Query("select d from DemandeSupp d where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, count(l)) from DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10)")
     List<DemandeDto> getActiveDemandesSuppForUserExceptedPreparedStatus(@Param("iln") String iln);
 
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
