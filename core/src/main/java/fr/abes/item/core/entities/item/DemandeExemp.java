@@ -24,15 +24,15 @@ public class DemandeExemp extends Demande{
     @Column(name = "LISTE_ZONES", length = 2000)
     private String listeZones;
 
-    @OneToMany(mappedBy = "demandeExemp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private Set<JournalDemandeExemp> journalDemandes;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "DEM_INDEX_RECHERCHE")
     private IndexRecherche indexRecherche;
 
     @OneToMany(mappedBy = "demandeExemp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<LigneFichierExemp> ligneFichierExemps;
+
+    @OneToMany(mappedBy = "demandeExemp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Set<JournalDemandeExemp> journalDemandes;
 
     public DemandeExemp(Integer numDemande) {
         super(numDemande);
