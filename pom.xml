@@ -4,7 +4,7 @@
 
     <groupId>fr.abes.item</groupId>
     <artifactId>itembackoffice</artifactId>
-    <version>3.2.1-SNAPSHOT</version>
+    <version>3.3.0</version>
     <modules>
         <module>core</module>
         <module>web</module>
