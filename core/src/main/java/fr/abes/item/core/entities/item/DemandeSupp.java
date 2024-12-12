@@ -34,6 +34,9 @@ public class DemandeSupp extends Demande {
     @Getter @Setter @OneToMany(mappedBy = "demandeSupp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<LigneFichierSupp> ligneFichierSupps;
 
+    @Getter @Setter @OneToMany(mappedBy = "demandeSupp", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Set<JournalDemandeSupp> journalDemandeSupps;
+
     public DemandeSupp(String rcr, Date dateCreation, Date dateModification, TYPE_SUPPRESSION typeSuppression,
                         String comment, EtatDemande etatDemande, Utilisateur utilisateur) {
         super(rcr, dateCreation, dateModification, etatDemande, comment, utilisateur);
