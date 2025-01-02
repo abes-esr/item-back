@@ -358,4 +358,8 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     public void refreshEntity(Demande demande) {
         entityManager.refresh(demande);
     }
+
+    public Boolean checkDemandesEnAttente(){
+        return demandeRecouvDao.existsDemandeRecouvByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
 }

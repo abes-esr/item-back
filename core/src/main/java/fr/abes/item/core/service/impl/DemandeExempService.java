@@ -469,4 +469,8 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         DemandeExemp demandeExemp = (DemandeExemp) demande;
         ligneFichierService.deleteByDemande(demandeExemp);
     }
+
+    public Boolean checkDemandesEnAttente(){
+        return demandeExempDao.existsDemandeExempByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
 }

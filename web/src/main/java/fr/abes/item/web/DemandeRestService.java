@@ -375,4 +375,11 @@ public class DemandeRestService {
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
         return builder.buildDemandeDto(service.restaurerDemande(service.findById(id)), type);
     }
+
+    @GetMapping("/demandes/en-attente/{type}")
+    @PreAuthorize("permitAll()") // Permet l'accès à tous, authentifiés ou non
+    public Boolean checkDemandesEnAttente(@PathVariable("type") TYPE_DEMANDE type){
+        IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        return service.checkDemandesEnAttente();
+    }
 }
