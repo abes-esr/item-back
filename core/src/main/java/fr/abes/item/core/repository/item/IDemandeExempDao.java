@@ -52,4 +52,7 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
 
     @Query("select d from DemandeExemp d where d.etatDemande.numEtat = 10 and (day(current_date) - day(d.dateModification)) > 210 order by d.dateModification asc")
     List<DemandeExemp> getNextDemandeToDelete();
+
+    boolean existsDemandeExempByEtatDemande_Id(Integer etatDemande);
+
 }

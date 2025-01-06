@@ -30,6 +30,7 @@ public class SpringSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/api/v1/signin").permitAll()
+                        .requestMatchers("/api/v1/demandes/en-attente/**").permitAll()
                         .requestMatchers("/api/v1/checkToken").permitAll()
                         .requestMatchers("/api/v1/applicationDetails").permitAll()
                         .requestMatchers("/api/v1/applicationStatutServices").permitAll()

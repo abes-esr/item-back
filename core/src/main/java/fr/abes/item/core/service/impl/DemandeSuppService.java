@@ -413,4 +413,8 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         DemandeSupp demandeSupp = (DemandeSupp) demande;
         ligneFichierService.deleteByDemande(demandeSupp);
     }
+
+    public Boolean checkDemandesEnAttente(){
+        return demandeSuppDao.existsDemandeSuppByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
 }

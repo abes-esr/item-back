@@ -53,4 +53,7 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
 
     @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 and (day(current_date) - day(d.dateModification)) > 210 order by d.dateModification asc")
     List<DemandeModif> getNextDemandeToDelete();
+
+    boolean existsDemandeModifByEtatDemande_Id(Integer etatDemande);
+
 }

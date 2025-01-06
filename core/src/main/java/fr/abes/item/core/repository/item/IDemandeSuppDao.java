@@ -3,11 +3,13 @@ package fr.abes.item.core.repository.item;
 import fr.abes.item.core.configuration.ItemConfiguration;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.DemandeSupp;
+import fr.abes.item.core.entities.item.EtatDemande;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Repository
@@ -48,5 +50,7 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
      */
     @Query("select count(lf) from LigneFichierSupp lf where lf.demandeSupp.numDemande = :numDemande and lf.traitee=1 and lf.retourSudoc = 'exemplaire supprimé'")
     int getNbLigneFichierSuccessByDemande(@Param("numDemande") Integer numDemande);
+
+    boolean existsDemandeSuppByEtatDemande_Id(Integer etatDemande);
 
 }
