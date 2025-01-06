@@ -36,7 +36,7 @@ public interface IDemandeService {
 
     List<DemandeDto> getActiveDemandesForUser(String iln);
 
-    Demande getIdNextDemandeToProceed(int minHour, int maxHour);
+    Demande getIdNextDemandeToProceed(int minHour, int maxHour, boolean bigVolume);
 
     String getInfoHeaderFichierResultat(Demande demande, LocalDateTime dateDebut);
 

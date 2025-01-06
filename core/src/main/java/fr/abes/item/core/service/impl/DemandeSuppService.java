@@ -52,6 +52,9 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    @Value("${batch.bigVolume.limit}")
+    private int limite;
+
     public DemandeSuppService(ILibProfileDao libProfileDao, IDemandeSuppDao demandeSuppDao, FileSystemStorageService storageService, ReferenceService referenceService, UtilisateurService utilisateurService, Ppntoepn procStockeePpnToEpn, Epntoppn procStockeeEpnToPpn, LigneFichierSuppService ligneFichierSuppService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
         super(libProfileDao, entityManager);
         this.demandeSuppDao = demandeSuppDao;
@@ -249,8 +252,13 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     }
 
     @Override
-    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
-        List<DemandeSupp> demandesSupp = this.demandeSuppDao.findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Constant.ETATDEM_ATTENTE);
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour, boolean bigVolume) {
+        List<DemandeSupp> demandesSupp;
+        if (bigVolume) {
+            demandesSupp = this.demandeSuppDao.getDemandesEnAttenteGrosVolume(limite);
+        } else  {
+            demandesSupp = this.demandeSuppDao.getDemandesEnAttentePetitVolume(limite);
+        }
         return demandesSupp.isEmpty() ? null : demandesSupp.get(0);
     }
 

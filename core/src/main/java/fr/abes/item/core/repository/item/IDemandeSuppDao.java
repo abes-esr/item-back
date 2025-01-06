@@ -3,13 +3,11 @@ package fr.abes.item.core.repository.item;
 import fr.abes.item.core.configuration.ItemConfiguration;
 import fr.abes.item.core.dto.DemandeDto;
 import fr.abes.item.core.entities.item.DemandeSupp;
-import fr.abes.item.core.entities.item.EtatDemande;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Repository
@@ -31,7 +29,11 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSuppExtended();
 
-    List<DemandeSupp> findDemandeSuppsByEtatDemande_IdOrderByDateModificationAsc(Integer id);
+    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 having count(l) > :limite order by d.dateModification")
+    List<DemandeSupp> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 having count(l) <= :limite order by d.dateModification")
+    List<DemandeSupp> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
 
     @Query("select d from DemandeSupp d where d.etatDemande.numEtat = 7 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
     List<DemandeSupp> getNextDemandeToArchive();
@@ -52,5 +54,6 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     int getNbLigneFichierSuccessByDemande(@Param("numDemande") Integer numDemande);
 
     boolean existsDemandeSuppByEtatDemande_Id(Integer etatDemande);
+
 
 }

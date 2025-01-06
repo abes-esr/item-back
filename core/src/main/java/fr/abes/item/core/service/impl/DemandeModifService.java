@@ -47,6 +47,9 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    @Value("${batch.bigVolume.limit}")
+    private int limite;
+
     private FichierInitial fichierInit;
     private FichierPrepare fichierPrepare;
 
@@ -360,8 +363,13 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     }
 
     @Override
-    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
-        List<DemandeModif> demandes = demandeModifDao.getNextDemandeToProceed();
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour, boolean bigVolume) {
+        List<DemandeModif> demandes;
+        if (bigVolume) {
+            demandes = demandeModifDao.getDemandesEnAttenteGrosVolume(limite);
+        } else {
+            demandes = demandeModifDao.getDemandesEnAttentePetitVolume(limite);
+        }
         if (!demandes.isEmpty())
             return demandes.get(0);
         return null;

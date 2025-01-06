@@ -28,6 +28,7 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     private final TYPE_DEMANDE typeDemande;
     private final int minHour;
     private final int maxHour;
+    private boolean bigVolume = false;
 
     public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, TYPE_DEMANDE typeDemande) {
         this.strategyFactory = strategyFactory;
@@ -37,11 +38,19 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     }
 
     @Override
+    public void beforeStep(@NonNull StepExecution stepExecution) {
+        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
+        if (System.getProperty("bigVolume") != null) {
+            this.bigVolume = Boolean.parseBoolean(System.getProperty("bigVolume"));
+        }
+    }
+
+    @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDETASKLET);
         try {
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, this.typeDemande);
-            this.demande = service.getIdNextDemandeToProceed(minHour, maxHour);
+            this.demande = service.getIdNextDemandeToProceed(minHour, maxHour, bigVolume);
             if (this.demande == null) {
                 log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
@@ -60,12 +69,6 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
         }
         return RepeatStatus.FINISHED;
     }
-
-    @Override
-    public void beforeStep(@NonNull StepExecution stepExecution) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
-    }
-
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
