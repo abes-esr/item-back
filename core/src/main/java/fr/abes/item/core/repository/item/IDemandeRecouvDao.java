@@ -26,7 +26,7 @@ public interface IDemandeRecouvDao extends JpaRepository<DemandeRecouv, Integer>
 
     @Query("select d from DemandeRecouv d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)")
     List<DemandeRecouv> getAllActiveDemandesRecouvForAdmin(@Param("iln") String iln);
-    
+
     @Query("select d from DemandeRecouv d where d.etatDemande.numEtat not in (9, 10)")
     List<DemandeRecouv> getAllActiveDemandesRecouvForAdminExtended();
 
@@ -49,4 +49,6 @@ public interface IDemandeRecouvDao extends JpaRepository<DemandeRecouv, Integer>
 
     @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 10 and (day(current_date) - day(d.dateModification)) > 210 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToDelete();
+
+    boolean existsDemandeRecouvByEtatDemande_Id(Integer etatDemande);
 }

@@ -540,4 +540,8 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     public void refreshEntity(Demande demande) {
         entityManager.refresh(demande);
     }
+
+    public Boolean checkDemandesEnAttente(){
+        return demandeModifDao.existsDemandeModifByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
 }
