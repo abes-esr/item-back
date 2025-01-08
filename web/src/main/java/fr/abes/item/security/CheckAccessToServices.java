@@ -81,7 +81,7 @@ public class CheckAccessToServices {
         if (library.isPresent()) {
             String ilnRcr = library.get().getIln();
             if (!ilnUser.equals(ilnRcr)) {
-                throw new ForbiddenException(Constant.ACCES_INTERDIT);
+                throw new ForbiddenException(Constant.ACCES_INTERDIT + Constant.ERROR_MISMATCH_BETWEEN_USER_ILN_AND_RCR_ILN);
             }
         }
         else {
