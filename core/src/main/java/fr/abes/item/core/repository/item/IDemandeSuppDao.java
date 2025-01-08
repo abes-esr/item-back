@@ -54,10 +54,4 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     int getNbLigneFichierSuccessByDemande(@Param("numDemande") Integer numDemande);
 
     boolean existsDemandeSuppByEtatDemande_Id(Integer etatDemande);
-
-    @Query("select count(d) > 0 from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite")
-    boolean existsDemandeSuppByEtatDemande_EnAttente_BigVolume(@Param("limite") Integer limite);
-
-    @Query("select count(d) > 0 from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite")
-    boolean existsDemandeSuppByEtatDemande_EnAttente_SmallVolume(@Param("limite") Integer limite);
 }

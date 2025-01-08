@@ -430,7 +430,7 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
     @Override
     public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
         return bigVolume ?
-                demandeSuppDao.existsDemandeSuppByEtatDemande_EnAttente_BigVolume(limite) :
-                demandeSuppDao.existsDemandeSuppByEtatDemande_EnAttente_SmallVolume(limite);
+                !demandeSuppDao.getDemandesEnAttenteGrosVolume(limite).isEmpty() :
+                !demandeSuppDao.getDemandesEnAttentePetitVolume(limite).isEmpty();
     }
 }

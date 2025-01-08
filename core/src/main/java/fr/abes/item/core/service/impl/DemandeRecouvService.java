@@ -376,7 +376,7 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Override
     public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
         return bigVolume ?
-                demandeRecouvDao.existsDemandeRecouvByEtatDemande_EnAttente_BigVolume(limite) :
-                demandeRecouvDao.existsDemandeRecouvByEtatDemande_EnAttente_SmallVolume(limite);
+                !demandeRecouvDao.getDemandesEnAttenteGrosVolume(limite).isEmpty() :
+                !demandeRecouvDao.getDemandesEnAttentePetitVolume(limite).isEmpty();
     }
 }

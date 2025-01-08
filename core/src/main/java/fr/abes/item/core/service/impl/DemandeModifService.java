@@ -557,7 +557,7 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
     @Override
     public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
         return bigVolume ?
-                demandeModifDao.existsDemandeModifByEtatDemande_EnAttente_BigVolume(limite) :
-                demandeModifDao.existsDemandeModifByEtatDemande_EnAttente_SmallVolume(limite);
+                !demandeModifDao.getDemandesEnAttenteGrosVolume(limite).isEmpty() :
+                !demandeModifDao.getDemandesEnAttentePetitVolume(limite).isEmpty();
     }
 }
