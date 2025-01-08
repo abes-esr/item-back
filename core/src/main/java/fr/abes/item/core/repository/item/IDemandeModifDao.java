@@ -37,8 +37,11 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d JOIN d.ligneFichierModifs l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesModifExtended();
 
-    @Query("select d from DemandeModif d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
-    List<DemandeModif> getNextDemandeToProceed();
+    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
+    List<DemandeModif> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification")
+    List<DemandeModif> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
 
     @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 order by d.dateModification asc")
     List<DemandeModif> getListDemandesToClean();
@@ -55,5 +58,4 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
     List<DemandeModif> getNextDemandeToDelete();
 
     boolean existsDemandeModifByEtatDemande_Id(Integer etatDemande);
-
 }

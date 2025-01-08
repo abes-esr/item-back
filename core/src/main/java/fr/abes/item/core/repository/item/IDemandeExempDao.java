@@ -18,11 +18,17 @@ import java.util.List;
 @Repository
 @ItemConfiguration
 public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
-    @Query("select d from DemandeExemp d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
-    List<DemandeExemp> getNextDemandeToProceed();
+    @Query("select d from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
+    List<DemandeExemp> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
 
-    @Query("select d from DemandeExemp d where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' order by d.dateModification asc")
-    List<DemandeExemp> getNextDemandeToProceedWithoutDAT();
+    @Query("select d from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification")
+    List<DemandeExemp> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' group by d having count(l) > :limite order by d.dateModification asc")
+    List<DemandeExemp> getDemandesToProceedWithoutDATGrosVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' group by d having count(l) <= :limite order by d.dateModification asc")
+    List<DemandeExemp> getDemandesToProceedWithoutDATPetitVolume(@Param("limite") int limite);
 
     @Query("select e from TypeExemp e where e.numTypeExemp in (select d.typeExemp.numTypeExemp from DemandeExemp d where d.numDemande = :numDemande)")
     TypeExemp getTypeExemp(@Param("numDemande") Integer numDemande);
@@ -54,5 +60,4 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
     List<DemandeExemp> getNextDemandeToDelete();
 
     boolean existsDemandeExempByEtatDemande_Id(Integer etatDemande);
-
 }

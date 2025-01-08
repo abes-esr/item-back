@@ -51,6 +51,9 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    @Value("${batch.bigVolume.limit}")
+    private int limite;
+
     public DemandeExempService(ILibProfileDao libProfileDao, IDemandeExempDao demandeExempDao, FileSystemStorageService storageService, LigneFichierExempService ligneFichierExempService, ReferenceService referenceService, JournalService journalService, TraitementService traitementService, UtilisateurService utilisateurService, IZonesAutoriseesDao zonesAutoriseesDao, ILigneFichierExempDao ligneFichierExempDao, @Qualifier("itemEntityManager") EntityManager entityManager) {
         super(libProfileDao, entityManager);
         this.demandeExempDao = demandeExempDao;
@@ -335,14 +338,20 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
      * @return demande récupérée dans la base
      */
     @Override
-    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour, boolean bigVolume) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
         List<DemandeExemp> listeDemandes;
         if (currentHour >= minHour && currentHour < maxHour) {
-            listeDemandes = demandeExempDao.getNextDemandeToProceedWithoutDAT();
+            if (bigVolume)
+                listeDemandes = demandeExempDao.getDemandesToProceedWithoutDATGrosVolume(limite);
+            else
+                listeDemandes = demandeExempDao.getDemandesToProceedWithoutDATPetitVolume(limite);
         } else {
-            listeDemandes = demandeExempDao.getNextDemandeToProceed();
+            if (bigVolume)
+                listeDemandes = demandeExempDao.getDemandesEnAttenteGrosVolume(limite);
+            else
+                listeDemandes = demandeExempDao.getDemandesEnAttentePetitVolume(limite);
         }
         if (!listeDemandes.isEmpty())
             return listeDemandes.get(0);
@@ -470,7 +479,15 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         ligneFichierService.deleteByDemande(demandeExemp);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeExempDao.existsDemandeExempByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                !demandeExempDao.getDemandesEnAttenteGrosVolume(limite).isEmpty() :
+                !demandeExempDao.getDemandesEnAttentePetitVolume(limite).isEmpty();
     }
 }
