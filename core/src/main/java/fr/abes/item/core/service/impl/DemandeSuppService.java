@@ -422,7 +422,15 @@ public class DemandeSuppService extends DemandeService implements IDemandeServic
         ligneFichierService.deleteByDemande(demandeSupp);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeSuppDao.existsDemandeSuppByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                demandeSuppDao.existsDemandeSuppByEtatDemande_EnAttente_BigVolume(limite) :
+                demandeSuppDao.existsDemandeSuppByEtatDemande_EnAttente_SmallVolume(limite);
     }
 }

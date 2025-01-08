@@ -368,7 +368,15 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         entityManager.refresh(demande);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeRecouvDao.existsDemandeRecouvByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                demandeRecouvDao.existsDemandeRecouvByEtatDemande_EnAttente_BigVolume(limite) :
+                demandeRecouvDao.existsDemandeRecouvByEtatDemande_EnAttente_SmallVolume(limite);
     }
 }

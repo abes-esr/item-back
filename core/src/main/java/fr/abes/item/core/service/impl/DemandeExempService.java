@@ -479,7 +479,15 @@ public class DemandeExempService extends DemandeService implements IDemandeServi
         ligneFichierService.deleteByDemande(demandeExemp);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeExempDao.existsDemandeExempByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                demandeExempDao.existsDemandeExempByEtatDemande_EnAttente_BigVolume(limite) :
+                demandeExempDao.existsDemandeExempByEtatDemande_EnAttente_SmallVolume(limite);
     }
 }

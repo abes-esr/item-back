@@ -61,4 +61,6 @@ public interface IDemandeService {
     void refreshEntity(Demande demande);
 
     Boolean checkDemandesEnAttente();
+
+    Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume);
 }

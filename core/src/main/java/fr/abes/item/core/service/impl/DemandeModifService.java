@@ -549,7 +549,15 @@ public class DemandeModifService extends DemandeService implements IDemandeServi
         entityManager.refresh(demande);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeModifDao.existsDemandeModifByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                demandeModifDao.existsDemandeModifByEtatDemande_EnAttente_BigVolume(limite) :
+                demandeModifDao.existsDemandeModifByEtatDemande_EnAttente_SmallVolume(limite);
     }
 }

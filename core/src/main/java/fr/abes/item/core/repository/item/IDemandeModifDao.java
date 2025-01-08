@@ -59,4 +59,9 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
 
     boolean existsDemandeModifByEtatDemande_Id(Integer etatDemande);
 
+    @Query("select count(d) > 0 from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite")
+    boolean existsDemandeModifByEtatDemande_EnAttente_BigVolume(@Param("limite") Integer limite);
+
+    @Query("select count(d) > 0 from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite")
+    boolean existsDemandeModifByEtatDemande_EnAttente_SmallVolume(@Param("limite") Integer limite);
 }

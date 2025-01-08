@@ -61,4 +61,10 @@ public interface IDemandeExempDao extends JpaRepository<DemandeExemp, Integer> {
 
     boolean existsDemandeExempByEtatDemande_Id(Integer etatDemande);
 
+    @Query("select count(d) > 0 from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite")
+    boolean existsDemandeExempByEtatDemande_EnAttente_BigVolume(@Param("limite") Integer limite);
+
+    @Query("select count(d) > 0 from DemandeExemp d join d.ligneFichierExemps l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite")
+    boolean existsDemandeExempByEtatDemande_EnAttente_SmallVolume(@Param("limite") Integer limite);
+
 }

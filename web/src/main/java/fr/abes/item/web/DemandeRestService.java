@@ -376,9 +376,12 @@ public class DemandeRestService {
         return builder.buildDemandeDto(service.restaurerDemande(service.findById(id)), type);
     }
 
-    @GetMapping("/demandes/en-attente/{type}")
-    public Boolean checkDemandesEnAttente(@PathVariable("type") TYPE_DEMANDE type){
+    @GetMapping("/demandes/en-attente/{type}/{bigVolume}")
+    public Boolean checkDemandesEnAttente(@PathVariable("type") TYPE_DEMANDE type, @PathVariable Optional<Boolean> bigVolume){
         IDemandeService service = strategy.getStrategy(IDemandeService.class, type);
+        if(bigVolume.isPresent()){
+            return service.checkDemandesEnAttenteBigVolume(bigVolume.get());
+        }
         return service.checkDemandesEnAttente();
     }
 }
