@@ -40,6 +40,7 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     @Override
     public void beforeStep(@NonNull StepExecution stepExecution) {
         log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
+        log.debug("bigVolume : " + System.getProperty("bigVolume"));
         if (System.getProperty("bigVolume") != null) {
             this.bigVolume = Boolean.parseBoolean(System.getProperty("bigVolume"));
         }
