@@ -44,6 +44,9 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     @Value("${files.upload.path}")
     private String uploadPath;
 
+    @Value("${batch.bigVolume.limit}")
+    private int limite;
+
     public DemandeRecouvService(ILibProfileDao libProfileDao, IDemandeRecouvDao demandeRecouvDao, FileSystemStorageService storageService, ReferenceService referenceService, LigneFichierRecouvService ligneFichierRecouvService, UtilisateurService utilisateurService, @Qualifier("itemEntityManager") EntityManager entityManager, JournalService journalService) {
         super(libProfileDao, entityManager);
         this.demandeRecouvDao = demandeRecouvDao;
@@ -167,13 +170,19 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     }
 
     @Override
-    public Demande getIdNextDemandeToProceed(int minHour, int maxHour) {
+    public Demande getIdNextDemandeToProceed(int minHour, int maxHour, boolean bigVolume) {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         List<DemandeRecouv> listeDemandes;
         if (currentHour >= minHour && currentHour <= maxHour) {
-            listeDemandes = demandeRecouvDao.getNextDemandeToProceedWithoutDAT();
+            if (bigVolume)
+                listeDemandes = demandeRecouvDao.getDemandesEnAttenteGrosVolume(limite);
+            else
+                listeDemandes = demandeRecouvDao.getDemandesEnAttentePetitVolume(limite);
         } else {
-            listeDemandes = demandeRecouvDao.getNextDemandeToProceed();
+            if (bigVolume)
+                listeDemandes = demandeRecouvDao.getDemandesToProceedWithoutDATGrosVolume(limite);
+            else
+                listeDemandes = demandeRecouvDao.getDemandesToProceedWithoutDATPetitVolume(limite);
         }
         if (!listeDemandes.isEmpty())
             return listeDemandes.get(0);
@@ -359,7 +368,15 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
         entityManager.refresh(demande);
     }
 
+    @Override
     public Boolean checkDemandesEnAttente(){
         return demandeRecouvDao.existsDemandeRecouvByEtatDemande_Id(Constant.ETATDEM_ATTENTE);
+    }
+
+    @Override
+    public Boolean checkDemandesEnAttenteBigVolume(Boolean bigVolume) {
+        return bigVolume ?
+                !demandeRecouvDao.getDemandesEnAttenteGrosVolume(limite).isEmpty() :
+                !demandeRecouvDao.getDemandesEnAttentePetitVolume(limite).isEmpty();
     }
 }

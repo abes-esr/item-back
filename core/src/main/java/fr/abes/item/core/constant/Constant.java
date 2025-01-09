@@ -87,8 +87,8 @@ public class Constant implements Serializable {
 	public static final String EXTENSIONTXT = ".txt";
 
 	/**Maximum number of lines allowed in file sent*/
-	public static final int MAX_LIGNE_FICHIER_INIT_MODIF = 3000;
-	public static final int MAX_LIGNE_FICHIER_INIT_EXEMP = 5000;
+	public static final int MAX_LIGNE_FICHIER_INIT_MODIF = 15000;
+	public static final int MAX_LIGNE_FICHIER_INIT_EXEMP = 15000;
 	public static final int MAX_LIGNE_FICHIER_INIT_SUPP = 15000;
 	public static final int MAX_LIGNE_APPELWS = 300;
 
@@ -249,6 +249,7 @@ public class Constant implements Serializable {
 	public static final String ENTER_AUTHENTICATE = "entree dans authenticate...";
 	public static final String ERROR_SUDOC_WS_AUTHENTICATION = "rejet du service web d'authentification Sudoc ";
 	public static final String ERROR_AUTHENTICATION_IN_SECURITY_CONTEXT = "Could not set user authentication in security context";
+	public static final String ERROR_MISMATCH_BETWEEN_USER_ILN_AND_RCR_ILN = " Aucune correspondance trouvée entre l'ILN du RCR et l'ILN User. Vérifier leur présence.";
 	public static final String NUMBER_IP_TENTATIVES = "NB de tentatives pour ip =";
 	public static final String ENTER_LOGIN_FAILED = "entree dans loginFailed...";
 	public static final String ENTER_LOGIN_SUCCEED = "entree dans loginSucceeded pour IP = ";

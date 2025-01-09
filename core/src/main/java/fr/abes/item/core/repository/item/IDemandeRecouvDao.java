@@ -12,14 +12,21 @@ import java.util.List;
 @Repository
 @ItemConfiguration
 public interface IDemandeRecouvDao extends JpaRepository<DemandeRecouv, Integer> {
-    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 5 order by d.dateModification asc")
-    List<DemandeRecouv> getNextDemandeToProceed();
+
+    @Query("select d from DemandeRecouv d join d.ligneFichierRecouvs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
+    List<DemandeRecouv> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeRecouv d join d.ligneFichierRecouvs l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification")
+    List<DemandeRecouv> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeRecouv d join d.ligneFichierRecouvs l where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' group by d having count(l) > :limite order by d.dateModification asc")
+    List<DemandeRecouv> getDemandesToProceedWithoutDATGrosVolume(@Param("limite") int limite);
+
+    @Query("select d from DemandeRecouv d join d.ligneFichierRecouvs l where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' group by d having count(l) <= :limite order by d.dateModification asc")
+    List<DemandeRecouv> getDemandesToProceedWithoutDATPetitVolume(@Param("limite") int limite);
 
     @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 10 order by d.dateModification asc")
     List<DemandeRecouv> getNextDemandeToClean();
-
-    @Query("select d from DemandeRecouv d where d.etatDemande.numEtat = 5 and d.indexRecherche.code != 'DAT' order by d.dateModification asc")
-    List<DemandeRecouv> getNextDemandeToProceedWithoutDAT();
 
     @Query("select d from DemandeRecouv d where d.iln = :iln and d.etatDemande.numEtat not in (9, 10)")
     List<DemandeRecouv> getActiveDemandesRecouvForUserExceptedPreparedStatus(@Param("iln") String iln);

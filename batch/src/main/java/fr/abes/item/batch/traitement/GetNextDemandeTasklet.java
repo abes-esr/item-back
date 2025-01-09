@@ -10,30 +10,38 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 @Slf4j
 public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private Demande demande;
-    private final TYPE_DEMANDE typeDemande;
-    private final int minHour;
-    private final int maxHour;
+    private TYPE_DEMANDE typeDemande;
+    private int minHour;
+    private int maxHour;
+    private boolean bigVolume = false;
+    private JobParameters jobParameters;
 
-    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, TYPE_DEMANDE typeDemande) {
+    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, JobParameters jobParameters, TYPE_DEMANDE typeDemande) {
         this.strategyFactory = strategyFactory;
         this.minHour = minHour;
         this.maxHour = maxHour;
         this.typeDemande = typeDemande;
+        this.jobParameters = jobParameters;
+    }
+
+    @Override
+    public void beforeStep(@NonNull StepExecution stepExecution) {
+        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
+        this.bigVolume = Objects.equals(jobParameters.getString("bigVolume", "false"), "true");
+        log.debug("bigVolume : " + this.bigVolume);
     }
 
     @Override
@@ -41,7 +49,7 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
         log.info(Constant.ENTER_EXECUTE_FROM_GETNEXTDEMANDETASKLET);
         try {
             IDemandeService service = strategyFactory.getStrategy(IDemandeService.class, this.typeDemande);
-            this.demande = service.getIdNextDemandeToProceed(minHour, maxHour);
+            this.demande = service.getIdNextDemandeToProceed(minHour, maxHour, bigVolume);
             if (this.demande == null) {
                 log.info(Constant.NO_DEMANDE_TO_PROCESS);
                 stepContribution.setExitStatus(new ExitStatus("AUCUNE DEMANDE"));
@@ -60,12 +68,6 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
         }
         return RepeatStatus.FINISHED;
     }
-
-    @Override
-    public void beforeStep(@NonNull StepExecution stepExecution) {
-        log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
-    }
-
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
