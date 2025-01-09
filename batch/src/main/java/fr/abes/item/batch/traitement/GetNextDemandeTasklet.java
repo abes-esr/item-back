@@ -25,12 +25,12 @@ import java.sql.SQLException;
 public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     private final StrategyFactory strategyFactory;
     private Demande demande;
-    private final TYPE_DEMANDE typeDemande;
-    private final int minHour;
-    private final int maxHour;
+    private TYPE_DEMANDE typeDemande;
+    private int minHour;
+    private int maxHour;
     private boolean bigVolume = false;
 
-    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, TYPE_DEMANDE typeDemande) {
+    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, boolean bigVolume, TYPE_DEMANDE typeDemande) {
         this.strategyFactory = strategyFactory;
         this.minHour = minHour;
         this.maxHour = maxHour;
@@ -40,10 +40,7 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     @Override
     public void beforeStep(@NonNull StepExecution stepExecution) {
         log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
-        log.debug("bigVolume : " + System.getProperty("bigVolume"));
-        if (System.getProperty("bigVolume") != null) {
-            this.bigVolume = Boolean.parseBoolean(System.getProperty("bigVolume"));
-        }
+        log.debug("bigVolume : " + this.bigVolume);
     }
 
     @Override

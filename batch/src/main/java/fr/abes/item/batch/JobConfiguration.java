@@ -63,6 +63,9 @@ public class JobConfiguration {
     @Value("${batch.max.hour}")
     int maxHour;
 
+    @Value("${bigVolume:false}")
+    private boolean bigVolume;
+
     @Value("${mail.admin}")
     private String mailAdmin;
 
@@ -102,13 +105,13 @@ public class JobConfiguration {
 
     // ------------- TASKLETS -----------------------
     @Bean
-    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.MODIF); }
+    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.MODIF); }
     @Bean
-    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.EXEMP); }
+    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.EXEMP); }
     @Bean
-    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.RECOUV); }
+    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.RECOUV); }
     @Bean
-    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, TYPE_DEMANDE.SUPP); }
+    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.SUPP); }
     @Bean
     public Tasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(strategyFactory, mailAdmin); }
     @Bean
