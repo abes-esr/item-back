@@ -15,10 +15,7 @@ import fr.abes.item.core.constant.Constant;
 import fr.abes.item.core.constant.TYPE_DEMANDE;
 import fr.abes.item.core.service.ReferenceService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParametersIncrementer;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
@@ -32,6 +29,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -40,6 +38,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -57,6 +59,8 @@ public class JobConfiguration {
     private final ProxyRetry proxyRetry;
     private final ReferenceService referenceService;
     private final JdbcTemplate jdbcTemplate;
+    private final ApplicationArguments applicationArguments;
+
     @Value("${batch.min.hour}")
     int minHour;
 
@@ -75,11 +79,12 @@ public class JobConfiguration {
     private Integer nbPpnInFileResult;
 
 
-    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService, @Qualifier("itemJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    public JobConfiguration(StrategyFactory strategyFactory, ProxyRetry proxyRetry, ReferenceService referenceService, @Qualifier("itemJdbcTemplate") JdbcTemplate jdbcTemplate, ApplicationArguments applicationArguments) {
         this.strategyFactory = strategyFactory;
         this.proxyRetry = proxyRetry;
         this.referenceService = referenceService;
         this.jdbcTemplate = jdbcTemplate;
+        this.applicationArguments = applicationArguments;
     }
 
     @Bean
@@ -98,6 +103,7 @@ public class JobConfiguration {
     public LignesFichierProcessor processor() {
         return new LignesFichierProcessor(strategyFactory, proxyRetry, this.referenceService);
     }
+
     @Bean
     public LignesFichierWriter writer() {
         return new LignesFichierWriter(strategyFactory);
@@ -105,65 +111,115 @@ public class JobConfiguration {
 
     // ------------- TASKLETS -----------------------
     @Bean
-    public Tasklet getNextDemandeModifTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.MODIF); }
+    public Tasklet getNextDemandeModifTasklet() {
+        return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, jobParameters(), TYPE_DEMANDE.MODIF);
+    }
+
     @Bean
-    public Tasklet getNextDemandeExempTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.EXEMP); }
+    public Tasklet getNextDemandeExempTasklet() {
+        return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, jobParameters(), TYPE_DEMANDE.EXEMP);
+    }
+
     @Bean
-    public Tasklet getNextDemandeRecouvTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.RECOUV); }
+    public Tasklet getNextDemandeRecouvTasklet() {
+        return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, jobParameters(), TYPE_DEMANDE.RECOUV);
+    }
+
     @Bean
-    public Tasklet getNextDemandeSuppTasklet() { return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, bigVolume, TYPE_DEMANDE.SUPP); }
+    public Tasklet getNextDemandeSuppTasklet() {
+        return new GetNextDemandeTasklet(strategyFactory, minHour, maxHour, jobParameters(), TYPE_DEMANDE.SUPP);
+    }
+
     @Bean
-    public Tasklet lireLigneFichierTasklet() { return new LireLigneFichierTasklet(strategyFactory, mailAdmin); }
+    public Tasklet lireLigneFichierTasklet() {
+        return new LireLigneFichierTasklet(strategyFactory, mailAdmin);
+    }
+
     @Bean
-    public Tasklet authentifierSurSudocTasklet()
-    {
+    public Tasklet authentifierSurSudocTasklet() {
         return new AuthentifierSurSudocTasklet(strategyFactory, mailAdmin, proxyRetry);
     }
+
     @Bean
-    public Tasklet creerFichierSauvegardeTasklet() { return new CreerFichierSauvegardeTasklet(strategyFactory, uploadPath); }
+    public Tasklet creerFichierSauvegardeTasklet() {
+        return new CreerFichierSauvegardeTasklet(strategyFactory, uploadPath);
+    }
+
     @Bean
-    public Tasklet genererFichierTasklet() { return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult); }
+    public Tasklet genererFichierTasklet() {
+        return new GenererFichierTasklet(strategyFactory, uploadPath, mailAdmin, nbPpnInFileResult);
+    }
+
     @Bean
-    public Tasklet verifierParamsTasklet() { return new VerifierParamsTasklet(); }
+    public Tasklet verifierParamsTasklet() {
+        return new VerifierParamsTasklet();
+    }
 
     //statistiques application
     @Bean
-    public Tasklet exportStatistiquesTasklet() { return new ExportStatistiquesTasklet(jdbcTemplate); }
+    public Tasklet exportStatistiquesTasklet() {
+        return new ExportStatistiquesTasklet(jdbcTemplate);
+    }
 
 
     //Archivage automatique des demandes
     @Bean
-    Tasklet archiveDemandesExempTakslet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.EXEMP); }
+    Tasklet archiveDemandesExempTakslet() {
+        return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.EXEMP);
+    }
+
     @Bean
-    Tasklet archiveDemandesModifTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.MODIF); }
+    Tasklet archiveDemandesModifTasklet() {
+        return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.MODIF);
+    }
+
     @Bean
-    Tasklet archiveDemandesRecouvTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.RECOUV); }
+    Tasklet archiveDemandesRecouvTasklet() {
+        return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.RECOUV);
+    }
+
     @Bean
-    Tasklet archiveDemandesSuppTasklet(){ return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.SUPP); }
+    Tasklet archiveDemandesSuppTasklet() {
+        return new ArchiveDemandesTakslet(strategyFactory, TYPE_DEMANDE.SUPP);
+    }
 
     //Passage en statut supprimé automatique des demandes
     @Bean
-    Tasklet deleteStatusDemandesExempTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.EXEMP); }
+    Tasklet deleteStatusDemandesExempTasklet() {
+        return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.EXEMP);
+    }
+
     @Bean
-    Tasklet deleteStatusDemandesModifTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.MODIF); }
+    Tasklet deleteStatusDemandesModifTasklet() {
+        return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.MODIF);
+    }
+
     @Bean
-    Tasklet deleteStatusDemandesRecouvTasklet(){ return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.RECOUV); }
+    Tasklet deleteStatusDemandesRecouvTasklet() {
+        return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.RECOUV);
+    }
+
     @Bean
-    Tasklet deleteStatusDemandesSuppTasklet() { return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.SUPP); }
+    Tasklet deleteStatusDemandesSuppTasklet() {
+        return new DeleteStatusDemandesTasklet(strategyFactory, TYPE_DEMANDE.SUPP);
+    }
 
     //Suppression définitive des demandes
     @Bean
-    Tasklet deleteDemandesExempTasklet(){
+    Tasklet deleteDemandesExempTasklet() {
         return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.EXEMP);
     }
+
     @Bean
-    Tasklet deleteDemandesModifTasklet(){
+    Tasklet deleteDemandesModifTasklet() {
         return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.MODIF);
     }
+
     @Bean
-    Tasklet deleteDemandesRecouvTasklet(){
+    Tasklet deleteDemandesRecouvTasklet() {
         return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.RECOUV);
     }
+
     @Bean
     Tasklet deleteDemandesSuppTasklet() {
         return new DeleteDemandesTasklet(strategyFactory, TYPE_DEMANDE.SUPP);
@@ -173,29 +229,33 @@ public class JobConfiguration {
 
     @Bean
     public Step stepRecupererNextDemandeModif(JobRepository jobRepository,
-                                              @Qualifier("getNextDemandeModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+                                              @Qualifier("getNextDemandeModifTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeModif", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepRecupererNextDemandeExemp(JobRepository jobRepository, @Qualifier("getNextDemandeExempTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeExemp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepRecupererNextDemandeRecouv(JobRepository jobRepository, @Qualifier("getNextDemandeRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeRecouv", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepRecupererNextDemandeSupp(JobRepository jobRepository, @Qualifier("getNextDemandeSuppTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepRecupererNextDemandeSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     // Steps pour lancement d'un traitement de modification de masse
     @Bean
     public Step stepLireLigneFichier(JobRepository jobRepository, @Qualifier("lireLigneFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
@@ -203,20 +263,23 @@ public class JobConfiguration {
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepAuthentifierSurSudoc(JobRepository jobRepository, @Qualifier("authentifierSurSudocTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepAuthentifierSurSudoc", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     protected Step stepTraiterLigneFichier(JobRepository jobRepository, PlatformTransactionManager transactionManager, ItemReader<LigneFichierDto> reader, ItemProcessor<LigneFichierDto, LigneFichierDto> processor, ItemWriter<LigneFichierDto> writer) {
-        return new StepBuilder("stepTraiterLigneFichier", jobRepository).<LigneFichierDto, LigneFichierDto> chunk(1, transactionManager)
+        return new StepBuilder("stepTraiterLigneFichier", jobRepository).<LigneFichierDto, LigneFichierDto>chunk(1, transactionManager)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)
                 .build();
     }
+
     //Step s'éxecutant en cas d'erreur survenant pendant le traitement des lignes du fichier
     @Bean
     @Qualifier("stepTraitementErreurStep4")
@@ -236,6 +299,7 @@ public class JobConfiguration {
                 }, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepGenererFichier(JobRepository jobRepository, @Qualifier("genererFichierTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepGenererFichier", jobRepository).allowStartIfComplete(true)
@@ -252,14 +316,14 @@ public class JobConfiguration {
 
     // Steps pour exports statistiques
     @Bean
-    public Step stepVerifierParams(JobRepository jobRepository, @Qualifier("verifierParamsTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepVerifierParams(JobRepository jobRepository, @Qualifier("verifierParamsTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepVerifierParams", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Step stepExportStatistiques(JobRepository jobRepository, @Qualifier("exportStatistiquesTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepExportStatistiques(JobRepository jobRepository, @Qualifier("exportStatistiquesTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepExportStatistiques", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
@@ -268,25 +332,28 @@ public class JobConfiguration {
 
     //Steps d'archivage automatique des demandes
     @Bean
-    public Step stepArchivageAutomatiqueDemandesExemp(JobRepository jobRepository, @Qualifier("archiveDemandesExempTakslet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesExemp(JobRepository jobRepository, @Qualifier("archiveDemandesExempTakslet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesExemp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepArchivageAutomatiqueDemandesModif(JobRepository jobRepository, @Qualifier("archiveDemandesModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesModif(JobRepository jobRepository, @Qualifier("archiveDemandesModifTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesModif", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepArchivageAutomatiqueDemandesRecouv(JobRepository jobRepository, @Qualifier("archiveDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesRecouv(JobRepository jobRepository, @Qualifier("archiveDemandesRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesRecouv", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepArchivageAutomatiqueDemandesSupp(JobRepository jobRepository, @Qualifier("archiveDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepArchivageAutomatiqueDemandesSupp(JobRepository jobRepository, @Qualifier("archiveDemandesSuppTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepArchivageAutomatiqueDemandesSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
@@ -299,21 +366,23 @@ public class JobConfiguration {
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
     public Step stepChangementStatutSupprimeDemandesModif(JobRepository jobRepository, @Qualifier("deleteStatusDemandesModifTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesModif", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepChangementStatutSupprimeDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteStatusDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepChangementStatutSupprimeDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteStatusDemandesRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesRecouv", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Step stepChangementStatutSupprimeDemandesSupp(JobRepository jobRepository, @Qualifier("deleteStatusDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepChangementStatutSupprimeDemandesSupp(JobRepository jobRepository, @Qualifier("deleteStatusDemandesSuppTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepChangementStatutSupprimeDemandesSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
@@ -321,26 +390,28 @@ public class JobConfiguration {
 
     //Steps de destruction en base de donnée des demandes
     @Bean
-    public Step stepSuppresionDemandesExemp(JobRepository jobRepository, @Qualifier("deleteDemandesExempTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesExemp(JobRepository jobRepository, @Qualifier("deleteDemandesExempTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesExemp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepSuppresionDemandesModif(JobRepository jobRepository, @Qualifier("deleteDemandesModifTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesModif(JobRepository jobRepository, @Qualifier("deleteDemandesModifTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesModif", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
+
     @Bean
-    public Step stepSuppresionDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteDemandesRecouvTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppresionDemandesRecouv(JobRepository jobRepository, @Qualifier("deleteDemandesRecouvTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppresionDemandesRecouv", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Step stepSuppressionDemandesSupp(JobRepository jobRepository, @Qualifier("deleteDemandesSuppTasklet")Tasklet tasklet, PlatformTransactionManager transactionManager) {
+    public Step stepSuppressionDemandesSupp(JobRepository jobRepository, @Qualifier("deleteDemandesSuppTasklet") Tasklet tasklet, PlatformTransactionManager transactionManager) {
         return new StepBuilder("stepSuppressionDemandesSupp", jobRepository).allowStartIfComplete(true)
                 .tasklet(tasklet, transactionManager)
                 .build();
@@ -357,7 +428,7 @@ public class JobConfiguration {
                                       @Qualifier("stepAuthentifierSurSudoc") Step step3,
                                       @Qualifier("stepTraiterLigneFichier") Step step4,
                                       @Qualifier("stepGenererFichier") Step step5) {
-        return new JobBuilder("traiterLigneFichierModif", jobRepository ).incrementer(incrementer())
+        return new JobBuilder("traiterLigneFichierModif", jobRepository).incrementer(incrementer())
                 .start(step1).on(Constant.FAILED).end()
                 .from(step1).on(Constant.AUCUNE_DEMANDE).end()
                 .from(step1).on(Constant.COMPLETED).to(step2)
@@ -472,4 +543,17 @@ public class JobConfiguration {
         return new TimeIncrementer();
     }
 
+    @Bean
+    public JobParameters jobParameters() {
+        Map<String, JobParameter<?>> params = new HashMap<>();
+        if (applicationArguments.containsOption("bigVolume")) {
+            List<String> values = applicationArguments.getOptionValues("bigVolume");
+            if (values != null && !values.isEmpty()) {
+                String bigVolumeValue = values.get(0);
+                log.debug("Valeur precise de bigVolume: " + bigVolumeValue);
+                params.put("bigVolume", new JobParameter(bigVolumeValue, String.class));
+            }
+        }
+        return new JobParameters(params);
+    }
 }

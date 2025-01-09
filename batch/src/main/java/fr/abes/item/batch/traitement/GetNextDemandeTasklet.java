@@ -10,16 +10,14 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.dao.DataAccessException;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 @Slf4j
 public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
@@ -29,17 +27,20 @@ public class GetNextDemandeTasklet implements Tasklet, StepExecutionListener {
     private int minHour;
     private int maxHour;
     private boolean bigVolume = false;
+    private JobParameters jobParameters;
 
-    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, boolean bigVolume, TYPE_DEMANDE typeDemande) {
+    public GetNextDemandeTasklet(StrategyFactory strategyFactory, int minHour, int maxHour, JobParameters jobParameters, TYPE_DEMANDE typeDemande) {
         this.strategyFactory = strategyFactory;
         this.minHour = minHour;
         this.maxHour = maxHour;
         this.typeDemande = typeDemande;
+        this.jobParameters = jobParameters;
     }
 
     @Override
     public void beforeStep(@NonNull StepExecution stepExecution) {
         log.info(Constant.JOB_TRAITER_LIGNE_FICHIER_START + Utilitaires.getLabelTypeDemande(this.typeDemande));
+        this.bigVolume = Objects.equals(jobParameters.getString("bigVolume", "false"), "true");
         log.debug("bigVolume : " + this.bigVolume);
     }
 
