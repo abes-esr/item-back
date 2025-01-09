@@ -13,10 +13,10 @@ then
   isEnAttenteSmallVolume=$(curl -s $urlIsEnAttenteSmallVolume)
   if [[ $isEnAttenteBigVolume == 'true' && $(pgrep -cf "traiterLigneFichierExemp --bigVolume=true") < 1 ]];
   then
-   java -XX:MaxRAMPercentage=80 org.springframework.boot.loader.JarLauncher --spring.batch.job.name=traiterLigneFichierExemp --bigVolume=true --server.port=0
+   java -XX:MaxRAMPercentage=80 org.springframework.boot.loader.JarLauncher --spring.batch.job.name=traiterLigneFichierExemp --bigVolume=true --server.port=0 &
   fi
   if [[ $isEnAttenteSmallVolume == 'true' && $(pgrep -cf "traiterLigneFichierExemp --bigVolume=false") < 1 ]];
   then
-   java -XX:MaxRAMPercentage=80 org.springframework.boot.loader.JarLauncher --spring.batch.job.name=traiterLigneFichierExemp --bigVolume=false --server.port=0
+   java -XX:MaxRAMPercentage=80 org.springframework.boot.loader.JarLauncher --spring.batch.job.name=traiterLigneFichierExemp --bigVolume=false --server.port=0 &
   fi
 fi
