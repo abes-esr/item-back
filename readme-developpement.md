@@ -32,6 +32,10 @@ spring.batch.job.name=traiterLigneFichierSupp
 - pour lancer le batch de recouvrement
 spring.batch.job.name=traiterLigneFichierRecouv
 
+Pour debugguer un problème lié à un traitement en production dans votre configuration :
+serveur: cbs-app-prod.v102.abes.fr
+port: 1061
+
 ### Module `core`
 
 Le module `core` permet de mettre à jour les informations de la demande au fur et à mesure que celle-ci est saisie
