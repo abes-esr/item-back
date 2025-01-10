@@ -20,6 +20,12 @@ Le module `batch` permet d'effectuer les traitements de création, de modificati
 l'aboutissement des demandes enregistrées dans la base de données PostgreSQL. 
 Il se lance à intervals réguliers, qui sont définis dans le fichier `item-api/docker/batch/tasks.tmpl`.
 
+## Cas particulier de la V2
+
+En v2 les fichiers de propriété doivent contenir :
+spring.jpa.item.database-platform=org.hibernate.dialect.Oracle12cDialect
+spring.jpa.item.properties.hibernate.dialect=org.hibernate.dialect.Oracle12cDialect
+
 #### Lancement des différents batchs en local :
 
 Dans votre fichier application-localhost.properties, placer la variable suivante :
