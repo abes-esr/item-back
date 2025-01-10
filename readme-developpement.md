@@ -20,6 +20,18 @@ Le module `batch` permet d'effectuer les traitements de création, de modificati
 l'aboutissement des demandes enregistrées dans la base de données PostgreSQL. 
 Il se lance à intervals réguliers, qui sont définis dans le fichier `item-api/docker/batch/tasks.tmpl`.
 
+#### Lancement des différents batchs en local :
+
+Dans votre fichier application-localhost.properties, placer la variable suivante :
+- pour lancer le batch d'exemplarisation
+spring.batch.job.name=traiterLigneFichierExemp
+- pour lancer le batch de modification
+spring.batch.job.name=traiterLigneFichierModif
+- pour lancer le batch de suppression
+spring.batch.job.name=traiterLigneFichierSupp
+- pour lancer le batch de recouvrement
+spring.batch.job.name=traiterLigneFichierRecouv
+
 ### Module `core`
 
 Le module `core` permet de mettre à jour les informations de la demande au fur et à mesure que celle-ci est saisie
