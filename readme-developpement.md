@@ -14,17 +14,17 @@ Le langage utilisé est Java, avec le framework Spring.
 Chaque demande envoyée par le client item-client se voit attribuer un numéro de demande et un état. 
 Ce dernier changera en fonction de l'avancée de la saisie et du traitement de la demande.
 
+### Cas particulier de la maintenance V2
+
+En v2 les fichiers de propriété doivent contenir :
+- spring.jpa.item.database-platform=org.hibernate.dialect.Oracle12cDialect
+- spring.jpa.item.properties.hibernate.dialect=org.hibernate.dialect.Oracle12cDialect
+
 ### Module `batch`
 
 Le module `batch` permet d'effectuer les traitements de création, de modification et de suppression permettant 
 l'aboutissement des demandes enregistrées dans la base de données PostgreSQL. 
 Il se lance à intervals réguliers, qui sont définis dans le fichier `item-api/docker/batch/tasks.tmpl`.
-
-## Cas particulier de la V2
-
-En v2 les fichiers de propriété doivent contenir :
-spring.jpa.item.database-platform=org.hibernate.dialect.Oracle12cDialect
-spring.jpa.item.properties.hibernate.dialect=org.hibernate.dialect.Oracle12cDialect
 
 #### Lancement des différents batchs en local :
 
