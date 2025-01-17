@@ -22,19 +22,19 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
      * @return les demandes appartenant à l'iln de l'utilisateur (un iln comprenant plusieurs rcr)
      *            et qui sont ni dans l'état préparé, ni dans l'état archivé
      */
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeModif d JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
     List<DemandeDto> getActiveDemandesModifForUserExceptedPreparedStatus(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesModifForAdmin(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d JOIN d.ligneFichierModifs l where d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesModifForAdminExtended();
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesModif(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d JOIN d.ligneFichierModifs l where d.etatDemande.numEtat = 9 GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesModifExtended();
 
     @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")

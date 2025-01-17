@@ -14,19 +14,19 @@ import java.util.List;
 @ItemConfiguration
 public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l WHERE d.etatDemande.numEtat NOT IN (9, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d LEFT JOIN d.ligneFichierSupps l WHERE d.etatDemande.numEtat NOT IN (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesSuppForAdminExtended();
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d LEFT JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 10) GROUP BY d")
     List<DemandeDto> getAllActiveDemandesSuppForAdmin(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d LEFT JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSupp(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, count(l)) from DemandeSupp d JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, count(l)) from DemandeSupp d LEFT JOIN d.ligneFichierSupps l where d.iln = :iln and d.etatDemande.numEtat not in (9, 2, 10) GROUP BY d")
     List<DemandeDto> getActiveDemandesSuppForUserExceptedPreparedStatus(@Param("iln") String iln);
 
-    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
+    @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d LEFT JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSuppExtended();
 
     @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
