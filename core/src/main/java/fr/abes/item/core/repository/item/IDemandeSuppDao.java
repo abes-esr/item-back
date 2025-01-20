@@ -29,10 +29,10 @@ public interface IDemandeSuppDao extends JpaRepository<DemandeSupp, Integer> {
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) FROM DemandeSupp d JOIN d.ligneFichierSupps l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesSuppExtended();
 
-    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
+    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification desc")
     List<DemandeSupp> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
 
-    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification")
+    @Query("select d from DemandeSupp d join d.ligneFichierSupps l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification desc")
     List<DemandeSupp> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
 
     @Query("select d from DemandeSupp d where d.etatDemande.numEtat = 7 and (day(current_date) - day(d.dateModification)) > 90 order by d.dateModification asc")
