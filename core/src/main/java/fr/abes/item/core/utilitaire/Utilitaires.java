@@ -14,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -368,6 +371,19 @@ public class Utilitaires {
             case MODIF -> "modification";
             case SUPP -> "suppression";
         };
+    }
+
+    public static void isValidUtf8(String input) throws FileCheckingException {
+        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+        String messageErreur = "le fichier contient des caracters qui ne sont pas en UTF8";
+        try {
+            decoder.decode(java.nio.ByteBuffer.wrap(input.getBytes(StandardCharsets.UTF_8)));
+        } catch (CharacterCodingException e) {
+            throw new FileCheckingException(messageErreur);
+        }
+        if(input.contains("�")){
+            throw new FileCheckingException(messageErreur);
+        }
     }
 
 }

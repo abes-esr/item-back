@@ -84,6 +84,7 @@ public class FichierEnrichiSupp extends AbstractFichier implements Fichier {
      */
     private void checkBodyLine(String ligne, DemandeSupp demandeSupp) throws FileCheckingException {
         try {
+            Utilitaires.isValidUtf8(ligne);
             // contrôle de la longueur de la ligne
             if (ligne.split(";").length > 3) {
                 throw new FileCheckingException(Constant.ERR_FILE_LINE + ligne + " : " + Constant.ERR_FILE_3COL_SUPP_ANY_LINE);

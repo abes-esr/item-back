@@ -147,6 +147,7 @@ public class FichierEnrichiModif extends AbstractFichier implements Fichier {
             throw new FileCheckingException(Constant.ERR_FILE_ERRLINE + ligneCourante
                     + Constant.ERR_FILE_LINELENGTH);
         }
+        Utilitaires.isValidUtf8(ligne);
         try {
             String[] tabligne = ligne.split(";");
             checkRcr(tabligne[1], demandeModif.getRcr(), ligneCourante);
