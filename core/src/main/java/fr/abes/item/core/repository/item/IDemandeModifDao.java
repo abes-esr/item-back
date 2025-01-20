@@ -37,10 +37,10 @@ public interface IDemandeModifDao extends JpaRepository<DemandeModif, Integer> {
     @Query("select new fr.abes.item.core.dto.DemandeDto(d, COUNT(l)) from DemandeModif d LEFT JOIN d.ligneFichierModifs l where d.etatDemande.numEtat = 9 GROUP BY d")
     List<DemandeDto> getAllArchivedDemandesModifExtended();
 
-    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification")
+    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) > :limite order by d.dateModification desc")
     List<DemandeModif> getDemandesEnAttenteGrosVolume(@Param("limite") int limite);
 
-    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification")
+    @Query("select d from DemandeModif d join d.ligneFichierModifs l where d.etatDemande.numEtat = 5 group by d having count(l) <= :limite order by d.dateModification desc")
     List<DemandeModif> getDemandesEnAttentePetitVolume(@Param("limite") int limite);
 
     @Query("select d from DemandeModif d where d.etatDemande.numEtat = 10 order by d.dateModification asc")
