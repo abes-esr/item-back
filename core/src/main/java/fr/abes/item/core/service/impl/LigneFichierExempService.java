@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,6 +51,8 @@ public class LigneFichierExempService implements ILigneFichierService {
     private String donneeLocaleExistante;
     @Getter
     private int nbReponses;
+    private final ReentrantLock lock = new ReentrantLock();
+
 
     public LigneFichierExempService(ILigneFichierExempDao dao, TraitementService traitementService, IZonesAutoriseesDao zonesAutoriseesDao) {
         this.dao = dao;
@@ -186,6 +189,7 @@ public class LigneFichierExempService implements ILigneFichierService {
         try {
             DemandeExemp demande = (DemandeExemp) demandeExemp;
             LigneFichierExemp ligneFichier = (LigneFichierExemp) ligneFichierExemp;
+            lock.lock();
             traitementService.authenticate("M" + demande.getRcr());
             String numEx = launchQueryToSudoc(demande, ligneFichier.getIndexRecherche());
             //Retourne le tableau exemplaires existants / Exemplaire à créer
@@ -204,6 +208,7 @@ public class LigneFichierExempService implements ILigneFichierService {
             throw new CBSException(Level.ERROR, e.getMessage());
         } finally {
             traitementService.disconnect();
+            lock.unlock();
         }
     }
 
