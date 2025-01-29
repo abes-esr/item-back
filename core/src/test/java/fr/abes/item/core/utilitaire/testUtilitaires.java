@@ -189,4 +189,10 @@ class TestUtilitaires {
         String var2 = Utilitaires.replaceDiacritical(var);
         assertEquals("e, e, e, e, a, a, a, i, i, o, o, u, u, u, y, ae, oe, c, n, oe", var2);
     }
+
+    @Test
+    void testIsValidUtf8() throws FileCheckingException {
+        assertThrows(FileCheckingException.class, () -> {Utilitaires.isValidUtf8("test�test");});
+        Utilitaires.isValidUtf8("teékjhfd-èç_kjkfsdj)");
+    }
 }

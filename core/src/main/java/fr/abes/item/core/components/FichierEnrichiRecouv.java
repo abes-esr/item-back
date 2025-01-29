@@ -84,6 +84,7 @@ public class FichierEnrichiRecouv extends AbstractFichier implements Fichier {
             }
 
             while ((ligne = bufLecteur.readLine()) != null) { //Tant qu'il y a des lignes à lire dans le fichier
+                Utilitaires.isValidUtf8(ligne);
                 this.checkAnormalLineOfExemplary(ligneCourante, ligne); //Détecte une ligne de données vide
                 //Supprime les éventuels ; que l'utilisateur aurait pu rajouter à la fin des lignes
                 ligne = Utilitaires.removeSemicolonFromEndOfLine(ligne);
