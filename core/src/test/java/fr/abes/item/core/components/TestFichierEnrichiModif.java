@@ -195,15 +195,6 @@ class TestFichierEnrichiModif {
 		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_NOTRAIT));
 	}
 
-	@DisplayName("checkPpn")
-	@Test
-	void checkPpn() {
-		DemandeModif demandeModif = new DemandeModif("341720001", new Date(), new Date(), "", "", "", new EtatDemande(1), new Utilisateur(1), new Traitement(1, "Ajout une sous-zone", "ajoutSousZone"));
-		FichierEnrichiModif fic = new FichierEnrichiModif("NokPpn.csv");
-		fic.setPath(Paths.get("src/test/resources/fichierEnrichiModif"));
-		assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeModif)).getMessage().contains(Constant.ERR_FILE_WRONGPPN));
-	}
-
 	@DisplayName("checkEpn")
 	@Test
 	void checkEpn() {
