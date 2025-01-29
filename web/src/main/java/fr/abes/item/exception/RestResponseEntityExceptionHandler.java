@@ -29,9 +29,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<?> handleBadCredentials(Throwable t) { return buildResponseEntity(new ApiReturnError(HttpStatus.UNAUTHORIZED, t.getMessage(), t)); }
 
-	@ExceptionHandler({ IllegalArgumentException.class, FileCheckingException.class, FileTypeException.class})
+	@ExceptionHandler({ IllegalArgumentException.class, FileTypeException.class})
 	public ResponseEntity<?> handleMiscFailures(Throwable t) {
 		return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, Constant.ERR_FILE_WRONGCONTENT, t));
+	}
+
+	@ExceptionHandler({ FileCheckingException.class })
+	public ResponseEntity<?> handleFileCheckingFailures(Throwable t) {
+		return buildResponseEntity(new ApiReturnError("fileCheckingError", HttpStatus.BAD_REQUEST, Constant.ERR_FILE_WRONGCONTENT, t));
 	}
 
 	@ExceptionHandler({ DemandeCheckingException.class })

@@ -30,5 +30,16 @@ public class ApiReturnError {
         this.debugMessage = ex.getMessage();
     }
 
-
+    ApiReturnError(String fileCheckingError, HttpStatus status, String message, Throwable ex) {
+        this();
+        if (ex.getMessage().contains("Le fichier dépasse la limite des")) {
+            this.status = status;
+            this.message = ex.getMessage();
+            this.debugMessage = ex.getMessage();
+        } else {
+            this.status = status;
+            this.message = message;
+            this.debugMessage = ex.getMessage();
+        }
+    }
 }
