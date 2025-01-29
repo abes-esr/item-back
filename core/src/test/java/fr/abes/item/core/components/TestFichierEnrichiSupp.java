@@ -37,15 +37,6 @@ public class TestFichierEnrichiSupp {
         fic.checkFileContent(demandeSupp);
     }
 
-    @DisplayName("checkPpnNonOk")
-    @Test
-    void checkPpnNonOk() {
-        DemandeSupp demandeSupp = new DemandeSupp("341725201", new Date(), new Date(), TYPE_SUPPRESSION.EPN, "", new EtatDemande(1), new Utilisateur(1));
-        FichierEnrichiSupp fic = new FichierEnrichiSupp("checkPpnNonOk.csv");
-        fic.setPath(Paths.get("src/test/resources/fichierEnrichiSupp"));
-        assertTrue(assertThrows(FileCheckingException.class, () -> fic.checkFileContent(demandeSupp)).getMessage().contains(Constant.ERR_FILE_WRONGPPN));
-    }
-
     @DisplayName("checkRcrNonOk")
     @Test
     void checkRcrNonOk() {

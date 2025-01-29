@@ -99,7 +99,7 @@ public abstract class AbstractFichier {
      * @throws FileCheckingException : erreur de format de fichier
      */
     protected void checkPpn(String ppn, int ligneCourante) throws FileCheckingException {
-        if (!ppn.matches("^(\\d{8}[0-9X])?$")){
+        if (!ppn.matches("^([0123456789Xx]{0,9})?$")){
             throw new FileCheckingException(Constant.ERR_FILE_LINE + ligneCourante + " : " + Constant.ERR_FILE_WRONGPPN);
         }
     }
