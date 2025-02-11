@@ -113,7 +113,7 @@ spring.hibernate.item.enable_lazy_load_no_trans=false
 ```xml
 spring.jpa.item.generate-ddl=false
 spring.jpa.item.show-sql=false
-spring.jpa.item.hibernate.ddl-auto=none
+spring.jpa.item.hibernate.ddl-auto=update
 spring.sql.item.init.mode=never
 spring.hibernate.item.enable_lazy_load_no_trans=true
 spring.batch.jdbc.initialize-schema=never
