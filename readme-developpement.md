@@ -120,6 +120,7 @@ spring.batch.jdbc.initialize-schema=never
 ```
 
 Attention il faudra penser également à lancer les instruction sql suivantes sur la base pour les tables : 
+(en cas de violation de contrainte, créer les données dans l'ordre des tables permettant de l'éviter)
 
 table etat_demande
 ```sql
