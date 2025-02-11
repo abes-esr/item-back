@@ -86,6 +86,7 @@ spring.jpa.item.show-sql=false
 spring.jpa.item.hibernate.ddl-auto=create-drop
 spring.sql.item.init.mode=always
 spring.hibernate.item.enable_lazy_load_no_trans=false
+spring.datasource.schema=classpath:import.sql
 ```
 
 - fichier application-localhost.properties du module batch
