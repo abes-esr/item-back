@@ -111,12 +111,12 @@ spring.hibernate.item.enable_lazy_load_no_trans=false
 
 - application-localhost.properties du module batch
 ```xml
-spring.jpa.item.generate-ddl=true
+spring.jpa.item.generate-ddl=false
 spring.jpa.item.show-sql=false
-spring.jpa.item.hibernate.ddl-auto=create
-spring.sql.item.init.mode=always
+spring.jpa.item.hibernate.ddl-auto=none
+spring.sql.item.init.mode=never
 spring.hibernate.item.enable_lazy_load_no_trans=true
-spring.batch.jdbc.initialize-schema=always
+spring.batch.jdbc.initialize-schema=never
 ```
 
 Ces fichiers sont non-versionnés. Cela signifie que certains paramètres
