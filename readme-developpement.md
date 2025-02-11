@@ -119,6 +119,170 @@ spring.hibernate.item.enable_lazy_load_no_trans=true
 spring.batch.jdbc.initialize-schema=never
 ```
 
+Attention il faudra penser également à lancer les instruction sql suivantes sur la base pour les tables : 
+
+table etat_demande
+```sql
+INSERT INTO public.etat_demande (num_etat,libelle) VALUES
+	 (1,'En préparation'),
+	 (2,'Préparée'),
+	 (3,'A compléter'),
+	 (4,'En simulation'),
+	 (5,'En attente'),
+	 (6,'En cours de traitement'),
+	 (7,'Terminé'),
+	 (8,'En erreur'),
+	 (9,'Archivé'),
+	 (10,'Supprimé');
+INSERT INTO public.etat_demande (num_etat,libelle) VALUES
+	 (11,'Annulé');
+```
+table index_recherche
+```sql
+INSERT INTO public.index_recherche (index_zones,num_index_recherche,code,libelle) VALUES
+	 (1,1,'ISBN','ISBN'),
+	 (1,2,'ISSN','ISSN'),
+	 (1,3,'PPN','PPN'),
+	 (1,4,'SOU','Numéro Source'),
+	 (3,5,'DAT','Date;Auteur;Titre');
+```
+
+table index_recherche_type_exemp
+```sql
+INSERT INTO public.index_recherche_type_exemp (num_index_recherche,num_type_exemp) VALUES
+	 (1,1),
+	 (1,3),
+	 (2,2),
+	 (3,1),
+	 (3,2),
+	 (3,3),
+	 (4,1),
+	 (4,2),
+	 (4,3),
+	 (5,3);
+```
+
+table role
+```sql
+INSERT INTO public."role" (num_role,libelle,user_group) VALUES
+	 (1,'Admin','ABES'),
+	 (2,'Utilisateur','coordinateur');
+```
+
+table sous_zones_autorisees
+```sql
+INSERT INTO public.sous_zones_autorisees (mandatory,num_sous_zone,num_zone,libelle) VALUES
+	 (false,1,1,'$a'),
+	 (false,2,2,'$c'),
+	 (false,3,2,'$d'),
+	 (false,4,2,'$e'),
+	 (false,5,2,'$a'),
+	 (false,6,2,'$i'),
+	 (true,7,2,'$j'),
+	 (false,8,2,'$v'),
+	 (false,9,2,'$2'),
+	 (false,10,3,'$a');
+INSERT INTO public.sous_zones_autorisees (mandatory,num_sous_zone,num_zone,libelle) VALUES
+	 (false,18,5,'$a'),
+	 (false,19,6,'$a'),
+	 (false,20,7,'$a'),
+	 (false,21,7,'$b'),
+	 (false,22,7,'$c'),
+	 (false,23,7,'$d'),
+	 (false,24,7,'$x'),
+	 (false,25,8,'$l'),
+	 (false,26,8,'$z'),
+	 (false,27,8,'$q');
+INSERT INTO public.sous_zones_autorisees (mandatory,num_sous_zone,num_zone,libelle) VALUES
+	 (false,28,8,'$u'),
+	 (false,29,8,'$9'),
+	 (false,30,9,'$a'),
+	 (false,31,10,'$a'),
+	 (false,32,10,'$b'),
+	 (true,42,11,'$a'),
+	 (false,43,11,'$k'),
+	 (false,44,11,'$4'),
+	 (false,45,12,'$a'),
+	 (false,46,12,'$b');
+INSERT INTO public.sous_zones_autorisees (mandatory,num_sous_zone,num_zone,libelle) VALUES
+	 (false,47,12,'$c'),
+	 (false,48,10,'$f'),
+	 (false,49,8,'$b'),
+	 (false,50,8,'$y'),
+	 (false,51,2,'$l'),
+	 (false,52,2,'$k'),
+	 (false,53,8,'$x');
+```
+
+table traitement
+```sql
+INSERT INTO public.traitement (num_traitement,libelle,nom_methode) VALUES
+	 (1,'Créer une nouvelle zone','creerNouvelleZone'),
+	 (2,'Créer une sous-zone','ajoutSousZone'),
+	 (3,'Remplacer une sous-zone','remplacerSousZone'),
+	 (4,'Supprimer une sous-zone','supprimerSousZone'),
+	 (5,'Supprimer une zone','supprimerZone');
+```
+
+table type_exemp
+```sql
+INSERT INTO public.type_exemp (num_type_exemp,libelle) VALUES
+	 (1,'Monographies électroniques'),
+	 (2,'Périodiques électroniques'),
+	 (3,'Autres ressources (monographies imprimées)');
+```
+
+table zone_autorisees
+```sql
+INSERT INTO public.zones_autorisees (num_zone,indicateurs,label_zone) VALUES
+	 (1,'##','917'),
+	 (2,'##','930'),
+	 (3,'##','991'),
+	 (5,'##','E316'),
+	 (6,'##','E317'),
+	 (7,'##','E319'),
+	 (8,'4#','E856'),
+	 (9,'##','L035'),
+	 (10,'##','915'),
+	 (11,'41','955');
+INSERT INTO public.zones_autorisees (num_zone,indicateurs,label_zone) VALUES
+	 (12,'##','920');
+```
+
+table zone_autorisees_type_exemp
+```sql
+INSERT INTO public.zones_autorisees_type_exemp (zonesautorisees_num_zone,zonestypesexemp_num_type_exemp) VALUES
+	 (1,1),
+	 (2,1),
+	 (3,1),
+	 (5,1),
+	 (6,1),
+	 (7,1),
+	 (8,1),
+	 (9,1),
+	 (10,1),
+	 (1,2);
+INSERT INTO public.zones_autorisees_type_exemp (zonesautorisees_num_zone,zonestypesexemp_num_type_exemp) VALUES
+	 (2,2),
+	 (3,2),
+	 (5,2),
+	 (6,2),
+	 (7,2),
+	 (8,2),
+	 (9,2),
+	 (11,2),
+	 (1,3),
+	 (2,3);
+INSERT INTO public.zones_autorisees_type_exemp (zonesautorisees_num_zone,zonestypesexemp_num_type_exemp) VALUES
+	 (3,3),
+	 (5,3),
+	 (6,3),
+	 (7,3),
+	 (9,3),
+	 (10,3),
+	 (12,3);
+```
+
 Ces fichiers sont non-versionnés. Cela signifie que certains paramètres
 sont définis sans variables et qu'il vous appartiendra de les définir vous-même selon vos usages,
 notamment concernant les accès aux bases de données.
