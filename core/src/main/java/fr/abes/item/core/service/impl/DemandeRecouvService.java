@@ -241,7 +241,6 @@ public class DemandeRecouvService extends DemandeService implements IDemandeServ
     private void majDemandeWithFichierEnrichi(DemandeRecouv demandeRecouv) throws DemandeCheckingException, IOException {
         demandeRecouv.setIndexRecherche(fichierEnrichiRecouv.getIndexRecherche());
         ligneFichierService.saveFile(storageService.loadAsResource(fichierEnrichiRecouv.getFilename()).getFile(), demandeRecouv);
-        changeState(demandeRecouv, Constant.ETATDEM_ATTENTE);
     }
     /**
      * Stockage physique du fichier de la demande sur le disque
