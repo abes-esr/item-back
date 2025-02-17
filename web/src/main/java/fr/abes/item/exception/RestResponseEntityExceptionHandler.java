@@ -36,7 +36,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
 	@ExceptionHandler({ FileCheckingException.class })
 	public ResponseEntity<?> handleFileCheckingFailures(Throwable t) {
-		return buildResponseEntity(new ApiReturnError("fileCheckingError", HttpStatus.BAD_REQUEST, Constant.ERR_FILE_WRONGCONTENT, t));
+		if (t.getMessage().contains(Constant.ERR_FILE_TOOMUCH_START)) {
+			return buildResponseEntity(new ApiReturnError(HttpStatus.UNAUTHORIZED, t.getMessage()));
+		} else {
+			return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, Constant.ERR_FILE_WRONGCONTENT, t));
+		}
 	}
 
 	@ExceptionHandler({ DemandeCheckingException.class })
