@@ -30,5 +30,10 @@ public class ApiReturnError {
         this.debugMessage = ex.getMessage();
     }
 
-
+    ApiReturnError(HttpStatus status, String message) {
+        this();
+        this.status = status;
+        this.message = message;
+        this.debugMessage = message;
+    }
 }
